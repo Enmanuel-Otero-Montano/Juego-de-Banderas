@@ -1,4 +1,5 @@
 :root {
+    --bg-header: hsl(356, 79%, 52%);
     --text-color: hsl(60, 100%, 50%);
     --text-color-button-menu: hsl(0, 100%, 50%);
     --bg-color-button-menu: hsl(50, 100%, 70%);
@@ -25,7 +26,7 @@ body {
     height: 60px;
     padding-left: 20px;
     padding-right: 20px;
-    background-color: #e83845;
+    background-color: var(--bg-header);
     color: var(--text-color);
 }
 
@@ -96,7 +97,7 @@ body {
 .options-container-show {
     transform: scaleY(1);
     transition-property: transform;
-    transition-duration: 150ms;
+    transition-duration: 350ms;
 }
 
 .options-container > div {
