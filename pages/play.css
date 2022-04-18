@@ -10,9 +10,10 @@
 }
 
 body {
+    min-height: 100vh;
     font-family: 'Lato', sans-serif;
     font-size: 16px;
-    padding: 10px 10px 0;
+    padding: 10px 8px 0;
     background-color: hsl(0, 0%, 100%);
 }
 
@@ -31,9 +32,9 @@ body {
 }
 
 .main {
-    height: calc(100vh - 60px);
-    /* padding: 25px 0; */
-    background-color: hsl(204, 100%, 26%)
+    position: relative;
+    min-height: calc(100vh - 80px);
+    background-color: hsl(204, 100%, 26%);
 }
 
 .flags-container {
@@ -41,35 +42,134 @@ body {
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 175px;
-    padding-bottom: 25px;
-    margin: 25px auto;
+    /* height: 150px; */
+    padding-bottom: 12px;
+    margin: 10px auto 0;
     background-color: hsl(0, 0%, 100%);
 }
 
 img {
     display: block;
-    max-width: 65%;
+    max-width: 31%;
     border: solid 1px black;
 }
 
-.flags-rigth,
-.flags-left {
-    width: 45%;
+.drop-names {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background-color: hsl(0, 0%, 100%);
+    padding-bottom: 12px;
 }
 
-.width-for-the-three-flags {
-    width: 30%;
+.drop-flag-left,
+.drop-flag-center,
+.drop-flag-right {
+    width: 31%;
+    height: 20px;
+    padding-top: 2px;
+    padding-left: 2px;
+    font-size: .8rem;
+    border: solid 1px hsl(204, 100%, 26%);
+    text-align: center;
 }
 
-.button {
-    position: relative;
-    top: -170px;
+.drop-flag-waiting {
+    box-shadow: 0 0 5px hsl(0, 0%, 0%);
+}
+
+.flag-drop-area-hidden {
+    visibility: hidden;
+}
+
+.flag-drop-area-failed {
+    background-color: hsl(0, 100%, 90%);
+    border-color: hsl(0, 100%, 50%);
+    box-shadow: 0 0 5px hsl(0, 100%, 38%);
+}
+
+.flag-drop-area-success {
+    background-color: hsl(110, 100%, 85%);
+    border-color: hsl(110, 100%, 50%);
+    box-shadow: 0 0 5px hsl(110, 100%, 38%);
+}
+
+/* Estilos para "section-names" */
+
+.section-names {
+    padding: 0px 10px;
+}
+
+.section-names__header {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    color: var(--text-color);
+    text-align: center;
+}
+
+.section-names__list {
+    width: 90%;
+    margin: 0;
+    padding: 0;
+    font-size: .9rem;
+    font-weight: bold;
+    list-style: none;
+    color: hsl(0, 0%, 100%);
+    column-count: 2;
+}
+
+.flag-names {
+    width: max-content;
+    margin: 12px auto;
+    padding-left: 12px;
+}
+
+.flag-names:first-of-type {
+    margin-top: 0;
+}
+
+.button-next {
+    position: absolute;
+    width: 90px;
+    height: 35px;
+    top: 400px;
+    left: 70%;
+    padding: 0;
+    text-align: center;
+}
+
+@media screen and (max-width: 320px) {
+    
+    .explanation {
+        padding-left: 2px;
+        font-size: .9rem;
+    }
 }
 
 @media screen and (min-width: 768px) {
 
-    img {
-        max-width: 35%;
+    img,
+    .drop-flag-left,
+    .drop-flag-center,
+    .drop-flag-right {
+        max-width: 24%;
+    }
+
+    .button-check {
+        left: 79%;
+    }
+}
+
+@media (hover: hover) {
+
+    .flag-names:hover {
+        cursor: grab;
+        color: var(--bg-header);
+    }
+
+    .flag-names:active {
+        cursor: grabbing;
     }
 }
