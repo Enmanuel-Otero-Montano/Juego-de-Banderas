@@ -30,12 +30,22 @@ body {
     color: var(--text-color);
 }
 
+.about-game-button {
+    padding: 0;
+    font-weight: 700;
+    background-color: transparent;
+    color: white;
+    border: none;
+}
+
 .version {
     margin-top: 50px;
     font-size: .7rem;
     letter-spacing: .5px;
     color:hsl(0, 0%, 100%);
 }
+
+/* Estilos para el "main" */
 
 .main {
     height: calc(100vh - 60px);
@@ -44,8 +54,12 @@ body {
 }
 
 .hero {
-    text-align: center;
+    width: 260px;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 2rem;
     color: var(--text-color);
+    text-align: center;
 }
 
 .buttons-container {
@@ -53,7 +67,7 @@ body {
     flex-direction: column;
     align-items: center;
     position: relative;
-    top: 18%;
+    top: 15%;
 }
 
 .start,
@@ -64,8 +78,8 @@ body {
     color: var(--text-color-button-menu);
     letter-spacing: .6px;
     background-color: var(--bg-color-button-menu);
-    box-shadow: 0px 0px 0px 3px hsl(50, 100%, 40%);
-    border-radius: 22px;
+    box-shadow: 0px 0px 5px hsl(50, 100%, 70%);
+    border-radius: 18px;
 }
 
 .start {
@@ -75,7 +89,7 @@ body {
 }
 
 .options {
-    margin-top: 15px;
+    margin-top: 20px;
     border: none;
 }
 
@@ -87,9 +101,11 @@ body {
     position: absolute;
     top: 120px;
     width: 170px;
+    font-weight: 700;
     background-color: var(--bg-color-button-menu);
     color: var(--text-color-button-menu);
-    font-weight: 700;
+    box-shadow: 0px 0px 5px hsl(50, 100%, 70%);
+    border-radius: 10px;
     transform: scaleY(0);
     transition-property: transform;
     transition-duration: 200ms;
@@ -116,7 +132,7 @@ body {
 
 .author {
     position: relative;
-    top: 48%;
+    top: 42%;
     font-size: .8rem;
     text-align: center;
     color: hsl(0, 0%, 100%);

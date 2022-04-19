@@ -8,12 +8,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/normalize.css">
-    <link rel="stylesheet" href="./play-dist.css">
-    <title>Document</title>
+    <link rel="stylesheet" href="./south-america-dist.css">
+    <title>Banderas, Países y sus cosas</title>
 </head>
 <body>
     <header class="header"> 
-        <p class="explanation">Selecciona con un click el nombre del país de la bandera que se muestra en pantalla.</p>
+        <p class="explanation">Arrastre y suelte el nombre del país que corresponde a la bandera que se muestra en pantalla.</p>
     </header>
     <main class="main">
         <div class="flags-container">
@@ -27,14 +27,16 @@
         <section class="section-names">
             <h2 class="section-names__header">Nombre del país</h2>
             <ul class="section-names__list">
-                
             </ul>
         </section>
-        <div class="button-container">
-            <button class="button-check">Comprobar</button>
-            <button class="button-next" disabled>Siguiente</button>
-        </div>
+        <section class="section-buttons">
+            <div class="button-container">
+                <button class="button-check">Comprobar</button>
+                <button class="button-next" disabled>Siguiente</button>
+                <button class="button-next-region" disabled>Siguiente Región</button>
+            </div>
+        </section>
     </main>
-    <script src="javascript/play.js"></script>
+    <script src="javascript/south-america.js"></script>
 </body>
 </html>
