@@ -67,17 +67,14 @@ img {
 .drop-flag-left,
 .drop-flag-center,
 .drop-flag-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 31%;
     height: 25px;
-    padding-top: 4px;
-    padding-left: 2px;
-    font-size: .8rem;
+    font-size: .9rem;
     border: solid 1px hsl(204, 100%, 16%);
     text-align: center;
-}
-
-.drop-flag-waiting {
-    box-shadow: 0 0 9px hsl(0, 0%, 0%);
 }
 
 .flag-drop-area-hidden {
@@ -123,6 +120,7 @@ img {
 }
 
 .flag-names {
+    position: relative;
     width: max-content;
     margin: 6px auto;
     padding: 6px;
@@ -172,36 +170,54 @@ img {
     opacity: .2;
 }
 
-@media screen and (max-width: 320px) {
+@media screen and (max-width: 353px) {
     
     .explanation {
         padding-left: 2px;
         font-size: .9rem;
     }
+
+    .drop-flag-left,
+    .drop-flag-center,
+    .drop-flag-right {
+        font-size: .8rem;
+    }
+}
+
+@media screen and (min-width: 425px) {
+
+    .drop-flag-left,
+    .drop-flag-center,
+    .drop-flag-right {
+        padding-top: 2px;
+        font-size: 1rem;
+    }
 }
 
 @media screen and (min-width: 768px) {
 
-    img,
     .drop-flag-left,
     .drop-flag-center,
     .drop-flag-right {
-        max-width: 24%;
-    }
-
-    .button-check {
-        left: 79%;
+        height: 30px;
     }
 }
 
 @media (hover: hover) {
 
     .flag-names:hover {
-        cursor: grab;
-        color: var(--bg-header);
+        cursor: pointer;
+        color: var(--text-color);
     }
 
-    .flag-names:active {
-        cursor: grabbing;
+    .flags-container > img:hover {
+        cursor: pointer;
+    }
+
+    .flags-container > img:active {
+        transform: scale(1.02, 1.02);
+        transition-property: transform;
+        transition-delay: 10ms;
+        transition-duration: 10ms;
     }
 }

@@ -1,4 +1,5 @@
 const buttonNext = document.querySelector(".button-next")
+const buttonNextRegion = document.querySelector(".button-next-region")
 const buttonCheck = document.querySelector(".button-check")
 const centerFlag = document.querySelector(".flags-center")
 const flagsContainer = document.querySelector(".flags-container")
@@ -11,7 +12,9 @@ let southAmerica//En esta variable será un array con los países de América de
 let flagIndex//Variable para guarda un numero aleatorio entre el 0 y el último índice del array de banderas de América del Sur.
 
 let leftSideFlag
-let rigthSideFlag
+let rightSideFlag
+
+let selectedName
 
 const callCountry = async ()=> {//Función que hace la solicitud a la API de los países de América.
     const result =  fetch("https://restcountries.com/v3.1/region/ame")
@@ -40,7 +43,6 @@ const showNames = ()=> {//Función para mostrar los nombres de los países
         names.innerHTML = `${country.name.common}`
         names.setAttribute("id", country.name.common)
         names.setAttribute("class", "flag-names")
-        names.setAttribute("draggable", "true")
         fragment.appendChild(names)
     }
     listOfNames.appendChild(fragment)
@@ -58,13 +60,13 @@ const showLeftFlag = ()=> {//Función para mostrar la bandera de la izquierda
     southAmerica.splice(flagIndex, 1)
 }
 
-const showRigthFlag = ()=> {//Función para mostrar la bandera de la derecha
+const showRightFlag = ()=> {//Función para mostrar la bandera de la derecha
     flagIndex = Math.trunc(Math.random() * (southAmerica.length - 0) + 0)
-    rigthSideFlag = document.createElement("IMG")
-    rigthSideFlag.setAttribute("class", "flags-rigth")
-    rigthSideFlag.setAttribute("id", southAmerica[flagIndex].name.common)
-    rigthSideFlag.setAttribute("src", southAmerica[flagIndex].flags.png)
-    flagsContainer.append(rigthSideFlag)
+    rightSideFlag = document.createElement("IMG")
+    rightSideFlag.setAttribute("class", "flags-right")
+    rightSideFlag.setAttribute("id", southAmerica[flagIndex].name.common)
+    rightSideFlag.setAttribute("src", southAmerica[flagIndex].flags.png)
+    flagsContainer.append(rightSideFlag)
     southAmerica.splice(flagIndex, 1)
 }
 
@@ -81,102 +83,59 @@ buttonNext.addEventListener("click", ()=> {
         centerFlag.remove()
         dropFlagCenter.textContent = ""
         dropFlagCenter.classList.add("flag-drop-area-hidden")
-        dropFlagCenter.classList.remove("drop-flag-waiting")
         dropFlagLeft.classList.remove("flag-drop-area-hidden")
         dropFlagRight.classList.remove("flag-drop-area-hidden")
         southAmerica.splice(flagIndex, 1)
         flagsContainer.style.justifyContent = "space-between"
         showLeftFlag()
-        showRigthFlag()
+        showRightFlag()
     }else if(southAmerica.length == 3) {
         leftSideFlag.remove()
-        rigthSideFlag.remove()
-        dropFlagCenter.classList.remove("flag-drop-area-hidden", "flag-drop-area-success")
-        dropFlagLeft.classList.remove("drop-flag-waiting", "flag-drop-area-success")
-        dropFlagRight.classList.remove("drop-flag-waiting", "flag-drop-area-success")
+        rightSideFlag.remove()
+        dropFlagCenter.classList.remove("flag-drop-area-hidden", "flag-drop-area-success", "flag-drop-area-failed")
+        dropFlagLeft.classList.remove("flag-drop-area-success", "flag-drop-area-failed")
+        dropFlagRight.classList.remove("flag-drop-area-success", "flag-drop-area-failed")
         dropFlagLeft.textContent = ""
         dropFlagRight.textContent = ""
         showLeftFlag()
-        showRigthFlag()
+        showRightFlag()
         showCenterFlag()
         buttonNext.disabled = true
     }else{
         leftSideFlag.remove()
-        rigthSideFlag.remove()
+        rightSideFlag.remove()
         dropFlagLeft.textContent = ""
         dropFlagRight.textContent = ""
-        dropFlagLeft.classList.remove("drop-flag-waiting", "flag-drop-area-success")
-        dropFlagRight.classList.remove("drop-flag-waiting", "flag-drop-area-success")
+        dropFlagLeft.classList.remove("flag-drop-area-success")
+        dropFlagRight.classList.remove("flag-drop-area-success")
         showLeftFlag()
-        showRigthFlag()
+        showRightFlag()
     }
     buttonNext.disabled = true
     buttonNext.style.opacity = ".2"
 })
 
-
-listOfNames.addEventListener("dragstart", (e)=> {
-    e.dataTransfer.setData("text/plain", e.target.id)
-    if(!dropFlagCenter.classList.contains("flag-drop-area-hidden") && dropFlagLeft.classList.contains("flag-drop-area-hidden")){
-        dropFlagCenter.classList.remove("flag-drop-area-failed")
-        dropFlagCenter.classList.add("drop-flag-waiting")
-    }else if(dropFlagCenter.classList.contains("flag-drop-area-hidden")){
-        dropFlagLeft.classList.remove("flag-drop-area-failed")
-        dropFlagRight.classList.remove("flag-drop-area-failed")
-        dropFlagLeft.classList.add("drop-flag-waiting")
-        dropFlagRight.classList.add("drop-flag-waiting")
-    }else{
-        dropFlagCenter.classList.add("drop-flag-waiting")
-        dropFlagLeft.classList.add("drop-flag-waiting")
-        dropFlagRight.classList.add("drop-flag-waiting")
-    }
+listOfNames.addEventListener("click", (e)=> {
+    selectedName = e.target.id
 })
 
-listOfNames.addEventListener("dragend", ()=> {
-    dropFlagCenter.classList.remove("drop-flag-waiting")
-    dropFlagLeft.classList.remove("drop-flag-waiting")
-    dropFlagRight.classList.remove("drop-flag-waiting")
+centerFlag.addEventListener("click", ()=>{
+    flagsContainer.nextElementSibling.children[1].textContent = selectedName
 })
 
-dropFlagLeft.addEventListener("dragover", (e)=>{
-    e.preventDefault()
-})
-
-dropFlagLeft.addEventListener("drop", (e)=> {
-    e.preventDefault()
-    dropFlagLeft.textContent = e.dataTransfer.getData("text")
-    if(dropFlagLeft.textContent == leftSideFlag.id){
-        console.log("si coinciden")
-    }else{
-        console.log("nop")
-    }
-})
-
-dropFlagCenter.addEventListener("dragover", (e)=>{
-    e.preventDefault()
-})
-
-dropFlagCenter.addEventListener("drop", (e)=> {
-    e.preventDefault()
-    dropFlagCenter.textContent = e.dataTransfer.getData("text")
-    if(dropFlagCenter.textContent == centerFlag.id){
-        console.log("si coinciden")
-    }else{
-        console.log("nop")
-    }
-})
-
-dropFlagRight.addEventListener("dragover", (e)=>{
-    e.preventDefault()
-})
-
-dropFlagRight.addEventListener("drop", (e)=> {
-    e.preventDefault()
-    dropFlagRight.textContent = e.dataTransfer.getData("text")
-    if(dropFlagRight.textContent == rigthSideFlag.id){
-        console.log("si coinciden")
-    }else{
-        console.log("nop")
+flagsContainer.addEventListener("click", (e)=>{
+    if(flagsContainer.childElementCount == 2){
+        if(e.target.classList.contains("flags-left")){
+            flagsContainer.nextElementSibling.children[0].textContent = selectedName
+        }else if(e.target.classList.contains("flags-right")){
+            flagsContainer.nextElementSibling.children[2].textContent = selectedName
+        }
+    }else if(flagsContainer.childElementCount == 3){
+        if(e.target.classList.contains("flags-left")){
+            flagsContainer.nextElementSibling.children[0].textContent = selectedName
+        }else if(e.target.classList.contains("flags-right")){
+            flagsContainer.nextElementSibling.children[2].textContent = selectedName
+        }
     }
 })
 
@@ -190,7 +149,7 @@ buttonCheck.addEventListener("click", ()=> {
             dropFlagCenter.classList.add("flag-drop-area-failed")
         }
     }else if(!dropFlagLeft.classList.contains("flag-drop-area-hidden") && !dropFlagRight.classList.contains("flag-drop-area-hidden") && dropFlagCenter.classList.contains("flag-drop-area-hidden")){
-        if(dropFlagLeft.textContent == leftSideFlag.id && dropFlagRight.textContent == rigthSideFlag.id){
+        if(dropFlagLeft.textContent == leftSideFlag.id && dropFlagRight.textContent == rightSideFlag.id){
             if(dropFlagLeft.classList.contains("flag-drop-area-failed")){
                 dropFlagLeft.classList.remove("flag-drop-area-failed")
             }
@@ -200,10 +159,11 @@ buttonCheck.addEventListener("click", ()=> {
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-success")
             buttonNext.disabled = false
-        }else if(dropFlagLeft.textContent == leftSideFlag.id && dropFlagRight.textContent !== rigthSideFlag.id){
+            buttonNext.style.opacity = "initial"
+        }else if(dropFlagLeft.textContent == leftSideFlag.id && dropFlagRight.textContent !== rightSideFlag.id){
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-failed")
-        }else if(dropFlagLeft.textContent !== leftSideFlag.id && dropFlagRight.textContent == rigthSideFlag.id){
+        }else if(dropFlagLeft.textContent !== leftSideFlag.id && dropFlagRight.textContent == rightSideFlag.id){
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-success")
         }else{
@@ -211,32 +171,33 @@ buttonCheck.addEventListener("click", ()=> {
             dropFlagRight.classList.add("flag-drop-area-failed")
         }
     }else{
-        if(dropFlagCenter.textContent == centerFlag.id && dropFlagLeft.textContent == leftSideFlag.id && dropFlagRight.textContent == rigthSideFlag.id){
+        if(dropFlagCenter.textContent == centerFlag.id && dropFlagLeft.textContent == leftSideFlag.id && dropFlagRight.textContent == rightSideFlag.id){
             dropFlagCenter.classList.add("flag-drop-area-success")
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-success")
-            buttonNext.disabled = false
-        }else if(dropFlagCenter.textContent !== centerFlag.id && dropFlagLeft.textContent == leftSideFlag.id && dropFlagRight.textContent == rigthSideFlag.id){
+            buttonNextRegion.disabled = false
+            buttonNextRegion.style.opacity = "initial"
+        }else if(dropFlagCenter.textContent !== centerFlag.id && dropFlagLeft.textContent == leftSideFlag.id && dropFlagRight.textContent == rightSideFlag.id){
             dropFlagCenter.classList.add("flag-drop-area-failed")
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-success")
-        }else if(dropFlagCenter.textContent == centerFlag.id && dropFlagLeft.textContent !== leftSideFlag.id && dropFlagRight.textContent == rigthSideFlag.id){
+        }else if(dropFlagCenter.textContent == centerFlag.id && dropFlagLeft.textContent !== leftSideFlag.id && dropFlagRight.textContent == rightSideFlag.id){
             dropFlagCenter.classList.add("flag-drop-area-success")
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-success")
-        }else if(dropFlagCenter.textContent == centerFlag.id && dropFlagLeft.textContent == leftSideFlag.id && dropFlagRight.textContent !== rigthSideFlag.id){
+        }else if(dropFlagCenter.textContent == centerFlag.id && dropFlagLeft.textContent == leftSideFlag.id && dropFlagRight.textContent !== rightSideFlag.id){
             dropFlagCenter.classList.add("flag-drop-area-success")
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-failed")
-        }else if(dropFlagCenter.textContent == centerFlag.id && dropFlagLeft.textContent !== leftSideFlag.id && dropFlagRight.textContent !== rigthSideFlag.id){
+        }else if(dropFlagCenter.textContent == centerFlag.id && dropFlagLeft.textContent !== leftSideFlag.id && dropFlagRight.textContent !== rightSideFlag.id){
             dropFlagCenter.classList.add("flag-drop-area-success")
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-failed")
-        }else if(dropFlagCenter.textContent !== centerFlag.id && dropFlagLeft.textContent == leftSideFlag.id && dropFlagRight.textContent !== rigthSideFlag.id){
+        }else if(dropFlagCenter.textContent !== centerFlag.id && dropFlagLeft.textContent == leftSideFlag.id && dropFlagRight.textContent !== rightSideFlag.id){
             dropFlagCenter.classList.add("flag-drop-area-failed")
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-failed")
-        }else if(dropFlagCenter.textContent !== centerFlag.id && dropFlagLeft.textContent !== leftSideFlag.id && dropFlagRight.textContent == rigthSideFlag.id){
+        }else if(dropFlagCenter.textContent !== centerFlag.id && dropFlagLeft.textContent !== leftSideFlag.id && dropFlagRight.textContent == rightSideFlag.id){
             dropFlagCenter.classList.add("flag-drop-area-failed")
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-success")
