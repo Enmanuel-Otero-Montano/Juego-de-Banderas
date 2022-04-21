@@ -78,6 +78,12 @@ const showCenterFlag = ()=> {//Función para mostrar la bandera del centro
     southAmerica.splice(flagIndex, 1)
 }
 
+const removeNameSelected = ()=> {
+    for(const name of listOfNames.children){
+        name.classList.remove("flag-names-selected")
+    }
+}
+
 buttonNext.addEventListener("click", ()=> {
     if(flagsContainer.childElementCount == 1) {
         centerFlag.remove()
@@ -117,20 +123,24 @@ buttonNext.addEventListener("click", ()=> {
 
 listOfNames.addEventListener("click", (e)=> {
     selectedName = e.target.id
+    e.target.classList.add("flag-names-selected")
 })
 
 centerFlag.addEventListener("click", ()=>{
     flagsContainer.nextElementSibling.children[1].textContent = selectedName
+    removeNameSelected()
 })
 
 flagsContainer.addEventListener("click", (e)=>{
     if(flagsContainer.childElementCount == 2){
+        removeNameSelected()
         if(e.target.classList.contains("flags-left")){
             flagsContainer.nextElementSibling.children[0].textContent = selectedName
         }else if(e.target.classList.contains("flags-right")){
             flagsContainer.nextElementSibling.children[2].textContent = selectedName
         }
     }else if(flagsContainer.childElementCount == 3){
+        removeNameSelected()
         if(e.target.classList.contains("flags-left")){
             flagsContainer.nextElementSibling.children[0].textContent = selectedName
         }else if(e.target.classList.contains("flags-right")){
