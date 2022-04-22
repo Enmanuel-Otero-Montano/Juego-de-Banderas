@@ -1,0 +1,35 @@
+.close-button {
+    position: absolute;
+    top: 15px;
+    left: calc(100% - 55px);
+    width: 30px;
+    height: 30px;
+    padding: 3px 0 0;
+    background-color: hsl(0, 0%, 100%);
+    border: none;
+}
+
+.about-game-button,
+.how-to-play {
+    padding: 0;
+    font-size: .9rem;
+    font-weight: 700;
+    background-color: transparent;
+    color: white;
+    border: none;
+}
+
+@media (hover: hover) {
+
+    .about-game-button:hover,
+    .how-to-play:hover {
+        cursor: pointer;
+        color: var(--text-color);
+        border-bottom: solid 1px var(--text-color);
+    }
+
+    .close-button:hover {
+        cursor: pointer;
+        background-color: var(--text-color);
+    }
+}

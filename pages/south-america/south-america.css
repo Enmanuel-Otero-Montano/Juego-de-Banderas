@@ -1,3 +1,5 @@
+/* @import url("../../moduls/buttons.css"); */
+
 :root {
     --bg-header: hsl(356, 79%, 48%);
     --text-color: hsl(60, 100%, 50%);
@@ -20,22 +22,35 @@ body {
 .header {
     display: flex;
     align-items: center;
-    height: 50px;
-    padding-left: 5px;
-    padding-right: 3px;
+    justify-content: space-between;
+    height: 60px;
+    padding-left: 20px;
+    padding-right: 20px;
     background-color: var(--bg-header);
 }
 
-.explanation {
-    margin: 0 auto;
-    font-size: .9rem;
-    color: var(--text-color);
-    letter-spacing: .5px;
+.lives-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 38px;
+    height: 38px;
+}
+
+.left-heart,
+.right-heart {
+    width: 18px;
+    height: 18px;
+    filter: invert(100%);
+}
+
+.lost-life {
+    opacity: .2;
 }
 
 .main {
     position: relative;
-    min-height: calc(100vh - 75px);
+    min-height: calc(100vh - 85px);
     background-color: hsl(204, 100%, 26%);
 }
 
@@ -128,6 +143,7 @@ img {
     width: max-content;
     margin: 6px auto;
     padding: 6px;
+    user-select: none;
 }
 
 .flag-names:first-of-type {
@@ -176,6 +192,42 @@ img {
     background-color: hsl(110, 100%, 60%);
     box-shadow: 0 0 5px hsl(110, 100%, 38%);
     opacity: .2;
+}
+
+.modal-how-to-play {
+    position: absolute;
+    transform: scale(0);
+}
+
+.modal-how-to-play-showing {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    padding-left: 20px;
+    padding-right: 20px;
+    background-color: rgba(0, 0, 0, 0.9);
+    transform: scale(1);
+    transition: transform 600ms;
+}
+
+.how-to-play-explanation-container {
+    max-width: 495px;
+    padding-left: 8px;
+    padding-right: 8px;
+    background-color: hsl(0, 0%, 100%);
+}
+
+.how-to-play-explanation {
+    font-size: 1.1rem;
+    padding-left: 8px;
+    letter-spacing: 1px;
+    line-height: 1.5;
 }
 
 @media (hover: hover) {

@@ -7,6 +7,11 @@ const listOfNames = document.querySelector(".section-names__list")
 const dropFlagLeft = document.querySelector(".drop-flag-left")
 const dropFlagCenter = document.querySelector(".drop-flag-center")
 const dropFlagRight = document.querySelector(".drop-flag-right")
+const howToPlayModal = document.querySelector(".modal-how-to-play")
+const closeModal = document.querySelector(".close-button")
+const howToPlay = document.querySelector(".how-to-play")
+const leftHeart = document.querySelector(".left-heart")
+const rightHeart = document.querySelector(".right-heart")
 
 let southAmerica//En esta variable será un array con los países de América del Sur.
 let flagIndex//Variable para guarda un numero aleatorio entre el 0 y el último índice del array de banderas de América del Sur.
@@ -48,7 +53,7 @@ const showNames = ()=> {//Función para mostrar los nombres de los países
     listOfNames.appendChild(fragment)
 }
 
-document.addEventListener("DOMContentLoad", saveCountriesSouthAmerica())//Muestra la primera bandera.
+document.addEventListener("DOMContentLoad", callCountry(), saveCountriesSouthAmerica())//Muestra la primera bandera.
 
 const showLeftFlag = ()=> {//Función para mostrar la bandera de la izquierda
     flagIndex = Math.trunc(Math.random() * (southAmerica.length - 0) + 0)
@@ -78,9 +83,17 @@ const showCenterFlag = ()=> {//Función para mostrar la bandera del centro
     southAmerica.splice(flagIndex, 1)
 }
 
-const removeNameSelected = ()=> {
+const removeNameSelected = ()=> {//Función para remover el color del nombre seleccionado
     for(const name of listOfNames.children){
         name.classList.remove("flag-names-selected")
+    }
+}
+
+const checkNumberOfLives = ()=>{
+    if(leftHeart.classList.contains("lost-life") && rightHeart.classList.contains("lost-life")){
+        setTimeout(() => {
+            location.reload()
+        }, 1000);
     }
 }
 
@@ -122,8 +135,11 @@ buttonNext.addEventListener("click", ()=> {
 })
 
 listOfNames.addEventListener("click", (e)=> {
-    selectedName = e.target.id
-    e.target.classList.add("flag-names-selected")
+    if(!e.target.classList.contains("section-names__list")){
+        selectedName = e.target.id
+        removeNameSelected()
+        e.target.classList.add("flag-names-selected")
+    }
 })
 
 centerFlag.addEventListener("click", ()=>{
@@ -157,6 +173,11 @@ buttonCheck.addEventListener("click", ()=> {
             buttonNext.style.opacity = "initial"
         }else{
             dropFlagCenter.classList.add("flag-drop-area-failed")
+            if(!rightHeart.classList.contains("lost-life")){
+                rightHeart.classList.add("lost-life")
+            }else{
+                leftHeart.classList.add("lost-life")
+            }
         }
     }else if(!dropFlagLeft.classList.contains("flag-drop-area-hidden") && !dropFlagRight.classList.contains("flag-drop-area-hidden") && dropFlagCenter.classList.contains("flag-drop-area-hidden")){
         if(dropFlagLeft.textContent == leftSideFlag.id && dropFlagRight.textContent == rightSideFlag.id){
@@ -179,6 +200,8 @@ buttonCheck.addEventListener("click", ()=> {
         }else{
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-failed")
+            rightHeart.classList.add("lost-life")
+            leftHeart.classList.add("lost-life")
         }
     }else{
         if(dropFlagCenter.textContent == centerFlag.id && dropFlagLeft.textContent == leftSideFlag.id && dropFlagRight.textContent == rightSideFlag.id){
@@ -217,4 +240,13 @@ buttonCheck.addEventListener("click", ()=> {
             dropFlagRight.classList.add("flag-drop-area-failed")
         }
     }
+    checkNumberOfLives()
+})
+
+howToPlay.addEventListener("click", ()=> {
+    howToPlayModal.classList.add("modal-how-to-play-showing")
+})
+
+closeModal.addEventListener("click", ()=>{
+    howToPlayModal.classList.remove("modal-how-to-play-showing")
 })
