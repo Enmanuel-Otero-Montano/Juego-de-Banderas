@@ -1,4 +1,4 @@
-.close-button {
+.close-button {/* Botón de la ventana modal */
     position: absolute;
     top: 15px;
     left: calc(100% - 55px);
@@ -9,7 +9,7 @@
     border: none;
 }
 
-.about-game-button,
+.about-game-button,/* Botones del hedader, el de la página de inicio y las otras páginas */
 .how-to-play {
     padding: 0;
     font-size: .9rem;
@@ -17,6 +17,33 @@
     background-color: transparent;
     color: white;
     border: none;
+}
+
+.button-container > button {/* Estilos generales para los botones inferiores */
+    width: 100px;
+    height: 38px;
+    font-size: .9rem;
+    font-weight: 700;
+    color: var(--text-color-button-menu);
+    letter-spacing: .5px;
+    border-radius: 18px;
+    border: none;
+}
+
+.button-check {
+    background-color: var(--bg-color-button-menu);
+}
+
+.button-next {
+    opacity: .2;
+}
+
+.button-next-region {
+    background-color: hsl(110, 100%, 70%);
+    border-radius: 18px;
+    text-align: center;
+    color: var(--text-color-button-menu);
+    opacity: .2;
 }
 
 @media (hover: hover) {

@@ -1,5 +1,5 @@
+const nextRegion = document.querySelector(".button-next-region")
 const buttonNext = document.querySelector(".button-next")
-const buttonNextRegion = document.querySelector(".button-next-region")
 const buttonCheck = document.querySelector(".button-check")
 const centerFlag = document.querySelector(".flags-center")
 const flagsContainer = document.querySelector(".flags-container")
@@ -12,8 +12,11 @@ const closeModal = document.querySelector(".close-button")
 const howToPlay = document.querySelector(".how-to-play")
 const leftHeart = document.querySelector(".left-heart")
 const rightHeart = document.querySelector(".right-heart")
+const currentPoints = document.querySelector(".current-points")
 
-let southAmerica//En esta variable será un array con los países de América del Sur.
+console.log(location.href)
+
+let currentRegion//En esta variable será un array con los países de América del Sur.
 let flagIndex//Variable para guarda un numero aleatorio entre el 0 y el último índice del array de banderas de América del Sur.
 
 let leftSideFlag
@@ -27,23 +30,32 @@ const callCountry = async ()=> {//Función que hace la solicitud a la API de los
     return country.json()
 }
 
-const saveCountriesSouthAmerica = async ()=> {//
+const saveCountriesInArray = async ()=> {
+    callCountry().then(res=>console.log(res))
     const america = await callCountry()//Llamada a la función que hace la solicitud.
-    southAmerica = america.filter(element => element.subregion == "South America")
+    if(location.pathname === "/pages/south-america/south-america.html"){
+        currentRegion = america.filter(element => element.subregion == "South America")
+    }else if(location.pathname === "/pages/central-north-america-caribbean/central-north-america-caribbean.html"){
+        const caribbean = america.filter(element => element.name.common == "Cuba" || element.name.common == "Dominican Republic" || element.name.common == "Haiti" || element.name.common == "Bahamas" || element.name.common == "Jamaica" || element.name.common == "Puerto Rico" || element.name.common == "Trinidad and Tobago")
+        const centralAndNorthAmerica = america.filter(element => element.subregion == "Central America" || element.subregion == "North America"  && element.name.common !== "Saint Pierre and Miquelon" && element.name.common !== "United States Minor Outlying Islands")
+        currentRegion = caribbean.concat(centralAndNorthAmerica)
+    }
     showTheFirstFlags()
     showNames()
+    console.log(currentRegion)
 }
 
+document.addEventListener("DOMContentLoad", saveCountriesInArray())
+
 const showTheFirstFlags = ()=> {//Función para la primera banderas.
-    flagIndex = Math.trunc(Math.random() * (southAmerica.length - 0) + 0)
-    centerFlag.setAttribute("id", southAmerica[flagIndex].name.common)
-    centerFlag.setAttribute("src", southAmerica[flagIndex].flags.png)
-    console.log(southAmerica)
+    flagIndex = Math.trunc(Math.random() * (currentRegion.length - 0) + 0)
+    centerFlag.setAttribute("id", currentRegion[flagIndex].name.common)
+    centerFlag.setAttribute("src", currentRegion[flagIndex].flags.png)
 }
 
 const showNames = ()=> {//Función para mostrar los nombres de los países
     const fragment = document.createDocumentFragment()
-    for(const country of southAmerica) {
+    for(const country of currentRegion) {
         const names = document.createElement("LI")
         names.innerHTML = `${country.name.common}`
         names.setAttribute("id", country.name.common)
@@ -53,34 +65,32 @@ const showNames = ()=> {//Función para mostrar los nombres de los países
     listOfNames.appendChild(fragment)
 }
 
-document.addEventListener("DOMContentLoad", callCountry(), saveCountriesSouthAmerica())//Muestra la primera bandera.
-
 const showLeftFlag = ()=> {//Función para mostrar la bandera de la izquierda
-    flagIndex = Math.trunc(Math.random() * (southAmerica.length - 0) + 0)
+    flagIndex = Math.trunc(Math.random() * (currentRegion.length - 0) + 0)
     leftSideFlag = document.createElement("IMG")
     leftSideFlag.setAttribute("class", "flags-left")
-    leftSideFlag.setAttribute("id", southAmerica[flagIndex].name.common)
-    leftSideFlag.setAttribute("src", southAmerica[flagIndex].flags.png)
+    leftSideFlag.setAttribute("id", currentRegion[flagIndex].name.common)
+    leftSideFlag.setAttribute("src", currentRegion[flagIndex].flags.png)
     flagsContainer.prepend(leftSideFlag)
-    southAmerica.splice(flagIndex, 1)
+    currentRegion.splice(flagIndex, 1)
 }
 
 const showRightFlag = ()=> {//Función para mostrar la bandera de la derecha
-    flagIndex = Math.trunc(Math.random() * (southAmerica.length - 0) + 0)
+    flagIndex = Math.trunc(Math.random() * (currentRegion.length - 0) + 0)
     rightSideFlag = document.createElement("IMG")
     rightSideFlag.setAttribute("class", "flags-right")
-    rightSideFlag.setAttribute("id", southAmerica[flagIndex].name.common)
-    rightSideFlag.setAttribute("src", southAmerica[flagIndex].flags.png)
+    rightSideFlag.setAttribute("id", currentRegion[flagIndex].name.common)
+    rightSideFlag.setAttribute("src", currentRegion[flagIndex].flags.png)
     flagsContainer.append(rightSideFlag)
-    southAmerica.splice(flagIndex, 1)
+    currentRegion.splice(flagIndex, 1)
 }
 
 const showCenterFlag = ()=> {//Función para mostrar la bandera del centro
-    flagIndex = Math.trunc(Math.random() * (southAmerica.length - 0) + 0)
-    centerFlag.setAttribute("id", southAmerica[flagIndex].name.common)
-    centerFlag.setAttribute("src", southAmerica[flagIndex].flags.png)
+    flagIndex = Math.trunc(Math.random() * (currentRegion.length - 0) + 0)
+    centerFlag.setAttribute("id", currentRegion[flagIndex].name.common)
+    centerFlag.setAttribute("src", currentRegion[flagIndex].flags.png)
     leftSideFlag.after(centerFlag)
-    southAmerica.splice(flagIndex, 1)
+    currentRegion.splice(flagIndex, 1)
 }
 
 const removeNameSelected = ()=> {//Función para remover el color del nombre seleccionado
@@ -89,26 +99,52 @@ const removeNameSelected = ()=> {//Función para remover el color del nombre sel
     }
 }
 
+const checkNumberOfCurrentLives = ()=>{
+    if(!rightHeart.classList.contains("lost-life")){
+        rightHeart.classList.add("lost-life")
+    }else{
+        leftHeart.classList.add("lost-life")
+    }
+}
+
 const checkNumberOfLives = ()=>{
     if(leftHeart.classList.contains("lost-life") && rightHeart.classList.contains("lost-life")){
         setTimeout(() => {
             location.reload()
-        }, 1000);
+        }, 800);
     }
 }
 
+const calculatePoints = (containerLeft, containerCenter, containerRight)=>{
+    if(containerCenter.classList.contains("flag-drop-area-success") && containerLeft.classList.contains("flag-drop-area-hidden")){
+        currentPoints.textContent = containerCenter.dataset.points
+    }else if(containerLeft.classList.contains("flag-drop-area-success") && containerRight.classList.contains("flag-drop-area-success") && containerCenter.classList.contains("flag-drop-area-hidden")){
+        currentPoints.textContent = parseInt(currentPoints.textContent) + parseInt(containerLeft.dataset.points) + parseInt(containerRight.dataset.points) 
+    }else if(containerCenter.classList.contains("flag-drop-area-success") && containerLeft.classList.contains("flag-drop-area-success") && containerRight.classList.contains("flag-drop-area-success")){
+        currentPoints.textContent = parseInt(currentPoints.textContent) + parseInt(dropFlagCenter.dataset.points) + parseInt(containerLeft.dataset.points) + parseInt(containerRight.dataset.points)
+    }
+}
+
+nextRegion.addEventListener("click", ()=>{
+    location.href = `${location.protocol}//${location.host}/pages/central-north-america-caribbean/central-north-america-caribbean.html`
+})
+
 buttonNext.addEventListener("click", ()=> {
+    dropFlagCenter.dataset.points = "10"
+    dropFlagLeft.dataset.points = "10"
+    dropFlagRight.dataset.points = "10"
+    buttonCheck.disabled = false
     if(flagsContainer.childElementCount == 1) {
         centerFlag.remove()
         dropFlagCenter.textContent = ""
         dropFlagCenter.classList.add("flag-drop-area-hidden")
         dropFlagLeft.classList.remove("flag-drop-area-hidden")
         dropFlagRight.classList.remove("flag-drop-area-hidden")
-        southAmerica.splice(flagIndex, 1)
+        currentRegion.splice(flagIndex, 1)
         flagsContainer.style.justifyContent = "space-between"
         showLeftFlag()
         showRightFlag()
-    }else if(southAmerica.length == 3) {
+    }else if(location.pathname === "/pages/south-america/south-america.html" && currentRegion.length == 3){
         leftSideFlag.remove()
         rightSideFlag.remove()
         dropFlagCenter.classList.remove("flag-drop-area-hidden", "flag-drop-area-success", "flag-drop-area-failed")
@@ -116,6 +152,19 @@ buttonNext.addEventListener("click", ()=> {
         dropFlagRight.classList.remove("flag-drop-area-success", "flag-drop-area-failed")
         dropFlagLeft.textContent = ""
         dropFlagRight.textContent = ""
+        showLeftFlag()
+        showRightFlag()
+        showCenterFlag()
+        buttonNext.disabled = true
+    }else if(location.pathname === "/pages/central-north-america-caribbean/central-north-america-caribbean.html" && currentRegion.length === 6 || currentRegion.length == 3){
+        leftSideFlag.remove()
+        rightSideFlag.remove()
+        dropFlagCenter.classList.remove("flag-drop-area-hidden", "flag-drop-area-success", "flag-drop-area-failed")
+        dropFlagLeft.classList.remove("flag-drop-area-success", "flag-drop-area-failed")
+        dropFlagRight.classList.remove("flag-drop-area-success", "flag-drop-area-failed")
+        dropFlagLeft.textContent = ""
+        dropFlagRight.textContent = ""
+        dropFlagCenter.textContent = ""
         showLeftFlag()
         showRightFlag()
         showCenterFlag()
@@ -171,13 +220,11 @@ buttonCheck.addEventListener("click", ()=> {
             dropFlagCenter.classList.add("flag-drop-area-success")
             buttonNext.disabled = false
             buttonNext.style.opacity = "initial"
+            buttonCheck.disabled = true
         }else{
             dropFlagCenter.classList.add("flag-drop-area-failed")
-            if(!rightHeart.classList.contains("lost-life")){
-                rightHeart.classList.add("lost-life")
-            }else{
-                leftHeart.classList.add("lost-life")
-            }
+            dropFlagCenter.setAttribute("data-points", "5")
+            checkNumberOfCurrentLives()
         }
     }else if(!dropFlagLeft.classList.contains("flag-drop-area-hidden") && !dropFlagRight.classList.contains("flag-drop-area-hidden") && dropFlagCenter.classList.contains("flag-drop-area-hidden")){
         if(dropFlagLeft.textContent == leftSideFlag.id && dropFlagRight.textContent == rightSideFlag.id){
@@ -191,12 +238,17 @@ buttonCheck.addEventListener("click", ()=> {
             dropFlagRight.classList.add("flag-drop-area-success")
             buttonNext.disabled = false
             buttonNext.style.opacity = "initial"
+            buttonCheck.disabled = true
         }else if(dropFlagLeft.textContent == leftSideFlag.id && dropFlagRight.textContent !== rightSideFlag.id){
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-failed")
+            dropFlagRight.setAttribute("data-points", "5")
+            checkNumberOfCurrentLives()
         }else if(dropFlagLeft.textContent !== leftSideFlag.id && dropFlagRight.textContent == rightSideFlag.id){
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-success")
+            dropFlagLeft.setAttribute("data-points", "5")
+            checkNumberOfCurrentLives()
         }else{
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-failed")
@@ -208,38 +260,59 @@ buttonCheck.addEventListener("click", ()=> {
             dropFlagCenter.classList.add("flag-drop-area-success")
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-success")
-            buttonNextRegion.disabled = false
-            buttonNextRegion.style.opacity = "initial"
+            if(currentRegion.length === 0){
+                nextRegion.disabled = false
+                nextRegion.style.opacity = "initial"
+                buttonCheck.disabled = true
+            }else{
+                buttonNext.disabled = false
+                buttonNext.style.opacity = "initial"
+            }
         }else if(dropFlagCenter.textContent !== centerFlag.id && dropFlagLeft.textContent == leftSideFlag.id && dropFlagRight.textContent == rightSideFlag.id){
             dropFlagCenter.classList.add("flag-drop-area-failed")
+            dropFlagCenter.setAttribute("data-pointd", "5")
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-success")
+            checkNumberOfCurrentLives()
         }else if(dropFlagCenter.textContent == centerFlag.id && dropFlagLeft.textContent !== leftSideFlag.id && dropFlagRight.textContent == rightSideFlag.id){
             dropFlagCenter.classList.add("flag-drop-area-success")
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-success")
+            dropFlagLeft.setAttribute("data-pointd", "5")
+            checkNumberOfCurrentLives()
         }else if(dropFlagCenter.textContent == centerFlag.id && dropFlagLeft.textContent == leftSideFlag.id && dropFlagRight.textContent !== rightSideFlag.id){
             dropFlagCenter.classList.add("flag-drop-area-success")
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-failed")
+            dropFlagRight.setAttribute("data-pointd", "5")
+            checkNumberOfCurrentLives
         }else if(dropFlagCenter.textContent == centerFlag.id && dropFlagLeft.textContent !== leftSideFlag.id && dropFlagRight.textContent !== rightSideFlag.id){
             dropFlagCenter.classList.add("flag-drop-area-success")
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-failed")
+            rightHeart.classList.add("lost-life")
+            leftHeart.classList.add("lost-life")
         }else if(dropFlagCenter.textContent !== centerFlag.id && dropFlagLeft.textContent == leftSideFlag.id && dropFlagRight.textContent !== rightSideFlag.id){
             dropFlagCenter.classList.add("flag-drop-area-failed")
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-failed")
+            rightHeart.classList.add("lost-life")
+            leftHeart.classList.add("lost-life")
         }else if(dropFlagCenter.textContent !== centerFlag.id && dropFlagLeft.textContent !== leftSideFlag.id && dropFlagRight.textContent == rightSideFlag.id){
             dropFlagCenter.classList.add("flag-drop-area-failed")
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-success")
+            rightHeart.classList.add("lost-life")
+            leftHeart.classList.add("lost-life")
         }else{
             dropFlagCenter.classList.add("flag-drop-area-failed")
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-failed")
+            rightHeart.classList.add("lost-life")
+            leftHeart.classList.add("lost-life")
         }
     }
+    calculatePoints(dropFlagLeft, dropFlagCenter, dropFlagRight)
     checkNumberOfLives()
 })
 
