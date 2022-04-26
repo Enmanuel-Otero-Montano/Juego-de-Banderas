@@ -152,7 +152,7 @@ buttonNext.addEventListener("click", ()=> {
         flagsContainer.style.justifyContent = "space-between"
         showLeftFlag()
         showRightFlag()
-    }else if(location.pathname === "/pages/south-america/south-america.html" && currentRegion.length == 3){
+    }else if(location.href === `${location.protocol}//${location.host}/Juego-de-Banderas/pages/south-america/south-america.html` && currentRegion.length == 3){
         leftSideFlag.remove()
         rightSideFlag.remove()
         dropFlagCenter.classList.remove("flag-drop-area-hidden", "flag-drop-area-success", "flag-drop-area-failed")
@@ -164,7 +164,7 @@ buttonNext.addEventListener("click", ()=> {
         showRightFlag()
         showCenterFlag()
         buttonNext.disabled = true
-    }else if(location.pathname === "/pages/central-north-america-caribbean/central-north-america-caribbean.html" && currentRegion.length === 6 || currentRegion.length == 3){
+    }else if(location.href === `${location.protocol}//${location.host}/Juego-de-Banderas/pages/central-north-america-caribbean/central-north-america-caribbean.html` && currentRegion.length === 6 || currentRegion.length == 3){
         leftSideFlag.remove()
         rightSideFlag.remove()
         dropFlagCenter.classList.remove("flag-drop-area-hidden", "flag-drop-area-success", "flag-drop-area-failed")
