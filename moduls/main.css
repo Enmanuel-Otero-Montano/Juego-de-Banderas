@@ -27,14 +27,16 @@ body {
     background-color: var(--bg-header);
 }
 
-.lives-points-container {
+.live-points-container {
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
     align-items: center;
+    height: 60px;
 }
 
 .points {
-    margin: 0 0 4px;
+    margin: 0;
     font-size: .9rem;
     color: hsl(0, 0%, 100%);
 }
@@ -44,6 +46,10 @@ body {
     align-items: center;
     justify-content: space-between;
     width: 100%;
+}
+
+.counter {
+    color: hsl(0, 0%, 100%);
 }
 
 .left-heart,
@@ -174,7 +180,7 @@ img {
 
 .modal-how-to-play {
     position: absolute;
-    transform: scale(0);
+    transform: scale(0, 1);
 }
 
 .modal-how-to-play-showing {
@@ -190,8 +196,8 @@ img {
     padding-left: 20px;
     padding-right: 20px;
     background-color: rgba(0, 0, 0, 0.9);
-    transform: scale(1);
-    transition: transform 600ms;
+    transform: scale(1, 1);
+    transition: transform 700ms;
 }
 
 .how-to-play-explanation-container {

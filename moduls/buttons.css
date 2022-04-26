@@ -1,7 +1,16 @@
+.about-game-button {
+    padding: 0;
+    font-size: .9rem;
+    font-weight: 700;
+    background-color: transparent;
+    color: hsl(0, 0%, 100%);
+    border: none;
+}
+
 .close-button {/* Botón de la ventana modal */
     position: absolute;
     top: 15px;
-    left: calc(100% - 55px);
+    left: calc(100% - 50px);
     width: 30px;
     height: 30px;
     padding: 3px 0 0;

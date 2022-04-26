@@ -13,6 +13,7 @@ const howToPlay = document.querySelector(".how-to-play")
 const leftHeart = document.querySelector(".left-heart")
 const rightHeart = document.querySelector(".right-heart")
 const currentPoints = document.querySelector(".current-points")
+let counter = document.querySelector(".counter")
 
 let currentRegion//En esta variable será un array con los países de América del Sur.
 let flagIndex//Variable para guarda un numero aleatorio entre el 0 y el último índice del array de banderas de América del Sur.
@@ -22,6 +23,18 @@ let rightSideFlag
 
 let selectedName
 
+let seconds
+
+let stopSeconds
+
+function counterDown () {
+    if(seconds == 0){
+        location.reload()
+    }
+    counter.innerHTML = `${seconds} s`
+    seconds--
+}
+
 const callCountry = async ()=> {//Función que hace la solicitud a la API de los países de América.
     const result =  fetch("https://restcountries.com/v3.1/region/ame")
     const country = await result
@@ -30,14 +43,17 @@ const callCountry = async ()=> {//Función que hace la solicitud a la API de los
 
 const saveCountriesInArray = async ()=> {
     const america = await callCountry()//Llamada a la función que hace la solicitud.
-    if(location.href === `${location.protocol}//${location.host}/Juegos-de-Bandera/pages/south-america/south-america.html`){
+    if(location.href === `${location.protocol}//${location.host}/Juego-de-Banderas/pages/south-america/south-america.html`){
+        seconds = 95
         currentRegion = america.filter(element => element.subregion == "South America")
-    }else if(location.href === `${location.protocol}//${location.host}/Juegos-de-Bandera/pages/central-north-america-caribbean/central-north-america-caribbean.html`){
+    }else if(location.href === `${location.protocol}//${location.host}/Juego-de-Banderas/pages/central-north-america-caribbean/central-north-america-caribbean.html`){
+        seconds = 120
         const caribbean = america.filter(element => element.name.common == "Cuba" || element.name.common == "Dominican Republic" || element.name.common == "Haiti" || element.name.common == "Bahamas" || element.name.common == "Jamaica" || element.name.common == "Puerto Rico" || element.name.common == "Trinidad and Tobago")
         const centralAndNorthAmerica = america.filter(element => element.subregion == "Central America" || element.subregion == "North America"  && element.name.common !== "Saint Pierre and Miquelon" && element.name.common !== "United States Minor Outlying Islands")
         currentRegion = caribbean.concat(centralAndNorthAmerica)
     }
     showTheFirstFlags()
+    stopSeconds = setInterval(counterDown, 1000)
     showNames()
 }
 
@@ -121,10 +137,6 @@ const calculatePoints = (containerLeft, containerCenter, containerRight)=>{
     }
 }
 
-/* nextRegion.addEventListener("click", ()=>{
-    location.href = `${location.protocol}//${location.host}/Juego-de-Banderas/pages/central-north-america-caribbean/central-north-america-caribbean.html`
-}) */
-
 buttonNext.addEventListener("click", ()=> {
     dropFlagCenter.dataset.points = "10"
     dropFlagLeft.dataset.points = "10"
@@ -152,7 +164,7 @@ buttonNext.addEventListener("click", ()=> {
         showRightFlag()
         showCenterFlag()
         buttonNext.disabled = true
-    }else if(location.pathname === "/pages/central-north-america-caribbean/central-north-america-caribbean.html" && currentRegion.length === 6 || currentRegion.length == 3){
+    }else if(location.pathname === "Juego-de-Banderas/pages/central-north-america-caribbean/central-north-america-caribbean.html" && currentRegion.length === 6 || currentRegion.length == 3){
         leftSideFlag.remove()
         rightSideFlag.remove()
         dropFlagCenter.classList.remove("flag-drop-area-hidden", "flag-drop-area-success", "flag-drop-area-failed")
@@ -260,7 +272,9 @@ buttonCheck.addEventListener("click", ()=> {
                 nextRegion.setAttribute("href", "../central-north-america-caribbean/central-north-america-caribbean.html")
                 nextRegion.style.opacity = "initial"
                 buttonCheck.disabled = true
+                clearInterval(stopSeconds)//Para el contador si es el final de la región actual
             }else{
+                buttonNext.disabled = false
                 buttonNext.style.opacity = "initial"
             }
         }else if(dropFlagCenter.textContent !== centerFlag.id && dropFlagLeft.textContent == leftSideFlag.id && dropFlagRight.textContent == rightSideFlag.id){
