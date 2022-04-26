@@ -39,9 +39,15 @@
 }
 
 .button-next-region {
+    width: 100px;
+    height: 38px;
+    font-size: .9rem;
+    font-weight: 700;
+    padding-top: 2px;
     background-color: hsl(110, 100%, 70%);
     border-radius: 18px;
     text-align: center;
+    text-decoration: none;
     color: var(--text-color-button-menu);
     opacity: .2;
 }
