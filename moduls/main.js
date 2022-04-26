@@ -44,15 +44,12 @@ const callCountry = async ()=> {//Función que hace la solicitud a la API de los
 const saveCountriesInArray = async ()=> {
     const america = await callCountry()//Llamada a la función que hace la solicitud.
     if(location.href === `${location.protocol}//${location.host}/Juego-de-Banderas/pages/south-america/south-america.html`){
-<<<<<<< HEAD
         seconds = 95
         currentRegion = america.filter(element => element.subregion == "South America")
     }else if(location.href === `${location.protocol}//${location.host}/Juego-de-Banderas/pages/central-north-america-caribbean/central-north-america-caribbean.html`){
         seconds = 120
-=======
         currentRegion = america.filter(element => element.subregion == "South America")
     }else if(location.href === `${location.protocol}//${location.host}/Juego-de-Banderas/pages/central-north-america-caribbean/central-north-america-caribbean.html`){
->>>>>>> 6cda8e1e2a94b9ea75fae8c25cf95402f0a504dd
         const caribbean = america.filter(element => element.name.common == "Cuba" || element.name.common == "Dominican Republic" || element.name.common == "Haiti" || element.name.common == "Bahamas" || element.name.common == "Jamaica" || element.name.common == "Puerto Rico" || element.name.common == "Trinidad and Tobago")
         const centralAndNorthAmerica = america.filter(element => element.subregion == "Central America" || element.subregion == "North America"  && element.name.common !== "Saint Pierre and Miquelon" && element.name.common !== "United States Minor Outlying Islands")
         currentRegion = caribbean.concat(centralAndNorthAmerica)
