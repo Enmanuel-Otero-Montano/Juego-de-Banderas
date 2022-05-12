@@ -1,13 +1,8 @@
-const options = document.querySelector(".options")
-const optionsContainer = document.querySelector(".options-container")
+const buttonRegionsMode = document.querySelector(".btn-regions-mode")
+const regionsList = document.querySelector(".region-list")
 const aboutGameButton = document.querySelector(".about-game-button")
 const aboutGameModal = document.querySelector(".modal-about-game")
 const closeModal = document.querySelector(".close-button")
-
-options.addEventListener("click", ()=>{
-    options.classList.toggle("options-active")
-    optionsContainer.classList.toggle("options-container-show")
-})
 
 aboutGameButton.addEventListener("click", ()=>{
     aboutGameModal.classList.add("modal-about-game-showing")
@@ -15,4 +10,8 @@ aboutGameButton.addEventListener("click", ()=>{
 
 closeModal.addEventListener("click", ()=>{
     aboutGameModal.classList.remove("modal-about-game-showing")
+})
+
+buttonRegionsMode.addEventListener("click", ()=> {
+    regionsList.classList.toggle("region-list-show")
 })

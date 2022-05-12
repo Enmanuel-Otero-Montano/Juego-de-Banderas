@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="57x57" href="../../assets/favicon/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="../../assets/favicon/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="../../assets/favicon/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="../../assets/favicon/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="../../assets/favicon/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="../../assets/favicon/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="../../assets/favicon/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="../../assets/favicon/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="../../assets/favicon/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="../../assets/favicon/android-icon-192x192.png">
+    <link rel="icon" type="imagepng" href="../../assets/favicon/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="../../assets/favicon/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../assets/favicon/favicon-16x16.png">
+    <link rel="manifest" href="../../assets/favicon/manifest.json">
+    <link rel="stylesheet" href="../../css/normalize.css">
+    <link rel="stylesheet" href="../../moduls/buttons-dist.css">
+    <link rel="stylesheet" href="../../moduls/main-dist.css">
+    <title>Banderas, Países y sus cosas</title>
+</head>
+<body>
+    <header class="header"> 
+        <button class="menu">Menú</button>
+        <div class="menu-container">
+            <a href="../../index.html" class="go-home">Ir a Inicio</a>
+            <button class="how-to-play">Como jugar</button>
+        </div>
+        <p class="stages">Etapa <span class="current-stage">1</span> / 1</p>
+        <div class="live-points-container">
+            <div class="points-container">
+                <p class="points"><span class="current-points">00</span>/140</p>
+            </div>
+            <div class="counter"></div>
+        </div>
+    </header>
+    <main class="main">
+        <div class="flags-drop-names-container">
+            <dialog class="dialog">
+                <h3 class="congratulations">¡FELICIDADES!</h3>
+                <h4>¡Has completado la región!</h4>
+            </dialog>
+            <div class="flags-container">
+                <img class="flags-center" src="" alt="">
+            </div>
+            <div class="drop-names">
+                <div class="drop-flag-left flag-drop-area-hidden" data-points="10"></div>
+                <div class="drop-flag-center" data-points="10"></div>
+                <div class="drop-flag-right flag-drop-area-hidden" data-points="10"></div>
+            </div>
+        </div>
+        <section class="section-names">
+            <h2 class="section-names__header">Nombre del país</h2>
+            <ul class="section-names__list">
+            </ul>
+        </section>
+        <div class="button-container">
+            <button class="btn-next-region-mode-career">Siguiente Región</button>
+            <button class="btn-next" disabled>Siguiente</button>
+            <button class="btn-check">Comprobar</button>
+        </div>
+    </main>
+    <div class="modal-how-to-play">
+        <button class="close-button" aria-label="cerrar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+        <div class="how-to-play-explanation-container">
+            <p class="how-to-play-explanation">Selecciona un nombre con un click o un tap, luego señale la bandera que crea que corresponda al nombre del país seleccionado y presiona comprobar para ver si es correcto, si es correcto, podrá presionar en el botón siguiente para pasar a las siguientes banderas.</p>
+            <p class="how-to-play-explanation">Cuando hayas completado todas las banderas de la región actual, podrá presionar el botón "Sugiente Región" jugar con otras banderas.</p>
+        </div>
+    </div>
+    <script src="../../moduls/main.js" type="module"></script>
+</body>
+</html>

@@ -1,10 +1,56 @@
+:root {
+    --border-radius: 12px;
+}
+
+button {
+    border: none;
+}
+
 .about-game-button {
     padding: 0;
     font-size: .9rem;
     font-weight: 700;
     background-color: transparent;
     color: hsl(0, 0%, 100%);
-    border: none;
+}
+
+.start {
+    width: 160px;
+    height: 45px;
+    font-weight: 700;
+    padding-top: 14px;
+    margin-bottom: 20px;
+    color: var(--text-color-button-menu);
+    letter-spacing: .6px;
+    background-color: var(--bg-color-button-menu);
+    box-shadow: 0px 0px 5px hsl(50, 100%, 70%);
+    border-radius: var(--border-radius);
+    text-align: center;
+    text-decoration: none;
+}
+
+.btn-regions-mode {
+    width: 160px;
+    height: 45px;
+    font-weight: 700;
+    color: var(--text-color-button-menu);
+    background-color: var(--bg-color-button-menu);
+    box-shadow: 0px 0px 5px hsl(50, 100%, 70%);
+    border-radius: var(--border-radius);
+}
+
+.region {
+    font-weight: 700;
+    color: var(--text-color-button-menu);
+    text-decoration: none;
+    letter-spacing: .6px;
+}
+
+.go-home {
+    font-size: .9rem;
+    font-weight: 700;
+    text-decoration: none;
+    color: hsl(0, 0%, 100%);
 }
 
 .close-button {/* Botón de la ventana modal */
@@ -15,17 +61,16 @@
     height: 30px;
     padding: 3px 0 0;
     background-color: hsl(0, 0%, 100%);
-    border: none;
 }
 
 .about-game-button,/* Botones del hedader, el de la página de inicio y las otras páginas */
-.how-to-play {
+.how-to-play,
+.menu {
     padding: 0;
     font-size: .9rem;
     font-weight: 700;
     background-color: transparent;
     color: white;
-    border: none;
 }
 
 .button-container > button {/* Estilos generales para los botones inferiores */
@@ -35,43 +80,68 @@
     font-weight: 700;
     color: var(--text-color-button-menu);
     letter-spacing: .5px;
-    border-radius: 18px;
-    border: none;
+    border-radius: var(--border-radius);
 }
 
-.button-check {
+.btn-check {
     background-color: var(--bg-color-button-menu);
 }
 
-.button-next {
+.btn-next {
     opacity: .2;
 }
 
-.button-next-region {
+.button-next-region,
+.end-region-button {
     width: 100px;
     height: 38px;
     font-size: .9rem;
     font-weight: 700;
     padding-top: 2px;
     background-color: hsl(110, 100%, 70%);
-    border-radius: 18px;
+    border-radius: var(--border-radius);
     text-align: center;
     text-decoration: none;
     color: var(--text-color-button-menu);
     opacity: .2;
 }
 
+.btn-next-region-mode-career {
+    opacity: .2;
+}
+
+.end-region-button {
+    padding-top: 10px;
+}
+
 @media (hover: hover) {
+
+    button:hover {
+        cursor: pointer;
+    }
 
     .about-game-button:hover,
     .how-to-play:hover {
-        cursor: pointer;
         color: var(--text-color);
-        border-bottom: solid 1px var(--text-color);
+        text-decoration: underline;
+    }
+
+    .start:hover,
+    .btn-regions-mode:hover {
+        background-color: hsl(110, 100%, 70%);
+        transform: scale(1.02, 1.02);
     }
 
     .close-button:hover {
-        cursor: pointer;
         background-color: var(--text-color);
     }
 }
+
+@media screen and (min-width: 768px) {
+
+    .start {
+        margin-bottom: 0px;
+    }
+
+}
+

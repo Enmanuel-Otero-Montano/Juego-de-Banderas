@@ -25,47 +25,48 @@
     <link rel="stylesheet" href="../../css/normalize.css">
     <link rel="stylesheet" href="../../moduls/buttons-dist.css">
     <link rel="stylesheet" href="../../moduls/main-dist.css">
-    <title>América Centarl, del Norte y el Caribe</title>
+    <title>Banderas, Países y sus cosas</title>
 </head>
 <body>
     <header class="header"> 
-        <button class="how-to-play">Como jugar</button>
+        <button class="menu">Menú</button>
+        <div class="menu-container">
+            <a href="../../index.html" class="go-home">Ir a Inicio</a>
+            <button class="how-to-play">Como jugar</button>
+        </div>
+        <p class="stages">Etapa <span class="current-stage">1</span> / 2</p>
         <div class="live-points-container">
             <div class="points-container">
                 <p class="points"><span class="current-points">00</span>/140</p>
-            </div>
-            <div class="lives-container">
-                <svg class="left-heart" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="96" height="96" viewBox="0 0 96 96">
-                    <path d="m48.126,25.035c0,0-6-12.786-19.5-12.786-14.751,0-22.5,12.501-22.5,24.999 0,20.751 42,46.5 42,46.5s41.748-25.5 41.748-46.5c0-12.75-7.998-24.999-22.248-24.999s-19.5,12.786-19.5,12.786z"/>
-                </svg>
-                <svg class="right-heart" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="96" height="96" viewBox="0 0 96 96">
-                    <path d="m48.126,25.035c0,0-6-12.786-19.5-12.786-14.751,0-22.5,12.501-22.5,24.999 0,20.751 42,46.5 42,46.5s41.748-25.5 41.748-46.5c0-12.75-7.998-24.999-22.248-24.999s-19.5,12.786-19.5,12.786z"/>
-                </svg>
             </div>
             <div class="counter"></div>
         </div>
     </header>
     <main class="main">
-        <div class="flags-container">
-            <img class="flags-center" src="" alt="">
-        </div>
-        <div class="drop-names">
-            <div class="drop-flag-left flag-drop-area-hidden" data-points="10"></div>
-            <div class="drop-flag-center" data-points="10"></div>
-            <div class="drop-flag-right flag-drop-area-hidden" data-points="10"></div>
+        <div class="flags-drop-names-container">
+            <dialog class="dialog">
+                <h3 class="congratulations">¡FELICIDADES!</h3>
+                <h4>¡Has completado la región!</h4>
+            </dialog>
+            <div class="flags-container">
+                <img class="flags-center" src="" alt="">
+            </div>
+            <div class="drop-names">
+                <div class="drop-flag-left flag-drop-area-hidden" data-points="10"></div>
+                <div class="drop-flag-center" data-points="10"></div>
+                <div class="drop-flag-right flag-drop-area-hidden" data-points="10"></div>
+            </div>
         </div>
         <section class="section-names">
             <h2 class="section-names__header">Nombre del país</h2>
             <ul class="section-names__list">
             </ul>
         </section>
-        <section class="section-buttons">
-            <div class="button-container">
-                <button class="button-next-region" disabled>Siguiente Región</button>
-                <button class="button-next" disabled>Siguiente</button>
-                <button class="button-check">Comprobar</button>
-            </div>
-        </section>
+        <div class="button-container">
+            <button class="btn-next-region-mode-career">Siguiente Región</button>
+            <button class="btn-next">Siguiente</button>
+            <button class="btn-check">Comprobar</button>
+        </div>
     </main>
     <div class="modal-how-to-play">
         <button class="close-button" aria-label="cerrar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
