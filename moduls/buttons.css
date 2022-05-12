@@ -91,6 +91,13 @@ button {
     opacity: .2;
 }
 
+/* .location {
+    position: absolute;
+    text-align: center;
+    text-decoration: none;
+    background-color: hsl(0, 0%, 100%);
+} */
+
 .button-next-region,
 .end-region-button {
     width: 100px;
@@ -121,7 +128,9 @@ button {
     }
 
     .about-game-button:hover,
-    .how-to-play:hover {
+    .how-to-play:hover,
+    .go-home:hover,
+    .menu:hover {
         color: var(--text-color);
         text-decoration: underline;
     }

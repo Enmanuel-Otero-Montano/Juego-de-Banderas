@@ -26,16 +26,6 @@ leftSideFlag.setAttribute("class", "flags-left")
 const rightSideFlag = document.createElement("IMG")
 rightSideFlag.setAttribute("class", "flags-right")
 
-/* const africa = `${location.protocol}//${location.host}/pages/africa/africa.html`
-
-const america = `${location.protocol}//${location.host}/pages/america/america.html`
-
-const asia = `${location.protocol}//${location.host}/pages/asia/asia.html`
-
-const europe = `${location.protocol}//${location.host}/pages/europe/europe.html`
-
-const oceania = `${location.protocol}//${location.host}/pages/oceania/oceania.html` */
-
 const region = location.href
 
 const allCountries = {
@@ -83,26 +73,6 @@ const callCountry = async ()=> {//Función que hace la solicitud a la API de los
     const country = await result
     return country.json()
 }
-
-/* const saveCountriesInArray = async ()=> {
-    allCountries.countries = await callCountry()//Llamada a la función que hace la solicitud.
-    if(location.href === `${location.protocol}//${location.host}/pages/career-mode.html`){
-        southAmerica()
-    }else if(location.href === america){
-        southAmerica()
-    }else if(location.href === europe){
-        southOfEurope()
-    }else if(location.href === africa){
-        easternAfrica()
-    }else if(location.href === oceania){
-        oceaniaFunct()
-    }else if(location.href === asia){
-        westernAsia()
-    }
-    showNames()
-    showCenterFlag() */
-    /* stopSeconds = setInterval(counterDown, 1000) */
-//}
 
 const saveCountriesInArray = async (locationHref)=> {
     allCountries.countries = await callCountry()//Llamada a la función que hace la solicitud.
@@ -160,6 +130,20 @@ const showCenterFlag = ()=> {//Función para mostrar la bandera del centro
     centerFlag.setAttribute("src", currentRegion.region[flagIndex].flags.png)
     leftSideFlag.after(centerFlag)
 }
+
+listOfNames.addEventListener("click", (e)=> {
+    if(!e.target.classList.contains("section-names__list")){
+        selectedName.name = e.target.id
+        dropFlagCenter.classList.remove("flag-drop-area-failed")
+        dropFlagLeft.classList.remove("flag-drop-area-failed")
+        dropFlagRight.classList.remove("flag-drop-area-failed")
+        removeNameSelected()
+        e.target.classList.add("flag-names-selected")
+        console.log(allCountries.countries)
+        const location = allCountries.countries.find(element=> element.name.common === selectedName.name)
+        console.log(location.maps.googleMaps)
+    }
+})
 
 const removeNameSelected = ()=> {//Función para remover el color del nombre seleccionado
     for(const name of listOfNames.children){
@@ -260,17 +244,6 @@ buttonNext.addEventListener("click", ()=> {
     buttonNext.style.opacity = ".2"
 })
 
-listOfNames.addEventListener("click", (e)=> {
-    if(!e.target.classList.contains("section-names__list")){
-        selectedName.name = e.target.id
-        dropFlagCenter.classList.remove("flag-drop-area-failed")
-        dropFlagLeft.classList.remove("flag-drop-area-failed")
-        dropFlagRight.classList.remove("flag-drop-area-failed")
-        removeNameSelected()
-        e.target.classList.add("flag-names-selected")
-    }
-})
-
 centerFlag.addEventListener("click", ()=> {
     flagsContainer.nextElementSibling.children[1].textContent = selectedName.name
     removeNameSelected()
@@ -295,7 +268,6 @@ flagsContainer.addEventListener("click", (e)=> {
 })
 
 buttonCheck.addEventListener("click", ()=> {
-    //dialog.show()
     console.log(nameOfTheFlags["center flag name"], nameOfTheFlags["left flag name"], nameOfTheFlags["right flag name"])
     if(!dropFlagCenter.classList.contains("flag-drop-area-hidden") && dropFlagLeft.classList.contains("flag-drop-area-hidden")){
         if(dropFlagCenter.textContent === nameOfTheFlags["center flag name"]){
@@ -306,7 +278,9 @@ buttonCheck.addEventListener("click", ()=> {
         }else{
             dropFlagCenter.classList.add("flag-drop-area-failed")
             dropFlagCenter.setAttribute("data-points", "5")
-            checkNumberOfCurrentLives()
+            if(location.href.includes("career-mode")){
+                checkNumberOfCurrentLives()
+            }
         }
     }else if(!dropFlagLeft.classList.contains("flag-drop-area-hidden") && !dropFlagRight.classList.contains("flag-drop-area-hidden") && dropFlagCenter.classList.contains("flag-drop-area-hidden")){
         if(dropFlagLeft.textContent === nameOfTheFlags["left flag name"] && dropFlagRight.textContent === nameOfTheFlags["right flag name"]){
@@ -325,16 +299,22 @@ buttonCheck.addEventListener("click", ()=> {
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-failed")
             dropFlagRight.setAttribute("data-points", "5")
-            checkNumberOfCurrentLives()
+            if(location.href.includes("career-mode")){
+                checkNumberOfCurrentLives()
+            }
         }else if(dropFlagLeft.textContent !== nameOfTheFlags["left flag name"] && dropFlagRight.textContent === nameOfTheFlags["right flag name"]){
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-success")
             dropFlagLeft.setAttribute("data-points", "5")
-            checkNumberOfCurrentLives()
+            if(location.href.includes("career-mode")){
+                checkNumberOfCurrentLives()
+            }
         }else{
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-failed")
-            checkNumberOfCurrentLives()
+            if(location.href.includes("career-mode")){
+                checkNumberOfCurrentLives()
+            }
         }
     }else{
         if(dropFlagCenter.textContent == nameOfTheFlags["center flag name"] && dropFlagLeft.textContent === nameOfTheFlags["left flag name"] && dropFlagRight.textContent === nameOfTheFlags["right flag name"]){
@@ -356,7 +336,7 @@ buttonCheck.addEventListener("click", ()=> {
                 nextRegionModeCareer.style.opacity = ".2"
                 dialog.show()
                 clearInterval(stopSeconds)//Para el contador si es el final de la región actual
-            }else if(location.href === oceania && stage.currentStage === 1) {
+            }else if(region.includes("oceania") && stage.currentStage === 1) {
                 nextRegionModeCareer.disabled = true
                 nextRegionModeCareer.style.opacity = ".2"
                 dialog.show()
@@ -369,19 +349,25 @@ buttonCheck.addEventListener("click", ()=> {
             dropFlagCenter.setAttribute("data-pointd", "5")
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-success")
-            checkNumberOfCurrentLives()
+            if(location.href.includes("career-mode")){
+                checkNumberOfCurrentLives()
+            }
         }else if(dropFlagCenter.textContent == nameOfTheFlags["center flag name"] && dropFlagLeft.textContent !== nameOfTheFlags["left flag name"] && dropFlagRight.textContent === nameOfTheFlags["right flag name"]){
             dropFlagCenter.classList.add("flag-drop-area-success")
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-success")
             dropFlagLeft.setAttribute("data-pointd", "5")
-            checkNumberOfCurrentLives()
+            if(location.href.includes("career-mode")){
+                checkNumberOfCurrentLives()
+            }
         }else if(dropFlagCenter.textContent == nameOfTheFlags["center flag name"] && dropFlagLeft.textContent === nameOfTheFlags["left flag name"] && dropFlagRight.textContent !== nameOfTheFlags["right flag name"]){
             dropFlagCenter.classList.add("flag-drop-area-success")
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-failed")
             dropFlagRight.setAttribute("data-pointd", "5")
-            checkNumberOfCurrentLives
+            if(location.href.includes("career-mode")){
+                checkNumberOfCurrentLives()
+            }
         }else if(dropFlagCenter.textContent == nameOfTheFlags["center flag name"] && dropFlagLeft.textContent !== nameOfTheFlags["left flag name"] && dropFlagRight.textContent !== nameOfTheFlags["right flag name"]){
             dropFlagCenter.classList.add("flag-drop-area-success")
             dropFlagLeft.classList.add("flag-drop-area-failed")
@@ -404,12 +390,12 @@ buttonCheck.addEventListener("click", ()=> {
             dropFlagCenter.classList.add("flag-drop-area-failed")
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-failed")
-            rightHeart.classList.add("lost-life")
-            leftHeart.classList.add("lost-life")
         }
     }
     calculatePoints(dropFlagLeft, dropFlagCenter, dropFlagRight)
-    checkNumberOfLives()
+    if(location.href.includes("career-mode")){
+        checkNumberOfLives()
+    }
 })
 
 howToPlay.addEventListener("click", ()=> {
@@ -424,7 +410,7 @@ const stage = {
     currentStage: 1
 }
 
-if(location.href.includes("career-mode")) {
+if(region.includes("career-mode")) {
     nextRegionModeCareer.addEventListener("click", ()=>{
         numberOfLives.textContent = ++numberOfLives.textContent
         stage.currentStage = ++stage.currentStage
@@ -432,7 +418,7 @@ if(location.href.includes("career-mode")) {
         careerMode(stage.currentStage)
         initialState()
     })
-}else if(location.href.includes("america")) {
+}else if(region.includes("america")) {
     nextRegionModeCareer.addEventListener("click", ()=>{
         currentRegion.region.splice(0)
         restOfAmerica()
@@ -443,7 +429,7 @@ if(location.href.includes("career-mode")) {
         stage.currentStage = ++stage.currentStage
         currentStageInformation.textContent = stage.currentStage
     })
-}else if(location.href.includes("asia")) {
+}else if(region.includes("asia")) {
     nextRegionModeCareer.addEventListener("click", ()=>{
         currentRegion.region.splice(0)
         if(stage.currentStage === 1) {
@@ -459,7 +445,7 @@ if(location.href.includes("career-mode")) {
         stage.currentStage = ++stage.currentStage
         currentStageInformation.textContent = stage.currentStage
     })
-}else if(location.href.includes("europe")) {
+}else if(region.includes("europe")) {
     nextRegionModeCareer.addEventListener("click", ()=>{
         currentRegion.region.splice(0)
         if(stage.currentStage === 1) {
@@ -475,7 +461,7 @@ if(location.href.includes("career-mode")) {
         stage.currentStage = ++stage.currentStage
         currentStageInformation.textContent = stage.currentStage
     })
-}else if(location.href.includes("africa")) {
+}else if(region.includes("africa")) {
     nextRegionModeCareer.addEventListener("click", ()=>{
         currentRegion.region.splice(0)
         if(stage.currentStage === 1) {
