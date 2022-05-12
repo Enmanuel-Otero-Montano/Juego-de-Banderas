@@ -65,7 +65,7 @@ const totalTime = {
 
 let stopSeconds
 
-/* function counterDown () {
+function counterDown () {
     if(totalTime["fourteen names"] === 0 || totalTime["eighteen names"] === 0){
         location.reload()
     }
@@ -76,7 +76,7 @@ let stopSeconds
         counter.innerHTML = `${totalTime["eighteen names"]} s`
         totalTime["eighteen names"]--
     }
-} */
+}
 
 const callCountry = async ()=> {//Función que hace la solicitud a la API de los países de América.
     const result =  fetch("https://restcountries.com/v3.1/all")
@@ -121,7 +121,7 @@ const saveCountriesInArray = async (locationHref)=> {
     }
     showNames()
     showCenterFlag()
-    /* stopSeconds = setInterval(counterDown, 1000) */
+    //stopSeconds = setInterval(counterDown, 1000)
 }
 
 document.addEventListener("DOMContentLoad", saveCountriesInArray(region))
@@ -159,7 +159,6 @@ const showCenterFlag = ()=> {//Función para mostrar la bandera del centro
     nameOfTheFlags["center flag name"] = currentRegion.region[flagIndex].name.common
     centerFlag.setAttribute("src", currentRegion.region[flagIndex].flags.png)
     leftSideFlag.after(centerFlag)
-    currentRegion.region.splice(flagIndex, 1)
 }
 
 const removeNameSelected = ()=> {//Función para remover el color del nombre seleccionado
@@ -199,13 +198,39 @@ buttonNext.addEventListener("click", ()=> {
     dropFlagLeft.dataset.points = "10"
     dropFlagRight.dataset.points = "10"
     buttonCheck.disabled = false
+    console.log(currentRegion.region.length)
     if(flagsContainer.childElementCount == 1) {
         centerFlag.remove()
         centerFlag.setAttribute("src", "")
-        dropFlagCenter.classList.add("flag-drop-area-hidden")
         dropFlagLeft.classList.remove("flag-drop-area-hidden")
         dropFlagRight.classList.remove("flag-drop-area-hidden")
         flagsContainer.classList.add("flags-container-two-flags")
+        currentRegion.region.splice(flagIndex, 1)
+        flagsContainer.classList.add("flags-container-two-flags")
+        showLeftFlag()
+        showRightFlag()
+        dropFlagCenter.classList.add("flag-drop-area-hidden")
+        dropFlagCenter.textContent = ""
+    }else if(location.href === `${location.protocol}//${location.host}/Juego-de-Banderas/pages/south-america/south-america.html` && currentRegion.length == 3){
+        leftSideFlag.remove()
+        rightSideFlag.remove()
+        dropFlagCenter.classList.remove("flag-drop-area-hidden", "flag-drop-area-success", "flag-drop-area-failed")
+        dropFlagLeft.classList.remove("flag-drop-area-success", "flag-drop-area-failed")
+        dropFlagRight.classList.remove("flag-drop-area-success", "flag-drop-area-failed")
+        dropFlagLeft.textContent = ""
+        dropFlagRight.textContent = ""
+        showLeftFlag()
+        showRightFlag()
+        showCenterFlag()
+        buttonNext.disabled = true
+    }else if(location.href === `${location.protocol}//${location.host}/Juego-de-Banderas/pages/central-north-america-caribbean/central-north-america-caribbean.html` && currentRegion.length === 6 || currentRegion.length == 3){
+        leftSideFlag.remove()
+        rightSideFlag.remove()
+        dropFlagCenter.classList.remove("flag-drop-area-hidden", "flag-drop-area-success", "flag-drop-area-failed")
+        dropFlagLeft.classList.remove("flag-drop-area-success", "flag-drop-area-failed")
+        dropFlagRight.classList.remove("flag-drop-area-success", "flag-drop-area-failed")
+        dropFlagLeft.textContent = ""
+        dropFlagRight.textContent = ""
         dropFlagCenter.textContent = ""
         showLeftFlag()
         showRightFlag()
@@ -318,15 +343,15 @@ buttonCheck.addEventListener("click", ()=> {
             dropFlagRight.classList.add("flag-drop-area-success")
             nextRegionModeCareer.disabled = false
             nextRegionModeCareer.style.opacity = "initial"
-            if(location.href === `${location.protocol}//${location.host}/pages/career-mode.html`) {
+            if(region.includes("career-mode")) {
                 nextRegionModeCareer.style.opacity = "initial"
                 nextRegionModeCareer.disabled = false
-            }else if(location.href === america && stage.currentStage === 2){
+            }else if(region.includes("america") && stage.currentStage === 2){
                 nextRegionModeCareer.disabled = true
                 nextRegionModeCareer.style.opacity = ".2"
                 dialog.show()
                 clearInterval(stopSeconds)//Para el contador si es el final de la región actual
-            }else if(location.href === asia || location.href === europe || location.href === africa && stage.currentStage === 3){
+            }else if(region.includes("asia") || region.includes("europe") || region.includes("africa") && stage.currentStage === 3){
                 nextRegionModeCareer.disabled = true
                 nextRegionModeCareer.style.opacity = ".2"
                 dialog.show()
@@ -577,8 +602,8 @@ const initialState = ()=> {
     dropFlagCenter.textContent = ""
     buttonCheck.disabled = false
     buttonCheck.style.opacity = "initial"
-    /* nextRegionModeCareer.disabled = true
-    nextRegionModeCareer.style.opacity = ".2" */
+    nextRegionModeCareer.disabled = true
+    nextRegionModeCareer.style.opacity = ".2"
 }
 
 buttonMenu.addEventListener("click", ()=> {
