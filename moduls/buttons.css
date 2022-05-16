@@ -1,4 +1,5 @@
 :root {
+    --text-color-secondary: hsl(0, 0%, 100%);
     --border-radius: 12px;
 }
 
@@ -11,7 +12,7 @@ button {
     font-size: .9rem;
     font-weight: 700;
     background-color: transparent;
-    color: hsl(0, 0%, 100%);
+    color: var(--text-color-secondary);
 }
 
 .start {
@@ -46,34 +47,38 @@ button {
     letter-spacing: .6px;
 }
 
-.go-home {
+.go-home,
+.location {
     font-size: .9rem;
     font-weight: 700;
     text-decoration: none;
-    color: hsl(0, 0%, 100%);
+    color: var(--text-color-secondary);
 }
 
 .close-button {/* Botón de la ventana modal */
     position: absolute;
-    top: 15px;
-    left: calc(100% - 50px);
-    width: 30px;
-    height: 30px;
-    padding: 3px 0 0;
+    top: 13px;
+    left: calc(100% - 44px);
+    width: 28px;
+    height: 28px;
+    padding: 2px 0 0;
     background-color: hsl(0, 0%, 100%);
 }
 
 .about-game-button,/* Botones del hedader, el de la página de inicio y las otras páginas */
 .how-to-play,
-.menu {
+.menu,
+.btn-population {
     padding: 0;
     font-size: .9rem;
     font-weight: 700;
     background-color: transparent;
-    color: white;
+    color: var(--text-color-secondary);
+    letter-spacing: 1px;
 }
 
-.button-container > button {/* Estilos generales para los botones inferiores */
+.button-container > button,
+.btn-restart {/* Estilos generales para los botones inferiores */
     width: 100px;
     height: 38px;
     font-size: .9rem;
@@ -91,30 +96,33 @@ button {
     opacity: .2;
 }
 
-/* .location {
-    position: absolute;
-    text-align: center;
-    text-decoration: none;
-    background-color: hsl(0, 0%, 100%);
-} */
-
-.button-next-region,
-.end-region-button {
-    width: 100px;
-    height: 38px;
-    font-size: .9rem;
-    font-weight: 700;
-    padding-top: 2px;
-    background-color: hsl(110, 100%, 70%);
-    border-radius: var(--border-radius);
-    text-align: center;
-    text-decoration: none;
-    color: var(--text-color-button-menu);
+.btn-next-region-mode-career {
     opacity: .2;
 }
 
-.btn-next-region-mode-career {
-    opacity: .2;
+.btn-next-region-mode-career-active {
+    animation-name: button-float;
+    animation-duration: 1.5s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+.btn-restart {
+    background-color: hsl(0, 55%, 30%);
+    color: var(--text-color-secondary);
+    letter-spacing: 1px;
+}
+
+@keyframes button-float {
+
+    from {
+        transform: scale(1, 1);
+    }
+
+    to {
+        transform: scale(1.06, 1.06);
+        background-color: hsl(110, 100%, 75%);
+    }
 }
 
 .end-region-button {

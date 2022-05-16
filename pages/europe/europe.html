@@ -23,7 +23,6 @@
     <link rel="icon" type="image/png" sizes="16x16" href="../../assets/favicon/favicon-16x16.png">
     <link rel="manifest" href="../../assets/favicon/manifest.json">
     <link rel="stylesheet" href="../../css/normalize.css">
-    <link rel="stylesheet" href="../../moduls/buttons-dist.css">
     <link rel="stylesheet" href="../../moduls/main-dist.css">
     <title>Banderas, Países y sus cosas</title>
 </head>
@@ -61,6 +60,16 @@
             </div>
         </div>
         <section class="section-names">
+            <div class="information-container">
+                <p class="information">Si desea, seleccione un país para ver su ubicación geográfica o su población total</p>
+            </div>
+            <div class="location-population-container">
+                <a href="" class="location" target="_blank">Ver ubicación</a>
+                <button class="btn-population">Ver población</button>
+            </div>
+            <div class="population-information-container">
+                <p class="population-information"><span class="population-country-name"></span> población estimada &sim; <span class="country-population"></span></p>
+            </div>
             <h2 class="section-names__header">Nombre del país</h2>
             <ul class="section-names__list">
             </ul>
@@ -74,8 +83,9 @@
     <div class="modal-how-to-play">
         <button class="close-button" aria-label="cerrar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
         <div class="how-to-play-explanation-container">
-            <p class="how-to-play-explanation">Selecciona un nombre con un click o un tap, luego señale la bandera que crea que corresponda al nombre del país seleccionado y presiona comprobar para ver si es correcto, si es correcto, podrá presionar en el botón siguiente para pasar a las siguientes banderas.</p>
-            <p class="how-to-play-explanation">Cuando hayas completado todas las banderas de la región actual, podrá presionar el botón "Sugiente Región" jugar con otras banderas.</p>
+            <h4 class="how-to-paly-title">Como jugar</h4>
+            <p class="how-to-play-explanation">Seleccione un nombre con un click o un tap, luego presione con un click o un tap la bandera que crea corresponda al nombre del país seleccionado y presione comprobar para ver si es correcto, si es correcto, podrá presionar en el botón siguiente para pasar a las siguientes banderas.</p>
+            <p class="how-to-play-explanation">Cuando haya completado todas las banderas de la región actual, podrá presionar el botón "Siguiente Región" para pasar a la siguiente región.</p>
         </div>
     </div>
     <script src="../../moduls/main.js" type="module"></script>
