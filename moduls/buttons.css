@@ -121,7 +121,7 @@ button {
 
     to {
         transform: scale(1.06, 1.06);
-        background-color: hsl(110, 100%, 75%);
+        background-color: hsl(110, 100%, 70%);
     }
 }
 

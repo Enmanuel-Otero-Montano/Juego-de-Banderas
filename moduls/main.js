@@ -20,6 +20,7 @@ const heart = document.querySelector(".heart")
 const counter = document.querySelector(".counter")
 const dialog = document.querySelector(".dialog")
 const dialogFailed = document.querySelector(".dialog-failed")
+const textFaildeReason = document.querySelector(".failed-text-reason")
 const informationContainer = document.querySelector(".information-container")
 const locationPopulationContainer = document.querySelector(".location-population-container")
 const countryLocation = document.querySelector(".location")
@@ -27,6 +28,10 @@ const buttonPopulation = document.querySelector(".btn-population")
 const populationInformationContainer = document.querySelector(".population-information-container")
 const populationCountryName = document.querySelector(".population-country-name")
 const countryPopulation = document.querySelector(".country-population")
+
+window.oncontextmenu = function() {
+    return false
+}
 
 const leftSideFlag = document.createElement("IMG")
 leftSideFlag.setAttribute("class", "flags-left")
@@ -57,19 +62,20 @@ const nameOfTheFlags = {//Para guardar el nombre de la bandera.
 }
 
 const totalTime = {
-    "fourteen names": 100,
-    "eighteen names": 125
+    "fourteen names": 115,
+    "eighteen names": 140
 }
 
 let stopSeconds
 
-function counterDown () {
+/* function counterDown () {
     if(totalTime["fourteen names"] === 0 || totalTime["eighteen names"] === 0){
         clearInterval(stopSeconds)
-        totalTime["fourteen names"] = 100
-        totalTime["eighteen names"] = 125
+        totalTime["fourteen names"] = 115
+        totalTime["eighteen names"] = 140
         stage.currentStage = 1
         currentStageInformation.textContent = stage.currentStage
+        textFaildeReason.textContent = "tiempo"
         dialogFailed.show()
     }
     if(listOfNames.children.length === 14) {
@@ -82,13 +88,13 @@ function counterDown () {
     if(totalTime["fourteen names"] <= 24 || totalTime["eighteen names"] <= 24) {
         counter.classList.add("counter-red")
     }
-}
+} */
 
 buttonRestart.addEventListener("click", ()=> {
     careerMode(stage.currentStage)
     initialState()
     currentPoints.textContent = "00"
-    numberOfLives.textContent = "12"
+    numberOfLives.textContent = "15"
     dialogFailed.close()
 })
 
@@ -189,14 +195,18 @@ const checkNumberOfCurrentLives = ()=>{
     heart.classList.add("heart-animation")
     setTimeout(() => {
         heart.classList.remove("heart-animation")
-    }, 310);
+    }, 280);
 }
 
 const checkNumberOfLives = ()=>{
     if(numberOfLives.textContent === "0"){
-        setTimeout(() => {
-            location.reload()
-        }, 800);
+        clearInterval(stopSeconds)
+        totalTime["fourteen names"] = 115
+        totalTime["eighteen names"] = 140
+        stage.currentStage = 1
+        currentStageInformation.textContent = stage.currentStage
+        textFaildeReason.textContent = "corazones"
+        dialogFailed.show()
     }
 }
 
@@ -358,9 +368,15 @@ buttonCheck.addEventListener("click", ()=> {
             nextRegionModeCareer.style.opacity = "initial"
             clearInterval(stopSeconds)//Para el contador si es el final de la región actual
             if(region.includes("career-mode")) {
-                nextRegionModeCareer.disabled = false
-                nextRegionModeCareer.style.opacity = "initial"
-                nextRegionModeCareer.classList.add("btn-next-region-mode-career-active")
+                if(currentStageInformation.textContent !== "12") {
+                    nextRegionModeCareer.disabled = false
+                    nextRegionModeCareer.style.opacity = "initial"
+                    nextRegionModeCareer.classList.add("btn-next-region-mode-career-active")
+                }else{
+                    dialog.show()
+                    nextRegionModeCareer.disabled = true
+                    nextRegionModeCareer.style.opacity = ".2"
+                }
             }else if(region.includes("america") && stage.currentStage === 2){
                 nextRegionModeCareer.disabled = true
                 nextRegionModeCareer.style.opacity = ".2"
@@ -445,7 +461,7 @@ howToPlay.addEventListener("click", ()=> {
 
 closeModal.addEventListener("click", ()=>{
     howToPlayModal.classList.add("modal-how-to-play-hidden")
-    stopSeconds = setInterval(counterDown, 1000)
+    //stopSeconds = setInterval(counterDown, 1000)
 })
 
 const stage = {
@@ -457,8 +473,8 @@ if(region.includes("career-mode")) {
         numberOfLives.textContent = ++numberOfLives.textContent
         stage.currentStage = ++stage.currentStage
         currentStageInformation.textContent = stage.currentStage
-        totalTime["fourteen names"] = 100// Reinicia el contador.
-        totalTime["eighteen names"] = 125// Reinicia el contador.
+        totalTime["fourteen names"] = 115// Reinicia el contador.
+        totalTime["eighteen names"] = 140// Reinicia el contador.
         careerMode(stage.currentStage)
         initialState()
     })
@@ -628,11 +644,11 @@ const initialState = ()=> {
     populationInformationContainer.classList.remove("population-information-container-show")
     buttonCheck.disabled = false
     buttonCheck.style.opacity = "initial"
-    nextRegionModeCareer.disabled = true
+    //nextRegionModeCareer.disabled = true
     nextRegionModeCareer.style.opacity = ".2"
     nextRegionModeCareer.classList.remove("btn-next-region-mode-career-active")
     counter.classList.remove("counter-red")
-    stopSeconds = setInterval(counterDown, 1000)
+    //stopSeconds = setInterval(counterDown, 1000)
 }
 
 buttonMenu.addEventListener("click", ()=> {
