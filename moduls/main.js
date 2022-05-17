@@ -68,7 +68,7 @@ const totalTime = {
 
 let stopSeconds
 
-/* function counterDown () {
+function counterDown () {
     if(totalTime["fourteen names"] === 0 || totalTime["eighteen names"] === 0){
         clearInterval(stopSeconds)
         totalTime["fourteen names"] = 115
@@ -88,7 +88,7 @@ let stopSeconds
     if(totalTime["fourteen names"] <= 24 || totalTime["eighteen names"] <= 24) {
         counter.classList.add("counter-red")
     }
-} */
+}
 
 buttonRestart.addEventListener("click", ()=> {
     careerMode(stage.currentStage)
@@ -461,7 +461,7 @@ howToPlay.addEventListener("click", ()=> {
 
 closeModal.addEventListener("click", ()=>{
     howToPlayModal.classList.add("modal-how-to-play-hidden")
-    //stopSeconds = setInterval(counterDown, 1000)
+    stopSeconds = setInterval(counterDown, 1000)
 })
 
 const stage = {
@@ -644,11 +644,11 @@ const initialState = ()=> {
     populationInformationContainer.classList.remove("population-information-container-show")
     buttonCheck.disabled = false
     buttonCheck.style.opacity = "initial"
-    //nextRegionModeCareer.disabled = true
+    nextRegionModeCareer.disabled = true
     nextRegionModeCareer.style.opacity = ".2"
     nextRegionModeCareer.classList.remove("btn-next-region-mode-career-active")
     counter.classList.remove("counter-red")
-    //stopSeconds = setInterval(counterDown, 1000)
+    stopSeconds = setInterval(counterDown, 1000)
 }
 
 buttonMenu.addEventListener("click", ()=> {
