@@ -350,7 +350,7 @@ h4 {
     height: 100vh;
     padding-left: 16px;
     padding-right: 16px;
-    background-color: hsla(0, 0%, 0%, .9);
+    background-color: hsla(0, 0%, 0%, .95);
     transform: scale(1, 1);
     transition: transform 700ms;
 }
@@ -360,10 +360,57 @@ h4 {
     transform: scale(0, 1);
 }
 
+.loading {
+    margin: 0;
+    padding-bottom: 20px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-color-secondary);
+    letter-spacing: 1px;
+}
+
+.loading__animation--one,
+.loading__animation--two,
+.loading__animation--three {
+    font-size: 1.8rem;
+    animation-name: loading;
+    animation-duration: 1000ms;
+    animation-iteration-count: infinite;
+}
+
+.loading__animation--one {
+    color: aqua;
+}
+
+.loading__animation--two {
+    color: yellow;
+    animation-delay: 500ms;
+}
+
+.loading__animation--three {
+    color: darksalmon;
+    animation-delay: 750ms;
+}
+
+.loading-hidden {
+    visibility: hidden;
+}
+
+@keyframes loading {
+
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
 .how-to-play-explanation-container {
+    margin-top: 10px;
     max-width: 490px;
-    padding-left: 8px;
-    padding-right: 8px;
+    padding: 0 8px 15px;
     background-color: hsl(0, 0%, 100%);
     border: solid 8px var(--border-color-modals);
 }

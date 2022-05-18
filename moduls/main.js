@@ -13,6 +13,7 @@ const closeModal = document.querySelector(".close-button")
 const buttonMenu = document.querySelector(".menu")
 const menuContainer = document.querySelector(".menu-container")
 const howToPlay = document.querySelector(".how-to-play")
+const loading = document.querySelector(".loading")
 const currentStageInformation = document.querySelector(".current-stage")
 const currentPoints = document.querySelector(".current-points")
 const numberOfLives = document.querySelector(".number-of-lives")
@@ -28,6 +29,8 @@ const buttonPopulation = document.querySelector(".btn-population")
 const populationInformationContainer = document.querySelector(".population-information-container")
 const populationCountryName = document.querySelector(".population-country-name")
 const countryPopulation = document.querySelector(".country-population")
+
+closeModal.hidden = true
 
 window.oncontextmenu = function() {
     return false
@@ -67,36 +70,6 @@ const totalTime = {
 }
 
 let stopSeconds
-
-function counterDown () {
-    if(totalTime["fourteen names"] === 0 || totalTime["eighteen names"] === 0){
-        clearInterval(stopSeconds)
-        totalTime["fourteen names"] = 115
-        totalTime["eighteen names"] = 140
-        stage.currentStage = 1
-        currentStageInformation.textContent = stage.currentStage
-        textFaildeReason.textContent = "tiempo"
-        dialogFailed.show()
-    }
-    if(listOfNames.children.length === 14) {
-        counter.textContent = `${totalTime["fourteen names"]} s`
-        totalTime["fourteen names"]--
-    }else if(listOfNames.children.length === 18) {
-        counter.textContent = `${totalTime["eighteen names"]} s`
-        totalTime["eighteen names"]--
-    }
-    if(totalTime["fourteen names"] <= 24 || totalTime["eighteen names"] <= 24) {
-        counter.classList.add("counter-red")
-    }
-}
-
-buttonRestart.addEventListener("click", ()=> {
-    careerMode(stage.currentStage)
-    initialState()
-    currentPoints.textContent = "00"
-    numberOfLives.textContent = "15"
-    dialogFailed.close()
-})
 
 const callCountry = async ()=> {//Función que hace la solicitud a la API de los países de América.
     const result =  fetch("https://restcountries.com/v3.1/all")
@@ -162,6 +135,8 @@ const showCenterFlag = ()=> {//Función para mostrar la bandera del centro
     nameOfTheFlags["center flag name"] = currentRegion.region[flagIndex].name.common
     console.log(nameOfTheFlags["center flag name"])
     leftSideFlag.after(centerFlag)
+    closeModal.hidden = false
+    loading.classList.add("loading-hidden")
 }
 
 listOfNames.addEventListener("click", (e)=> {
@@ -651,6 +626,28 @@ const initialState = ()=> {
     stopSeconds = setInterval(counterDown, 1000)
 }
 
+function counterDown () {
+    if(totalTime["fourteen names"] === 0 || totalTime["eighteen names"] === 0){
+        clearInterval(stopSeconds)
+        totalTime["fourteen names"] = 115
+        totalTime["eighteen names"] = 140
+        stage.currentStage = 1
+        currentStageInformation.textContent = stage.currentStage
+        textFaildeReason.textContent = "tiempo"
+        dialogFailed.show()
+    }
+    if(listOfNames.children.length === 14) {
+        counter.textContent = `${totalTime["fourteen names"]} s`
+        totalTime["fourteen names"]--
+    }else if(listOfNames.children.length === 18) {
+        counter.textContent = `${totalTime["eighteen names"]} s`
+        totalTime["eighteen names"]--
+    }
+    if(totalTime["fourteen names"] <= 24 || totalTime["eighteen names"] <= 24) {
+        counter.classList.add("counter-red")
+    }
+}
+
 buttonMenu.addEventListener("click", ()=> {
     menuContainer.classList.toggle("menu-container-show")
 })
@@ -658,4 +655,12 @@ buttonMenu.addEventListener("click", ()=> {
 buttonPopulation.addEventListener("click", ()=> {
     locationPopulationContainer.classList.remove("location-population-container-show")
     populationInformationContainer.classList.add("population-information-container-show")
+})
+
+buttonRestart.addEventListener("click", ()=> {
+    careerMode(stage.currentStage)
+    initialState()
+    currentPoints.textContent = "00"
+    numberOfLives.textContent = "15"
+    dialogFailed.close()
 })
