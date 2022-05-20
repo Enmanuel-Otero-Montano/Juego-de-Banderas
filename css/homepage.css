@@ -43,7 +43,7 @@ body {
 /* Estilos para el "main" */
 
 .main {
-    height: calc(100vh - 160px);
+    height: calc(100vh - 185px);
     padding: 25px 20px 0;
     background-color: hsl(204, 100%, 22%)
 }
@@ -88,7 +88,7 @@ body {
 }
 
 .footer {
-    height: 100px;
+    height: 125px;
     padding-bottom: 20px;
     text-align: center;
     color: hsl(0, 0%, 100%);

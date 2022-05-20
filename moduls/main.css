@@ -1,4 +1,5 @@
 @import url(./buttons.css);
+@import url(./animation.css);
 
 :root {
     --bg-header: hsl(356, 79%, 48%);
@@ -7,6 +8,7 @@
     --text-color-button-menu: hsl(0, 100%, 50%);
     --bg-color-button-menu: hsl(50, 100%, 70%);
     --border-color-modals: hsl(80, 61%, 50%);
+    --bg-color-windows: hsl(0, 55%, 30%);
 }
 
 * {
@@ -36,7 +38,7 @@ body {
 }
 
 .menu-container,
-.location-population-container {
+.location-population-capital-container {
     display: flex;
     align-items: center;
     justify-content: space-evenly;
@@ -45,16 +47,16 @@ body {
     left: calc(50% - 98px);
     width: 180px;
     height: 60px;
-    background-color: hsl(0, 55%, 30%);
+    background-color: var(--bg-color-windows);
     transform: translateY(-50%) scaleY(0);
     transition: transform .4s;
 }
 
-.location-population-container {
-    left: 80px;
+.location-population-capital-container {
+    left: 15px;
     top: -15px;
-    left: calc(50% - 122px);
-    width: 245px;
+    left: calc(50% - 145px);
+    width: 290px;
     height: 50px;
     letter-spacing: 1px;
     transform: translateY(-25px) scaleY(0);
@@ -62,7 +64,7 @@ body {
 }
 
 .menu-container-show,
-.location-population-container-show {
+.location-population-capital-container-show {
     transform: translateY(0);
     transition-property: transform;
     transition-duration: .4s;
@@ -107,8 +109,43 @@ body {
     transition: transform 0.2s;
 }
 
+.one-heart {
+    animation-name: one-heart;
+    animation-duration: 1.2s;
+    animation-iteration-count: infinite;
+}
+
+.counter {
+    min-height: 16.5px;
+}
+
 .counter-red {
     color: hsl(0, 100%, 58%);
+}
+
+.internet {
+    position: absolute;
+    width: 90%;
+    height: 60px;
+    margin: 0 auto;
+    padding-top: 20px;
+    text-align: center;
+    transform: translateY(-50%) scaleY(0);
+    transition: transform .4s;
+}
+
+.internet-off {
+    transform: translateY(0%) scaleY(1);
+    transition: transform .4s;
+    background-color: var(--bg-color-windows);
+    z-index: 10;
+}
+
+.internet-on {
+    transform: translateY(0%) scaleY(1);
+    transition: transform .4s;
+    background-color: hsl(120, 100%, 30%);
+    z-index: 10;
 }
 
 /* Styles for the section main */
@@ -146,8 +183,8 @@ img {
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    background-color: hsl(0, 0%, 100%);
     padding-bottom: 12px;
+    background-color: hsl(0, 0%, 100%);
 }
 
 .drop-flag-left,
@@ -157,9 +194,9 @@ img {
     align-items: center;
     justify-content: center;
     min-width: 31%;
-    height: 19px;
-    padding-left: 1px;
-    padding-right: 1px;
+    min-height: 19px;
+    padding-left: .5px;
+    padding-right: .5px;
     font-size: .9rem;
     border-bottom: solid 1px hsl(204, 100%, 26%);
     text-align: center;
@@ -195,29 +232,11 @@ img {
     height: auto;
     top: -12px;
     bottom: 0;
-    border-color: var(--border-color-modals);
+    /* border-color: var(--border-color-modals); */
     animation-name: complete;
-    animation-duration: 3200ms;
+    animation-duration: 4000ms;
     animation-iteration-count: infinite;
-}
-
-@keyframes complete {
-
-    0% {
-        background: linear-gradient(0.25turn, hsl(204, 100%, 56%), hsl(356, 79%, 58%),hsl(0, 50%, 90%), hsl(204, 100%, 56%), hsl(356, 79%, 58%));
-    }
-
-    25% {
-        background: linear-gradient(0.50turn, hsl(204, 100%, 56%), hsl(356, 79%, 58%),hsl(0, 50%, 90%), hsl(204, 100%, 56%), hsl(356, 79%, 58%));
-    }
-
-    75% {
-        background: linear-gradient(0.75turn, hsl(204, 100%, 56%), hsl(356, 79%, 58%),hsl(0, 50%, 90%), hsl(204, 100%, 56%), hsl(356, 79%, 58%));
-    }
-
-    100% {
-        background: linear-gradient(1.00turn, hsl(204, 100%, 56%), hsl(356, 79%, 58%),hsl(0, 50%, 90%), hsl(204, 100%, 56%), hsl(356, 79%, 58%));
-    }
+    border-color: transparent;
 }
 
 .congratulations,
@@ -260,6 +279,7 @@ h4 {
 }
 
 .population-information-container,
+.capital-information-container,
 .information-container {
     position: absolute;
     left: 0;
@@ -271,12 +291,13 @@ h4 {
     text-align: center;
     color: var(--text-color-secondary);
     letter-spacing: 1px;
-    background-color: hsl(0, 55%, 30%);
+    background-color: var(--bg-color-windows);
     transform: translateY(-25px) scaleY(0);
     transition: transform .3s;
 }
 
 .population-information-container-show,
+.capital-information-container-show,
 .information-container-show {
     transform: translateY(0);
     transition-property: transform;
@@ -396,17 +417,6 @@ h4 {
     visibility: hidden;
 }
 
-@keyframes loading {
-
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
 .how-to-play-explanation-container {
     margin-top: 10px;
     max-width: 490px;
@@ -450,7 +460,6 @@ h4 {
         left: calc(50% - 60px);
         width: 120px;
         height: 60px;
-        background-color: hsl(0, 55%, 30%);
         transform: translateY(-50%) scaleY(0);
         transition: transform .5s;
     }

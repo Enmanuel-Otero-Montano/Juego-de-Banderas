@@ -20,21 +20,23 @@ const numberOfLives = document.querySelector(".number-of-lives")
 const heart = document.querySelector(".heart")
 const counter = document.querySelector(".counter")
 const dialog = document.querySelector(".dialog")
+const regionOrStage = document.querySelector(".region-stage")
 const dialogFailed = document.querySelector(".dialog-failed")
 const textFaildeReason = document.querySelector(".failed-text-reason")
 const informationContainer = document.querySelector(".information-container")
-const locationPopulationContainer = document.querySelector(".location-population-container")
+const locationPopulationContainer = document.querySelector(".location-population-capital-container")
 const countryLocation = document.querySelector(".location")
-const buttonPopulation = document.querySelector(".btn-population")
+const capitalInformationContainer = document.querySelector(".capital-information-container")
+const buttonCapital = document.querySelector(".btn-capital")
+const capitalCountryName = document.querySelector(".capital-country-name")
+const countryCapital = document.querySelector(".capital-name")
 const populationInformationContainer = document.querySelector(".population-information-container")
+const buttonPopulation = document.querySelector(".btn-population")
 const populationCountryName = document.querySelector(".population-country-name")
 const countryPopulation = document.querySelector(".country-population")
+const internetNotification = document.querySelector(".internet")
 
 closeModal.hidden = true
-
-window.oncontextmenu = function() {
-    return false
-}
 
 const leftSideFlag = document.createElement("IMG")
 leftSideFlag.setAttribute("class", "flags-left")
@@ -95,6 +97,7 @@ const saveCountriesInArray = async (locationHref)=> {
     showNames()
     showCenterFlag()
     /* stopSeconds = setInterval(counterDown, 1000) */
+    console.log(allCountries.countries)
 }
 
 document.addEventListener("DOMContentLoad", saveCountriesInArray(region))
@@ -147,15 +150,21 @@ listOfNames.addEventListener("click", (e)=> {
         dropFlagRight.classList.remove("flag-drop-area-failed")
         if(currentRegion.region.length === 0 && dropFlagCenter.textContent === nameOfTheFlags["center flag name"] && dropFlagLeft.textContent === nameOfTheFlags["left flag name"] && dropFlagRight.textContent === nameOfTheFlags["right flag name"] && dropFlagCenter.classList.contains("flag-drop-area-success") && dropFlagLeft.classList.contains("flag-drop-area-success") && dropFlagRight.classList.contains("flag-drop-area-success")) {
             const countryByName = allCountries.countries.find(element=> element.name.common === selectedName.name)
-            countryLocation.setAttribute("href", `${countryByName.maps.openStreetMaps}`)
+            countryLocation.setAttribute("href", `${countryByName.maps.googleMaps}`)
             informationContainer.classList.remove("information-container-show")
             populationInformationContainer.classList.remove("population-information-container-show")
-            locationPopulationContainer.classList.add("location-population-container-show")
+            locationPopulationContainer.classList.add("location-population-capital-container-show")
+            capitalInformationContainer.classList.remove("capital-information-container-show")
             countryPopulation.textContent = countryByName.population
             populationCountryName.textContent = selectedName.name
+            capitalCountryName.textContent = selectedName.name
+            countryCapital.textContent = countryByName.capital
         }
         removeNameSelected()
         e.target.classList.add("flag-names-selected")
+        if(menuContainer.classList.contains("menu-container-show")) {
+            menuContainer.classList.remove("menu-container-show")
+        }
     }
 })
 
@@ -167,10 +176,14 @@ const removeNameSelected = ()=> {//Función para remover el color del nombre sel
 
 const checkNumberOfCurrentLives = ()=>{
     numberOfLives.textContent = --numberOfLives.textContent
-    heart.classList.add("heart-animation")
-    setTimeout(() => {
-        heart.classList.remove("heart-animation")
-    }, 280);
+    if(numberOfLives.textContent === "1") {
+        heart.classList.add("one-heart")
+    }else {
+        heart.classList.add("heart-animation")
+        setTimeout(() => {
+            heart.classList.remove("heart-animation")
+        }, 280);
+    }
 }
 
 const checkNumberOfLives = ()=>{
@@ -344,10 +357,13 @@ buttonCheck.addEventListener("click", ()=> {
             clearInterval(stopSeconds)//Para el contador si es el final de la región actual
             if(region.includes("career-mode")) {
                 if(currentStageInformation.textContent !== "12") {
+                    regionOrStage.textContent = "esta etapa!"
+                    dialog.show()
                     nextRegionModeCareer.disabled = false
                     nextRegionModeCareer.style.opacity = "initial"
                     nextRegionModeCareer.classList.add("btn-next-region-mode-career-active")
                 }else{
+                    regionOrStage.textContent = "todas las etapas!"
                     dialog.show()
                     nextRegionModeCareer.disabled = true
                     nextRegionModeCareer.style.opacity = ".2"
@@ -615,14 +631,16 @@ const initialState = ()=> {
     dropFlagRight.textContent = ""
     dropFlagCenter.textContent = ""
     informationContainer.classList.remove("information-container-show")
-    locationPopulationContainer.classList.remove("location-population-container-show")
+    locationPopulationContainer.classList.remove("location-population-capital-container-show")
     populationInformationContainer.classList.remove("population-information-container-show")
+    capitalInformationContainer.classList.remove("capital-information-container-show")
     buttonCheck.disabled = false
     buttonCheck.style.opacity = "initial"
     nextRegionModeCareer.disabled = true
     nextRegionModeCareer.style.opacity = ".2"
     nextRegionModeCareer.classList.remove("btn-next-region-mode-career-active")
     counter.classList.remove("counter-red")
+    dialog.close()
     stopSeconds = setInterval(counterDown, 1000)
 }
 
@@ -653,8 +671,13 @@ buttonMenu.addEventListener("click", ()=> {
 })
 
 buttonPopulation.addEventListener("click", ()=> {
-    locationPopulationContainer.classList.remove("location-population-container-show")
+    locationPopulationContainer.classList.remove("location-population-capital-container-show")
     populationInformationContainer.classList.add("population-information-container-show")
+})
+
+buttonCapital.addEventListener("click", ()=> {
+    locationPopulationContainer.classList.remove("location-population-capital-container-show")
+    capitalInformationContainer.classList.add("capital-information-container-show")
 })
 
 buttonRestart.addEventListener("click", ()=> {
@@ -663,4 +686,27 @@ buttonRestart.addEventListener("click", ()=> {
     currentPoints.textContent = "00"
     numberOfLives.textContent = "15"
     dialogFailed.close()
+})
+
+/* Eventos de escucha de windows */
+
+oncontextmenu = function() {
+    return false
+}
+
+addEventListener("offline", ()=> {
+    internetNotification.classList.add("internet-off")
+})
+
+addEventListener("online", ()=> {
+    internetNotification.classList.remove("internet-off")
+    setTimeout(()=> {
+        internetNotification.textContent = "!Parece que tienes conexión!"
+        internetNotification.classList.add("internet-on")
+    }, 200)
+
+    setTimeout(()=> {
+        internetNotification.classList.remove("internet-on")
+        internetNotification.textContent = "!Parece que no tienes conexión!"
+    }, 1200)
 })

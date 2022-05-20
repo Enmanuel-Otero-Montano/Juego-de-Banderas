@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:url" content="https://enmanuel-otero-montano.github.io/Juego-de-Banderas/">
+    <meta property="og:description" content="Aplicación interactiva y didáctica sobre banderas, países y regiones.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
@@ -33,6 +35,7 @@
             <a href="../index.html" class="go-home">Ir a Inicio</a>
             <button class="how-to-play">Como jugar</button>
         </div>
+        <p class="internet">!Parece que no tienes conexión!</p>
         <p class="stages">Etapa <span class="current-stage">1</span> / 12</p>
         <div class="live-points-container">
             <div class="points-container">
@@ -50,8 +53,8 @@
     <main class="main">
         <div class="flags-drop-names-container">
             <dialog class="dialog">
-                <h3 class="congratulations">¡FELICIDADES!</h3>
-                <h4>¡Has completado la región!</h4>
+                <h3 class="congratulations">¡EXCELENTE!</h3>
+                <h4>¡Has completado <span class="region-stage"></span></h4>
             </dialog>
             <dialog class="dialog-failed">
                 <h3 class="failed-text">Te has quedado sin <span class="failed-text-reason"></span></h3>
@@ -71,9 +74,13 @@
             <div class="information-container">
                 <p class="information">Si desea, seleccione un país para ver su ubicación geográfica o su población total</p>
             </div>
-            <div class="location-population-container">
-                <a href="" class="location" target="_blank">Ver ubicación</a>
-                <button class="btn-population">Ver población</button>
+            <div class="capital-information-container">
+                <p class="capital-information">La capital de <span class="capital-country-name"></span> es <span class="capital-name"></span></p>
+            </div>
+            <div class="location-population-capital-container">
+                <a href="" class="location" target="_blank">Ubicación</a>
+                <button class="btn-capital">Capital</button>
+                <button class="btn-population">Población</button>
             </div>
             <div class="population-information-container">
                 <p class="population-information"><span class="population-country-name"></span> población estimada &sim; <span class="country-population"></span></p>

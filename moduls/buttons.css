@@ -68,7 +68,8 @@ button {
 .about-game-button,/* Botones del hedader, el de la página de inicio y las otras páginas */
 .how-to-play,
 .menu,
-.btn-population {
+.btn-population,
+.btn-capital {
     padding: 0;
     font-size: .9rem;
     font-weight: 700;
@@ -111,18 +112,6 @@ button {
     background-color: hsl(0, 55%, 30%);
     color: var(--text-color-secondary);
     letter-spacing: 1px;
-}
-
-@keyframes button-float {
-
-    from {
-        transform: scale(1, 1);
-    }
-
-    to {
-        transform: scale(1.06, 1.06);
-        background-color: hsl(110, 100%, 70%);
-    }
 }
 
 .end-region-button {
