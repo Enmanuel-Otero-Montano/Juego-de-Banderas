@@ -1,7 +1,8 @@
 const buttonNextFlags = document.querySelector(".btn-next")
 const buttonCheck = document.querySelector(".btn-check")
-const nextRegionModeCareer = document.querySelector(".btn-next-region-mode-career")
+const buttonNextRegion = document.querySelector(".btn-next-region-mode-career")
 const buttonRestart = document.querySelector(".btn-restart")
+const buttonPista = document.querySelector(".btn-track")
 const centerFlag = document.querySelector(".flags-center")
 const flagsContainer = document.querySelector(".flags-container")
 const listOfNames = document.querySelector(".section-names__list")
@@ -14,8 +15,10 @@ const buttonMenu = document.querySelector(".menu")
 const menuContainer = document.querySelector(".menu-container")
 const howToPlay = document.querySelector(".how-to-play")
 const loading = document.querySelector(".loading")
+const loadingError = document.querySelector(".error-loading")
 const currentStageInformation = document.querySelector(".current-stage")
 const currentPoints = document.querySelector(".current-points")
+const remainingTracks = document.querySelector(".remaining-tracks")
 const numberOfLives = document.querySelector(".number-of-lives")
 const heart = document.querySelector(".heart")
 const counter = document.querySelector(".counter")
@@ -37,6 +40,7 @@ const countryPopulation = document.querySelector(".country-population")
 const internetNotification = document.querySelector(".internet")
 
 closeModal.hidden = true
+loadingError.hidden = true
 
 const leftSideFlag = document.createElement("IMG")
 leftSideFlag.setAttribute("class", "flags-left")
@@ -54,16 +58,18 @@ const currentRegion = {//Guarda los países de la región que se está jugando
     region: []
 }
 
-let flagIndex//Variable para guarda un numero aleatorio entre el 0 y el último índice del array de banderas.
+const flagIndex = {//Guarda un numero aleatorio entre el 0 y el último índice del array de banderas.
+    index: undefined
+}
 
 const selectedName = {//Para guardar el nombre seleccionado.
     name: ""
 }
 
 const nameOfTheFlags = {//Para guardar el nombre de la bandera.
-    "left flag name": "",
-    "center flag name": "",
-    "right flag name": ""
+    "left flag name": undefined,
+    "center flag name": undefined,
+    "right flag name": undefined
 }
 
 const totalTime = {
@@ -71,7 +77,9 @@ const totalTime = {
     "eighteen names": 140
 }
 
-let stopSeconds
+const stop = {
+    counter: undefined
+}
 
 const callCountry = async ()=> {//Función que hace la solicitud a la API de los países de América.
     const result =  fetch("https://restcountries.com/v3.1/all")
@@ -80,24 +88,31 @@ const callCountry = async ()=> {//Función que hace la solicitud a la API de los
 }
 
 const saveCountriesInArray = async (locationHref)=> {
-    allCountries.countries = await callCountry()//Llamada a la función que hace la solicitud.
-    if(locationHref.includes("career-mode")){
-        southAmerica()
-    }else if(locationHref.includes("america")){
-        southAmerica()
-    }else if(locationHref.includes("europe")){
-        southOfEurope()
-    }else if(locationHref.includes("africa")){
-        easternAfrica()
-    }else if(locationHref.includes("oceania")){
-        oceaniaFunct()
-    }else if(locationHref.includes("asia")){
-        westernAsia()
+    try {
+        allCountries.countries = await callCountry()//Llamada a la función que hace la solicitud.
+        if(locationHref.includes("career-mode")){
+            southAmerica()
+        }else if(locationHref.includes("america")){
+            southAmerica()
+        }else if(locationHref.includes("europe")){
+            southOfEurope()
+        }else if(locationHref.includes("africa")){
+            easternAfrica()
+        }else if(locationHref.includes("oceania")){
+            oceaniaFunct()
+        }else if(locationHref.includes("asia")){
+            westernAsia()
+        }
+        showNames()
+        showCenterFlag()
+        /* stopSeconds = setInterval(counterDown, 1000) */
+    } catch (error) {
+        if(error instanceof TypeError) {
+            internetNotification.classList.add("internet-off")
+            loading.hidden = true
+            loadingError.hidden = false
+        }
     }
-    showNames()
-    showCenterFlag()
-    /* stopSeconds = setInterval(counterDown, 1000) */
-    console.log(allCountries.countries)
 }
 
 document.addEventListener("DOMContentLoad", saveCountriesInArray(region))
@@ -115,27 +130,27 @@ const showNames = ()=> {//Función para mostrar los nombres de los países
 }
 
 const showLeftFlag = ()=> {//Función para mostrar la bandera de la izquierda
-    flagIndex = Math.trunc(Math.random() * (currentRegion.region.length - 0) + 0)
-    leftSideFlag.setAttribute("src", currentRegion.region[flagIndex].flags.png)
-    nameOfTheFlags["left flag name"] = currentRegion.region[flagIndex].name.common
+    flagIndex.index = Math.trunc(Math.random() * (currentRegion.region.length - 0) + 0)
+    leftSideFlag.setAttribute("src", currentRegion.region[flagIndex.index].flags.png)
+    nameOfTheFlags["left flag name"] = currentRegion.region[flagIndex.index].name.common
     flagsContainer.prepend(leftSideFlag)
     console.log(nameOfTheFlags["left flag name"])
-    currentRegion.region.splice(flagIndex, 1)
+    currentRegion.region.splice(flagIndex.index, 1)
 }
 
 const showRightFlag = ()=> {//Función para mostrar la bandera de la derecha
-    flagIndex = Math.trunc(Math.random() * (currentRegion.region.length - 0) + 0)
-    rightSideFlag.setAttribute("src", currentRegion.region[flagIndex].flags.png)
-    nameOfTheFlags["right flag name"] = currentRegion.region[flagIndex].name.common
+    flagIndex.index = Math.trunc(Math.random() * (currentRegion.region.length - 0) + 0)
+    rightSideFlag.setAttribute("src", currentRegion.region[flagIndex.index].flags.png)
+    nameOfTheFlags["right flag name"] = currentRegion.region[flagIndex.index].name.common
     flagsContainer.append(rightSideFlag)
     console.log(nameOfTheFlags["right flag name"])
-    currentRegion.region.splice(flagIndex, 1)
+    currentRegion.region.splice(flagIndex.index, 1)
 }
 
 const showCenterFlag = ()=> {//Función para mostrar la bandera del centro
-    flagIndex = Math.trunc(Math.random() * (currentRegion.region.length - 0) + 0)
-    centerFlag.setAttribute("src", currentRegion.region[flagIndex].flags.png)
-    nameOfTheFlags["center flag name"] = currentRegion.region[flagIndex].name.common
+    flagIndex.index = Math.trunc(Math.random() * (currentRegion.region.length - 0) + 0)
+    centerFlag.setAttribute("src", currentRegion.region[flagIndex.index].flags.png)
+    nameOfTheFlags["center flag name"] = currentRegion.region[flagIndex.index].name.common
     console.log(nameOfTheFlags["center flag name"])
     leftSideFlag.after(centerFlag)
     closeModal.hidden = false
@@ -148,7 +163,7 @@ listOfNames.addEventListener("click", (e)=> {
         dropFlagCenter.classList.remove("flag-drop-area-failed")
         dropFlagLeft.classList.remove("flag-drop-area-failed")
         dropFlagRight.classList.remove("flag-drop-area-failed")
-        if(currentRegion.region.length === 0 && dropFlagCenter.textContent === nameOfTheFlags["center flag name"] && dropFlagLeft.textContent === nameOfTheFlags["left flag name"] && dropFlagRight.textContent === nameOfTheFlags["right flag name"] && dropFlagCenter.classList.contains("flag-drop-area-success") && dropFlagLeft.classList.contains("flag-drop-area-success") && dropFlagRight.classList.contains("flag-drop-area-success")) {
+        if(/* currentRegion.region.length === 0 && */ dropFlagCenter.textContent === nameOfTheFlags["center flag name"] && dropFlagLeft.textContent === nameOfTheFlags["left flag name"] && dropFlagRight.textContent === nameOfTheFlags["right flag name"] && dropFlagCenter.classList.contains("flag-drop-area-success") && dropFlagLeft.classList.contains("flag-drop-area-success") && dropFlagRight.classList.contains("flag-drop-area-success")) {
             const countryByName = allCountries.countries.find(element=> element.name.common === selectedName.name)
             countryLocation.setAttribute("href", `${countryByName.maps.googleMaps}`)
             informationContainer.classList.remove("information-container-show")
@@ -188,7 +203,8 @@ const checkNumberOfCurrentLives = ()=>{
 
 const checkNumberOfLives = ()=>{
     if(numberOfLives.textContent === "0"){
-        clearInterval(stopSeconds)
+        clearInterval(stop.counter)
+        heart.classList.remove("one-heart")
         totalTime["fourteen names"] = 115
         totalTime["eighteen names"] = 140
         stage.currentStage = 1
@@ -209,45 +225,32 @@ const calculatePoints = (containerLeft, containerCenter, containerRight)=>{
 }
 
 buttonNextFlags.addEventListener("click", ()=> {
+    nameOfTheFlags["center flag name"] = undefined
+    nameOfTheFlags["left flag name"] = undefined
+    nameOfTheFlags["right flag name"] = undefined
     dropFlagCenter.dataset.points = "10"
     dropFlagLeft.dataset.points = "10"
     dropFlagRight.dataset.points = "10"
     buttonCheck.disabled = false
+    if(remainingTracks.textContent === "0" || currentRegion.region.length === 3) {
+        buttonPista.disabled = true
+        buttonPista.classList.add("btn-track-disabled")
+    }else {
+        buttonPista.disabled = false
+        buttonPista.classList.remove("btn-track-disabled")
+    }
     if(flagsContainer.childElementCount === 1) {
         centerFlag.remove()
         centerFlag.setAttribute("src", "")
         dropFlagLeft.classList.remove("flag-drop-area-hidden")
         dropFlagRight.classList.remove("flag-drop-area-hidden")
         flagsContainer.classList.add("flags-container-two-flags")
-        currentRegion.region.splice(flagIndex, 1)
+        currentRegion.region.splice(flagIndex.index, 1)
         flagsContainer.classList.add("flags-container-two-flags")
         showLeftFlag()
         showRightFlag()
         dropFlagCenter.classList.add("flag-drop-area-hidden")
         dropFlagCenter.textContent = ""
-    }else if(location.href === `${location.protocol}//${location.host}/Juego-de-Banderas/pages/south-america/south-america.html` && currentRegion.length == 3){
-        leftSideFlag.remove()
-        rightSideFlag.remove()
-        dropFlagCenter.classList.remove("flag-drop-area-hidden", "flag-drop-area-success", "flag-drop-area-failed")
-        dropFlagLeft.classList.remove("flag-drop-area-success", "flag-drop-area-failed")
-        dropFlagRight.classList.remove("flag-drop-area-success", "flag-drop-area-failed")
-        dropFlagLeft.textContent = ""
-        dropFlagRight.textContent = ""
-        showLeftFlag()
-        showRightFlag()
-        showCenterFlag()
-        buttonNextFlags.disabled = true
-    }else if(location.href === `${location.protocol}//${location.host}/Juego-de-Banderas/pages/central-north-america-caribbean/central-north-america-caribbean.html` && currentRegion.length === 6 || currentRegion.length == 3){
-        leftSideFlag.remove()
-        rightSideFlag.remove()
-        dropFlagCenter.classList.remove("flag-drop-area-hidden", "flag-drop-area-success", "flag-drop-area-failed")
-        dropFlagLeft.classList.remove("flag-drop-area-success", "flag-drop-area-failed")
-        dropFlagRight.classList.remove("flag-drop-area-success", "flag-drop-area-failed")
-        dropFlagLeft.textContent = ""
-        dropFlagRight.textContent = ""
-        dropFlagCenter.textContent = ""
-        showLeftFlag()
-        showRightFlag()
     }else if(currentRegion.region.length === 3){
         leftSideFlag.remove()
         rightSideFlag.remove()
@@ -352,36 +355,23 @@ buttonCheck.addEventListener("click", ()=> {
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-success")
             informationContainer.classList.add("information-container-show")
-            nextRegionModeCareer.disabled = false
-            nextRegionModeCareer.style.opacity = "initial"
-            clearInterval(stopSeconds)//Para el contador si es el final de la región actual
+            clearInterval(stop.counter)//Para el contador si es el final de la región actual
             if(region.includes("career-mode")) {
                 if(currentStageInformation.textContent !== "12") {
                     regionOrStage.textContent = "esta etapa!"
                     dialog.show()
-                    nextRegionModeCareer.disabled = false
-                    nextRegionModeCareer.style.opacity = "initial"
-                    nextRegionModeCareer.classList.add("btn-next-region-mode-career-active")
                 }else{
                     regionOrStage.textContent = "todas las etapas!"
                     dialog.show()
-                    nextRegionModeCareer.disabled = true
-                    nextRegionModeCareer.style.opacity = ".2"
                 }
             }else if(region.includes("america") && stage.currentStage === 2){
-                nextRegionModeCareer.disabled = true
-                nextRegionModeCareer.style.opacity = ".2"
                 dialog.show()
             }else if(region.includes("asia") || region.includes("europe") || region.includes("africa") && stage.currentStage === 3){
-                nextRegionModeCareer.disabled = true
-                nextRegionModeCareer.style.opacity = ".2"
                 dialog.show()
-                clearInterval(stopSeconds)//Para el contador si es el final de la región actual
+                clearInterval(stop.counter)//Para el contador si es el final de la región actual
             }else if(region.includes("oceania") && stage.currentStage === 1) {
-                nextRegionModeCareer.disabled = true
-                nextRegionModeCareer.style.opacity = ".2"
                 dialog.show()
-                clearInterval(stopSeconds)//Para el contador si es el final de la región actual
+                clearInterval(stop.counter)//Para el contador si es el final de la región actual
             }
             buttonCheck.disabled = true
             buttonCheck.style.opacity = ".2"
@@ -447,12 +437,12 @@ buttonCheck.addEventListener("click", ()=> {
 
 howToPlay.addEventListener("click", ()=> {
     howToPlayModal.classList.remove("modal-how-to-play-hidden")
-    clearInterval(stopSeconds)
+    clearInterval(stop.counter)
 })
 
 closeModal.addEventListener("click", ()=>{
     howToPlayModal.classList.add("modal-how-to-play-hidden")
-    stopSeconds = setInterval(counterDown, 1000)
+    stop.counter = setInterval(counterDown, 1000)
 })
 
 const stage = {
@@ -460,17 +450,18 @@ const stage = {
 }
 
 if(region.includes("career-mode")) {
-    nextRegionModeCareer.addEventListener("click", ()=>{
+    buttonNextRegion.addEventListener("click", ()=>{
         numberOfLives.textContent = ++numberOfLives.textContent
         stage.currentStage = ++stage.currentStage
         currentStageInformation.textContent = stage.currentStage
         totalTime["fourteen names"] = 115// Reinicia el contador.
         totalTime["eighteen names"] = 140// Reinicia el contador.
+        heart.classList.remove("one-heart")
         careerMode(stage.currentStage)
         initialState()
     })
 }else if(region.includes("america")) {
-    nextRegionModeCareer.addEventListener("click", ()=>{
+    buttonNextRegion.addEventListener("click", ()=>{
         currentRegion.region.splice(0)
         restOfAmerica()
         deleteNamesFromList()
@@ -481,7 +472,7 @@ if(region.includes("career-mode")) {
         currentStageInformation.textContent = stage.currentStage
     })
 }else if(region.includes("asia")) {
-    nextRegionModeCareer.addEventListener("click", ()=>{
+    buttonNextRegion.addEventListener("click", ()=>{
         currentRegion.region.splice(0)
         if(stage.currentStage === 1) {
             southernCentralAsia()
@@ -497,7 +488,7 @@ if(region.includes("career-mode")) {
         currentStageInformation.textContent = stage.currentStage
     })
 }else if(region.includes("europe")) {
-    nextRegionModeCareer.addEventListener("click", ()=>{
+    buttonNextRegion.addEventListener("click", ()=>{
         currentRegion.region.splice(0)
         if(stage.currentStage === 1) {
             easternCentralWesternEuropa()
@@ -513,7 +504,7 @@ if(region.includes("career-mode")) {
         currentStageInformation.textContent = stage.currentStage
     })
 }else if(region.includes("africa")) {
-    nextRegionModeCareer.addEventListener("click", ()=>{
+    buttonNextRegion.addEventListener("click", ()=>{
         currentRegion.region.splice(0)
         if(stage.currentStage === 1) {
             westernAfrica()
@@ -634,19 +625,19 @@ const initialState = ()=> {
     locationPopulationContainer.classList.remove("location-population-capital-container-show")
     populationInformationContainer.classList.remove("population-information-container-show")
     capitalInformationContainer.classList.remove("capital-information-container-show")
+    buttonPista.disabled = false
+    buttonPista.classList.remove("btn-track-disabled")
     buttonCheck.disabled = false
     buttonCheck.style.opacity = "initial"
-    nextRegionModeCareer.disabled = true
-    nextRegionModeCareer.style.opacity = ".2"
-    nextRegionModeCareer.classList.remove("btn-next-region-mode-career-active")
     counter.classList.remove("counter-red")
     dialog.close()
-    stopSeconds = setInterval(counterDown, 1000)
+    remainingTracks.textContent = "2"
+    stop.counter = setInterval(counterDown, 1000)
 }
 
 function counterDown () {
     if(totalTime["fourteen names"] === 0 || totalTime["eighteen names"] === 0){
-        clearInterval(stopSeconds)
+        clearInterval(stop.counter)
         totalTime["fourteen names"] = 115
         totalTime["eighteen names"] = 140
         stage.currentStage = 1
@@ -666,6 +657,17 @@ function counterDown () {
     }
 }
 
+const trueTrack = (flag)=> {//Recorre la lista de nombres para poner la clase al nombre que corresponda con la bandera que se muestra.
+    Array.from(listOfNames.children).forEach((element)=> {
+        if(element.textContent === flag) {
+            element.classList.add("track")
+            setTimeout(()=> {
+                element.classList.remove("track")
+            },2400)
+        }
+    })
+}
+
 buttonMenu.addEventListener("click", ()=> {
     menuContainer.classList.toggle("menu-container-show")
 })
@@ -681,11 +683,62 @@ buttonCapital.addEventListener("click", ()=> {
 })
 
 buttonRestart.addEventListener("click", ()=> {
+    nameOfTheFlags["center flag name"] = undefined
+    nameOfTheFlags["left flag name"] = undefined
+    nameOfTheFlags["right flag name"] = undefined
     careerMode(stage.currentStage)
     initialState()
     currentPoints.textContent = "00"
     numberOfLives.textContent = "15"
     dialogFailed.close()
+})
+
+buttonPista.addEventListener("click", ()=> {
+    if(remainingTracks.textContent === "2" || remainingTracks.textContent === "1") {
+        remainingTracks.textContent = parseInt(remainingTracks.textContent - 1)
+    }
+    if(flagsContainer.childElementCount === 1) {
+        let falseTrack = Math.trunc(Math.random() * (currentRegion.region.length - 0) + 0)
+        trueTrack(nameOfTheFlags["center flag name"])
+        if(falseTrack === currentRegion.region.findIndex(element=> element.name.common === nameOfTheFlags["center flag name"])) {
+            do{
+                falseTrack = Math.trunc(Math.random() * (currentRegion.region.length - 0) + 0)
+                if(falseTrack !== currentRegion.region.findIndex(element=> element.name.common === nameOfTheFlags["center flag name"])) {
+                    listOfNames.children[falseTrack].classList.add("track")
+                    setTimeout(()=> {
+                        listOfNames.children[falseTrack].classList.remove("track")
+                    },2400)
+                }
+            }while(falseTrack === currentRegion.region.findIndex(element=> element.name.common === nameOfTheFlags["center flag name"]))
+        }else{
+            listOfNames.children[falseTrack].classList.add("track")
+            setTimeout(()=> {
+                listOfNames.children[falseTrack].classList.remove("track")
+            },2400)
+        }
+    }else if(flagsContainer.childElementCount === 2) {
+        let falseTrack = Math.trunc(Math.random() * (currentRegion.region.length - 0) + 0)
+        trueTrack(nameOfTheFlags["left flag name"])
+        trueTrack(nameOfTheFlags["right flag name"])
+        if(listOfNames.children[falseTrack].textContent === nameOfTheFlags["left flag name"] || listOfNames.children[falseTrack].textContent === nameOfTheFlags["right flag name"]) {
+            do{
+                falseTrack = Math.trunc(Math.random() * (currentRegion.region.length - 0) + 0)
+                if(listOfNames.children[falseTrack].textContent !== nameOfTheFlags["left flag name"] || listOfNames.children[falseTrack].textContent === nameOfTheFlags["right flag name"]) {
+                    listOfNames.children[falseTrack].classList.add("track")
+                    setTimeout(()=> {
+                        listOfNames.children[falseTrack].classList.remove("track")
+                    },2400)
+                }
+            }while(listOfNames.children[falseTrack].textContent === nameOfTheFlags["left flag name"] || listOfNames.children[falseTrack].textContent === nameOfTheFlags["right flag name"])
+        }else{
+            listOfNames.children[falseTrack].classList.add("track")
+            setTimeout(()=> {
+                listOfNames.children[falseTrack].classList.remove("track")
+            },2400)
+        }
+    }
+    buttonPista.disabled = true
+    buttonPista.classList.add("btn-track-disabled")
 })
 
 /* Eventos de escucha de windows */
@@ -709,4 +762,9 @@ addEventListener("online", ()=> {
         internetNotification.classList.remove("internet-on")
         internetNotification.textContent = "!Parece que no tienes conexión!"
     }, 1200)
+    if(allCountries.countries.length === 0) {/* Llama a la función en caso de que se haya ejecutado el "catch" en la primera llamada */
+        saveCountriesInArray(region)
+        loadingError.hidden = true
+        loading.hidden = false
+    }
 })

@@ -97,8 +97,28 @@ button {
     opacity: .2;
 }
 
-.btn-next-region-mode-career {
+.btn-track {
+    background: linear-gradient(to right, hsl(180, 100%, 50%), hsl(110, 95%, 76%), hsl(320, 83%, 70%));
+}
+
+.btn-track-disabled {
     opacity: .2;
+}
+
+.btn-next-region-mode-career {
+    width: 140px;
+    height: 38px;
+    font-size: .9rem;
+    font-weight: 700;
+    color: var(--text-color-button-menu);
+    letter-spacing: .5px;
+    border-radius: var(--border-radius);
+    border: solid 1px hsl(0, 0%, 0%);
+    background-color: transparent;
+    animation-name: button-float;
+    animation-duration: 1.5s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
 }
 
 .btn-next-region-mode-career-active {

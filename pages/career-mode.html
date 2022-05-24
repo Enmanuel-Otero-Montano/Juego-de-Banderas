@@ -36,10 +36,14 @@
             <button class="how-to-play">Como jugar</button>
         </div>
         <p class="internet">!Parece que no tienes conexión!</p>
-        <p class="stages">Etapa <span class="current-stage">1</span> / 12</p>
-        <div class="live-points-container">
-            <div class="points-container">
-                <p class="points"><span class="current-points">00</span>/2000</p>
+        <div class="points-stages-container">
+            <p class="points"><span class="current-points">00</span>/2000</p>
+            <p class="stages">Etapa <span class="current-stage">1</span> / 12</p>
+        </div>
+        <div class="live-tracks-container">
+            <div class="tracks-container">
+                <p class="tracks">Pistas <span class="remaining-tracks">2</span>/2</p>
+                <!-- <p class="points"><span class="current-points">00</span>/2000</p> -->
             </div>
             <div class="lives-container">
                 <svg class="heart" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="18" height="18" viewBox="0 0 96 96">
@@ -53,8 +57,9 @@
     <main class="main">
         <div class="flags-drop-names-container">
             <dialog class="dialog">
-                <h3 class="congratulations">¡EXCELENTE!</h3>
-                <h4>¡Has completado <span class="region-stage"></span></h4>
+                <p>¡EXCELENTE!</p>
+                <p>¡Has completado <span class="region-stage"></span></p>
+                <button class="btn-next-region-mode-career">Siguiente Región</button>
             </dialog>
             <dialog class="dialog-failed">
                 <h3 class="failed-text">Te has quedado sin <span class="failed-text-reason"></span></h3>
@@ -90,13 +95,14 @@
             </ul>
         </section>
         <div class="button-container">
-            <button class="btn-next-region-mode-career" disabled>Siguiente Región</button>
+            <button class="btn-track">Pista</button>
             <button class="btn-next" disabled>Siguiente</button>
             <button class="btn-check">Comprobar</button>
         </div>
     </main>
     <div class="modal-how-to-play">
         <button class="close-button" aria-label="cerrar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+        <p class="error-loading">!Ups! Hubo un error</p>
         <p class="loading">Cargando <span class="loading__animation--one">.</span> <span class="loading__animation--two">.</span> <span class="loading__animation--three">.</span></p>
         <div class="how-to-play-explanation-container">
             <h4 class="how-to-paly-title">Como jugar</h4>

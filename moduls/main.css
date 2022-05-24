@@ -19,7 +19,7 @@ body {
     min-height: 100vh;
     font-family: 'Lato', sans-serif;
     font-size: 16px;
-    padding: 10px 8px 0;
+    padding: 8px 4px 0;
     background-color: hsl(0, 0%, 100%);
 }
 
@@ -28,9 +28,9 @@ body {
     align-items: center;
     justify-content: space-between;
     height: 60px;
-    padding-left: 15px;
-    padding-right: 15px;
-    font-size: .9rem;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: .85rem;
     font-weight: 700;
     background: linear-gradient(0.25turn, hsl(356, 79%, 48%), hsl(204, 100%, 27%));
     letter-spacing: 1px;
@@ -71,22 +71,36 @@ body {
     transition-delay: .2s;
 }
 
+.points-stages-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    height: 60px;
+    padding: 8px 0 8px 12px;
+}
+
+.points,
+.stages {
+    margin: 0;
+}
+
 .region-and-stages-container > p {
     margin: 8px 0;
     padding-left: 15px;
     text-align: center;
 }
 
-.live-points-container {
+.live-tracks-container {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
-    min-width: 55.5px;
+    min-width: 63px;
     height: 60px;
 }
 
-.points {
+.tracks {
     margin: 0;
 }
 
@@ -109,7 +123,7 @@ body {
     transition: transform 0.2s;
 }
 
-.one-heart {
+.one-heart {/* Regla css que se aplica al corazón cuande queda uno solo */
     animation-name: one-heart;
     animation-duration: 1.2s;
     animation-iteration-count: infinite;
@@ -121,6 +135,12 @@ body {
 
 .counter-red {
     color: hsl(0, 100%, 58%);
+}
+
+.track {
+    animation-name: track;
+    animation-duration: 1.2s;
+    animation-iteration-count: 2;
 }
 
 .internet {
@@ -232,16 +252,17 @@ img {
     height: auto;
     top: -12px;
     bottom: 0;
-    /* border-color: var(--border-color-modals); */
+    padding: 0;
     animation-name: complete;
     animation-duration: 4000ms;
     animation-iteration-count: infinite;
     border-color: transparent;
+    text-align: center;
 }
 
-.congratulations,
-h4 {
-    text-align: center;
+.dialog > p {
+    margin: 12px 0;
+    font-weight: 700;
     letter-spacing: 1px;
 }
 
@@ -334,7 +355,7 @@ h4 {
     width: max-content;
     margin: 6px auto;
     padding: 5px;
-    letter-spacing: 1px;
+    letter-spacing: .8px;
     user-select: none;
 }
 
@@ -381,7 +402,8 @@ h4 {
     transform: scale(0, 1);
 }
 
-.loading {
+.loading,
+.error-loading {
     margin: 0;
     padding-bottom: 20px;
     font-size: 1.1rem;
@@ -400,16 +422,16 @@ h4 {
 }
 
 .loading__animation--one {
-    color: aqua;
+    color: hsl(180, 100%, 50%);
 }
 
 .loading__animation--two {
-    color: yellow;
+    color: hsl(60, 100%, 50%);
     animation-delay: 500ms;
 }
 
 .loading__animation--three {
-    color: darksalmon;
+    color: hsl(15, 72%, 70%);
     animation-delay: 750ms;
 }
 
@@ -475,6 +497,10 @@ h4 {
         font-size: .8rem;
     }
 
+    .flag-names {
+        letter-spacing: initial;
+    }
+
     .button-container > button {
         width: 90px;
     }
@@ -488,6 +514,10 @@ h4 {
         height: 22px;
         font-size: 1rem;
         letter-spacing: .8px;
+    }
+
+    .flag-names {
+        letter-spacing: 1px;
     }
 }
 
@@ -529,12 +559,46 @@ h4 {
     .drop-flag-left,
     .drop-flag-center,
     .drop-flag-right {
-        width: 22%;
+        min-width: max-content;
+    }
+}
+
+@media screen and (min-width: 1024px) {
+
+    .header {
+        padding-left: 50px;
+        padding-right: 50px;
+    }
+
+    .menu-container {
+        left: calc(50% - 125px);
+        width: 250px;
+    }
+
+    img {
+        max-width: 15%;
+    }
+
+    .flags-drop-names-container {
+        padding-left: 50px;
+        padding-right: 50px;
+        background-color: hsl(0, 0%, 100%);
     }
 
     .drop-flag-left,
     .drop-flag-center,
     .drop-flag-right {
-        min-width: max-content;
+        width: 15%;
+    }
+
+    .section-names__list {
+        width: 85%;
+        margin-left: auto;
+        margin-right: auto;
+        font-size: 1rem;
+    }
+
+    .button-container {
+        width: 60%;
     }
 }
