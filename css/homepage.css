@@ -139,6 +139,7 @@ body {
     padding-left: 8px;
     padding-right: 8px;
     background-color: hsl(0, 0%, 100%);
+    border: solid 8px hsl(80, 61%, 50%);
 }
 
 .about-game {

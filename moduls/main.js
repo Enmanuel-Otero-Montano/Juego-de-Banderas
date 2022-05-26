@@ -127,6 +127,12 @@ const showNames = ()=> {//Función para mostrar los nombres de los países
         fragment.appendChild(names)
     }
     listOfNames.appendChild(fragment)
+    const mql = matchMedia("(min-width: 1024px)") 
+    if(listOfNames.childElementCount === 18 && mql.matches) {
+        listOfNames.classList.add("section-names__list-eighteen")
+    }else {
+        listOfNames.classList.remove("section-names__list-eighteen")
+    }
 }
 
 const showLeftFlag = ()=> {//Función para mostrar la bandera de la izquierda
@@ -302,6 +308,7 @@ flagsContainer.addEventListener("click", (e)=> {
 })
 
 buttonCheck.addEventListener("click", ()=> {
+    console.dir(listOfNames)
     if(!dropFlagCenter.classList.contains("flag-drop-area-hidden") && dropFlagLeft.classList.contains("flag-drop-area-hidden")){
         if(dropFlagCenter.textContent === nameOfTheFlags["center flag name"]){
             dropFlagCenter.classList.add("flag-drop-area-success")
