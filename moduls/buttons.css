@@ -57,10 +57,10 @@ button {
 
 .close-button {/* Botón de la ventana modal */
     position: absolute;
-    top: 13px;
+    top: 12px;
     left: calc(100% - 44px);
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     padding: 2px 0 0;
     background-color: hsl(0, 0%, 100%);
 }

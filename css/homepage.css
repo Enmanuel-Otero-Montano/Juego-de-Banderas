@@ -135,18 +135,20 @@ body {
 }
 
 .about-game-container {
-    max-width: 495px;
+    max-width: 500px;
     padding-left: 8px;
     padding-right: 8px;
     background-color: hsl(0, 0%, 100%);
-    border: solid 8px hsl(80, 61%, 50%);
+    border: solid 3px hsl(80, 61%, 50%);
 }
 
 .about-game {
-    font-size: 1.1rem;
-    padding-left: 8px;
+    margin-top: 6px;
+    margin-bottom: 6px;
+    font-size: .9rem;
+    padding-left: 3px;
     letter-spacing: 1px;
-    line-height: 1.5;
+    line-height: 1.2;
 }
 
 @media (hover: hover) {
@@ -165,6 +167,13 @@ body {
 }
 
 @media screen and (min-width: 768px) {
+
+    .about-game {
+        margin-top: 8px;
+        margin-bottom: 8px;
+        font-size: 1rem;
+        line-height: 1.5;
+    }
 
     .hero {
         letter-spacing: 1.2px;
