@@ -40,16 +40,6 @@
     <link rel="manifest" href="assets/favicon/manifest.json">
     <link rel="stylesheet" href="css/normalize.css">
     <link rel="stylesheet" href="css/homepage-dist.css">
-    <script>
-        if ("serviceWorker" in navigator) {
-            window.addEventListener("load", function() {
-            navigator.serviceWorker
-                .register("/sw.js")
-                .then(res => console.log("service worker registered"))
-                .catch(err => console.log("service worker not registered", err))
-            })
-        }
-    </script>
     <title>Banderas, Países y Regiones</title>
 </head>
 <body>
