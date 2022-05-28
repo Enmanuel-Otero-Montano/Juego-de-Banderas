@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Aplicación interactiva y didáctica sobre banderas, países y regiones. Pondrá a prueba tu conocimiento en este tema.">
+    <meta name="description" content="Aplicación interactiva y didáctica sobre banderas, países y regiones. Pondrá a prueba tu conocimiento de forma entretenida.">
     <meta name="keywords" content="banderas, países, regiones, continentes">
     <meta name="author" content="Enmanuel Otero Montano">
     <meta name="copyright" content="Enmanuel Otero Montano">
@@ -17,7 +17,7 @@
     <meta name="twitter:title" content="Banderas, Países y Regiones">
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:site" content="Enmanuel Otero Montano">
-    <meta name="twitter:description" content="Aplicación interactiva y didáctica sobre banderas, países y regiones. Pondrá a prueba tu conocimiento en este tema.">
+    <meta name="twitter:description" content="Aplicación interactiva y didáctica sobre banderas, países y regiones. Pondrá a prueba tu conocimiento de forma entretenida.">
     <meta name="twitter:image" content="https://raw.githubusercontent.com/Enmanuel-Otero-Montano/Juego-de-Banderas/main/assets/favicon/ms-icon-310x310.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,9 +36,15 @@
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="96x96" href="assets/favicon/favicon-96x96.png">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png">
+    <link rel="manifest" href="./manifest.json">
     <link rel="manifest" href="assets/favicon/manifest.json">
     <link rel="stylesheet" href="css/normalize.css">
     <link rel="stylesheet" href="css/homepage-dist.css">
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("/sw.js")
+        }
+    </script>
     <title>Banderas, Países y Regiones</title>
 </head>
 <body>
@@ -72,15 +78,15 @@
         <button class="close-button" aria-label="cerrar"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
         <div class="about-game-container">
             <p class="about-game">
-                "<strong>Banderas, países y regiones</strong>" surge de la idea de contribuir y poner a disposición un recurso que ayude a aumentar el conocimiento sobre el tema. 
+                "<strong>Banderas, países y regiones</strong>" surge de la idea de contribuir y poner a disposición un recurso que ayude a aumentar el conocimiento sobre el tema del título. 
             </p>
             <p class="about-game">
                 En la aplicación se pondrán a prueba sus conocimientos, podrá ejercitar la memorización, pasará un rato entretenido, a la vez que aumentará su cultura general, todo esto de forma interactiva y dinámica. 
             </p>
             <p class="about-game">
-                La aplicación consta de dos modos de juego, uno es "Modo Carrera", el cual tiene de 12 etapas. El otro es "Modo Regiones", donde podrá seleccionar la región que desea jugar.
+                La aplicación consta de dos modos de juego, un "Modo Carrera", el cual tiene de 12 etapas. El otro es "Modo Regiones", donde podrá seleccionar la región que desea jugar.
             </p>
-            <p class="about-game"><strong>Nota:</strong> En algunas regiones no aparecen todos los países, los que aparecen fueron seleccionado de acuerdo a su extensión territorial. En futuras actualizaciones agregaré los países restantes.</p>
+            <p class="about-game"><strong>Nota:</strong> En algunas etapas no aparecen todos los países de la región en curso. En futuras actualizaciones agregaré los países restantes.</p>
         </div>
     </div>
     <script src="javascript/homepage.js"></script>

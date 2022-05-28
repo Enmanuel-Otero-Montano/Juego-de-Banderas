@@ -189,10 +189,6 @@ body {
         margin-left: auto;
         margin-right: auto;
     }
-
-    .author {
-        top: 50%;
-    }
 }
 
 @media screen and (min-width: 1024px) {
@@ -213,13 +209,14 @@ body {
 
 @media screen and (min-width: 1366px) {
 
+    .header {
+        padding-left: 80px;
+        padding-right: 80px;
+    }
+
     .buttons-container {
         top: 30%;
         width: 62%;
-    }
-
-    .author {
-        top: 65%;
     }
 }
 
@@ -230,11 +227,7 @@ body {
     }
 
     .buttons-container {
-        top: 35%;
-        width: 55%;
-    }
-
-    .author {
-        top: 70%;
+        top: 37%;
+        width: 50%;
     }
 }

@@ -171,3 +171,12 @@ button {
 
 }
 
+@media screen and (min-width: 1366px) {
+
+    .button-container > button,
+    .btn-restart {/* Estilos generales para los botones inferiores */
+        width: 115px;
+        height: 40px;
+    }
+}
+

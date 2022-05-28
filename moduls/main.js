@@ -169,7 +169,7 @@ listOfNames.addEventListener("click", (e)=> {
         dropFlagCenter.classList.remove("flag-drop-area-failed")
         dropFlagLeft.classList.remove("flag-drop-area-failed")
         dropFlagRight.classList.remove("flag-drop-area-failed")
-        if(/* currentRegion.region.length === 0 && */ dropFlagCenter.textContent === nameOfTheFlags["center flag name"] && dropFlagLeft.textContent === nameOfTheFlags["left flag name"] && dropFlagRight.textContent === nameOfTheFlags["right flag name"] && dropFlagCenter.classList.contains("flag-drop-area-success") && dropFlagLeft.classList.contains("flag-drop-area-success") && dropFlagRight.classList.contains("flag-drop-area-success")) {
+        if(currentRegion.region.length === 0 && dropFlagCenter.textContent === nameOfTheFlags["center flag name"] && dropFlagLeft.textContent === nameOfTheFlags["left flag name"] && dropFlagRight.textContent === nameOfTheFlags["right flag name"] && dropFlagCenter.classList.contains("flag-drop-area-success") && dropFlagLeft.classList.contains("flag-drop-area-success") && dropFlagRight.classList.contains("flag-drop-area-success")) {
             const countryByName = allCountries.countries.find(element=> element.name.common === selectedName.name)
             countryLocation.setAttribute("href", `${countryByName.maps.googleMaps}`)
             informationContainer.classList.remove("information-container-show")
@@ -179,6 +179,7 @@ listOfNames.addEventListener("click", (e)=> {
             countryPopulation.textContent = countryByName.population
             populationCountryName.textContent = selectedName.name
             capitalCountryName.textContent = selectedName.name
+            capitalCountryName.classList.add("flag-names-selected")
             countryCapital.textContent = countryByName.capital
         }
         removeNameSelected()

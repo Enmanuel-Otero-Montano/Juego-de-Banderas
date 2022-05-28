@@ -279,6 +279,7 @@ img {
 .failed-text {
     margin-top: 0;
     margin-bottom: 8px;
+    font-weight: 700;
     letter-spacing: 1.1px;
 }
 
@@ -340,8 +341,8 @@ img {
 }
 
 .section-names__list {
-    width: 100%;
-    margin: 0;
+    width: min(100%, 750px);
+    margin: 0 auto;
     padding: 5px 0 0;
     font-size: .9rem;
     font-weight: bold;
@@ -444,9 +445,9 @@ img {
 }
 
 .how-to-play-explanation-container {
-    margin-top: 8px;
-    max-width: 500px;
-    padding: 0 4px;
+    max-width: 700px;
+    margin-top: 7px;
+    padding: 0 2px;
     background-color: hsl(0, 0%, 100%);
     border: solid 3px var(--border-color-modals);
 }
@@ -454,6 +455,7 @@ img {
 .how-to-paly-title {
     margin-top: 10px;
     margin-bottom: 12px;
+    font-weight: 700;
     text-align: center;
 }
 
@@ -518,6 +520,10 @@ img {
 
 @media screen and (min-width: 425px) {
 
+    img {
+        max-width: 28%;
+    }
+
     .drop-flag-left,
     .drop-flag-center,
     .drop-flag-right {
@@ -540,7 +546,7 @@ img {
     }
 
     img {
-        max-width: 28%;
+        max-width: 25%;
     }
 
     .button-container {
@@ -558,12 +564,8 @@ img {
 
 @media screen and (min-width: 740px) {
 
-    .explanation {
-        font-size: 1rem;
-    }
-
     img {
-        max-width: 22%;
+        max-width: 20%;
     }
 
     .drop-flag-left,
@@ -576,8 +578,8 @@ img {
 @media screen and (min-width: 1024px) {
 
     .header {
-        padding-left: 70px;
-        padding-right: 70px;
+        padding-left: 90px;
+        padding-right: 90px;
     }
 
     .menu-container {
@@ -590,8 +592,8 @@ img {
     }
 
     .flags-drop-names-container {
-        padding-left: 70px;
-        padding-right: 70px;
+        padding-left: 170px;
+        padding-right: 170px;
         background-color: hsl(0, 0%, 100%);
     }
 
@@ -601,23 +603,31 @@ img {
         width: 15%;
     }
 
+    .population-information-container,
+    .capital-information-container,
+    .information-container {
+        font-size: 1rem;
+    }
+
     .section-names__list {
-        width: 80%;
-        margin-left: auto;
-        margin-right: auto;
         font-size: 1rem;
     }
 
     .button-container {
-        width: 60%;
+        width: 52%;
+    }
+
+    .how-to-paly-title {
+        margin-top: 15px;
+        margin-bottom: 15px;
     }
 }
 
 @media screen and (min-width: 1366px) {
 
     .header {
-        padding-left: 220px;
-        padding-right: 220px;
+        padding-left: 270px;
+        padding-right: 270px;
     }
 
     .menu-container {
@@ -626,18 +636,75 @@ img {
     }
 
     .flags-drop-names-container {
-        padding-left: 220px;
-        padding-right: 220px;
-    }
-
-    .section-names__list {
-        width: 52%;
-        margin-left: auto;
-        margin-right: auto;
-        font-size: 1rem;
+        padding-left: 350px;
+        padding-right: 350px;
     }
 
     .button-container {
-        width: 50%;
+        width: 40%;
+    }
+
+    .how-to-play-explanation {
+        font-size: 1rem;
+        padding-left: 5px;
+    }
+
+    .dialog-failed {
+        padding-top: 15px;
+    }
+    
+    .restart-text {
+        letter-spacing: 1px;
+    }
+}
+
+@media screen and (min-width: 1540px) {
+
+    .header {
+        height: 80px;
+        font-size: 1rem;
+    }
+
+    .points-stages-container,
+    .live-tracks-container {
+        height: 75px;
+    }
+
+    .flags-drop-names-container {
+        padding-left: 450px;
+        padding-right: 450px;
+    }
+
+    .main {
+        min-height: calc(100vh - 106px);
+    }
+
+    .button-container {
+        width: 32%;
+    }
+
+    .how-to-play-explanation {
+        font-size: 1.2rem;
+    }
+}
+
+@media screen and (min-width: 2350px) {
+
+    .header {
+        padding-left: 490px;
+        padding-right: 490px;
+    }
+
+    .flags-drop-names-container {
+        padding-left: 595px;
+        padding-right: 595px;
+    }
+
+    .dialog-failed {
+        padding-top: 22px;
+    }
+
+    .button-container {
+        width: 20%;
     }
 }
