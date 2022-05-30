@@ -21,10 +21,9 @@
     <link rel="icon" type="image/png" sizes="32x32" href="../../assets/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="96x96" href="../../assets/favicon/favicon-96x96.png">
     <link rel="icon" type="image/png" sizes="16x16" href="../../assets/favicon/favicon-16x16.png">
-    <link rel="manifest" href="../../assets/favicon/manifest.json">
     <link rel="stylesheet" href="../../css/normalize.css">
     <link rel="stylesheet" href="../../moduls/main-dist.css">
-    <title>Banderas, Países y sus cosas</title>
+    <title>Banderas, Países y regiones</title>
 </head>
 <body>
     <header class="header"> 
@@ -33,22 +32,30 @@
             <a href="../../index.html" class="go-home">Ir a Inicio</a>
             <button class="how-to-play">Como jugar</button>
         </div>
-        <div class="region-and-stages-container">
-            <p>Europa</p>
+        <p class="internet">!Parece que no tienes conexión!</p>
+        <div class="points-stages-container">
+            <p class="region-name">Europa</p>
             <p class="stages">Etapa <span class="current-stage">1</span> / 3</p>
         </div>
-        <div class="live-points-container">
-            <div class="points-container">
-                <p class="points"><span class="current-points">00</span>/140</p>
+        <div class="live-tracks-container">
+            <div class="tracks-container">
+                <p class="tracks">Pistas <span class="remaining-tracks">2</span>/2</p>
             </div>
+            <p class="points"><span class="current-points">00</span>/500</p>
             <div class="counter"></div>
         </div>
     </header>
     <main class="main">
         <div class="flags-drop-names-container">
             <dialog class="dialog">
-                <h3 class="congratulations">¡FELICIDADES!</h3>
-                <h4>¡Has completado la región!</h4>
+                <p>¡EXCELENTE!</p>
+                <p>¡Has completado <span class="region-stage"></span></p>
+                <button class="btn-next-region-mode-career">Siguiente Región</button>
+            </dialog>
+            <dialog class="dialog-failed">
+                <p class="failed-text">Te has quedado sin <span class="failed-text-reason"></span></p>
+                <p class="restart-text">¡Empecemos de nuevo!</p>
+                <button class="btn-restart">Aceptar</button>
             </dialog>
             <div class="flags-container">
                 <img class="flags-center" src="" alt="">
@@ -63,9 +70,13 @@
             <div class="information-container">
                 <p class="information">Si desea, seleccione un país para ver su ubicación geográfica o su población total</p>
             </div>
-            <div class="location-population-container">
-                <a href="" class="location" target="_blank">Ver ubicación</a>
-                <button class="btn-population">Ver población</button>
+            <div class="capital-information-container">
+                <p class="capital-information">La capital de <span class="capital-country-name"></span> es <span class="capital-name"></span></p>
+            </div>
+            <div class="location-population-capital-container">
+                <a href="" class="location" target="_blank">Ubicación</a>
+                <button class="btn-capital">Capital</button>
+                <button class="btn-population">Población</button>
             </div>
             <div class="population-information-container">
                 <p class="population-information"><span class="population-country-name"></span> población estimada &sim; <span class="country-population"></span></p>
@@ -75,17 +86,21 @@
             </ul>
         </section>
         <div class="button-container">
-            <button class="btn-next-region-mode-career" disabled>Siguiente Región</button>
-            <button class="btn-next">Siguiente</button>
+            <button class="btn-track">Pista</button>
+            <button class="btn-next" disabled>Siguiente</button>
             <button class="btn-check">Comprobar</button>
         </div>
     </main>
     <div class="modal-how-to-play">
         <button class="close-button" aria-label="cerrar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+        <p class="error-loading">!Ups! Hubo un error</p>
+        <p class="loading">Cargando <span class="loading__animation--one">.</span> <span class="loading__animation--two">.</span> <span class="loading__animation--three">.</span></p>
         <div class="how-to-play-explanation-container">
-            <h4 class="how-to-paly-title">Como jugar</h4>
-            <p class="how-to-play-explanation">Seleccione un nombre con un click o un tap, luego presione con un click o un tap la bandera que crea corresponda al nombre del país seleccionado y presione comprobar para ver si es correcto, si es correcto, podrá presionar en el botón siguiente para pasar a las siguientes banderas.</p>
-            <p class="how-to-play-explanation">Cuando haya completado todas las banderas de la región actual, podrá presionar el botón "Siguiente Región" para pasar a la siguiente región.</p>
+            <p class="how-to-paly-title">Como jugar</p>
+            <p class="how-to-play-explanation">Seleccione un nombre con un clic o un tap, luego presione la bandera que crea corresponda al nombre seleccionado y presione "Comprobar", si es correcta su elección, podrá presionar en "Siguiente" para pasar a las siguientes banderas.</p>
+            <p class="how-to-play-explanation">Cuando haya completado todas las banderas de la región actual podrá pasar a la siguiente región.</p>
+            <p class="how-to-play-explanation">Note que tiene 2 pistas por cada etapa, se mostrarán dichas pistas presionando en "Pista", las pistas no estarán disponibles en las tres últimas banderas de cada etapa, por lo que le recomiendo no dejarla para lo último.</p>
+            <p class="how-to-play-explanation">Dispone de un tiempo limitado para completar la etapa.</p>
         </div>
     </div>
     <script src="../../moduls/main.js" type="module"></script>

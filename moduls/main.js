@@ -309,7 +309,6 @@ flagsContainer.addEventListener("click", (e)=> {
 })
 
 buttonCheck.addEventListener("click", ()=> {
-    console.dir(listOfNames)
     if(!dropFlagCenter.classList.contains("flag-drop-area-hidden") && dropFlagLeft.classList.contains("flag-drop-area-hidden")){
         if(dropFlagCenter.textContent === nameOfTheFlags["center flag name"]){
             dropFlagCenter.classList.add("flag-drop-area-success")
@@ -319,7 +318,7 @@ buttonCheck.addEventListener("click", ()=> {
         }else{
             dropFlagCenter.classList.add("flag-drop-area-failed")
             dropFlagCenter.setAttribute("data-points", "5")
-            if(location.href.includes("career-mode")){
+            if(region.includes("career-mode")){
                 checkNumberOfCurrentLives()
             }
         }
@@ -340,20 +339,20 @@ buttonCheck.addEventListener("click", ()=> {
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-failed")
             dropFlagRight.setAttribute("data-points", "5")
-            if(location.href.includes("career-mode")){
+            if(region.includes("career-mode")){
                 checkNumberOfCurrentLives()
             }
         }else if(dropFlagLeft.textContent !== nameOfTheFlags["left flag name"] && dropFlagRight.textContent === nameOfTheFlags["right flag name"]){
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-success")
             dropFlagLeft.setAttribute("data-points", "5")
-            if(location.href.includes("career-mode")){
+            if(region.includes("career-mode")){
                 checkNumberOfCurrentLives()
             }
         }else{
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-failed")
-            if(location.href.includes("career-mode")){
+            if(region.includes("career-mode")){
                 checkNumberOfCurrentLives()
             }
         }
@@ -374,10 +373,12 @@ buttonCheck.addEventListener("click", ()=> {
                 }
             }else if(region.includes("america") && stage.currentStage === 2){
                 dialog.show()
-            }else if(region.includes("asia") || region.includes("europe") || region.includes("africa") && stage.currentStage === 3){
+            }else if(region.includes("asia") || region.includes("europe") || region.includes("africa")){
+                regionOrStage.textContent = "esta región!"
                 dialog.show()
                 clearInterval(stop.counter)//Para el contador si es el final de la región actual
             }else if(region.includes("oceania") && stage.currentStage === 1) {
+                regionOrStage.textContent = "esta región!"
                 dialog.show()
                 clearInterval(stop.counter)//Para el contador si es el final de la región actual
             }
@@ -523,7 +524,7 @@ if(region.includes("career-mode")) {
         showNames()
         showCenterFlag()
         initialState()
-        totalTime["eighteen names"] = 125//Reinicia el contador
+        totalTime["eighteen names"] = 140//Reinicia el contador
         stage.currentStage = ++stage.currentStage
         currentStageInformation.textContent = stage.currentStage
     })
@@ -694,10 +695,36 @@ buttonRestart.addEventListener("click", ()=> {
     nameOfTheFlags["center flag name"] = undefined
     nameOfTheFlags["left flag name"] = undefined
     nameOfTheFlags["right flag name"] = undefined
-    careerMode(stage.currentStage)
+    if(region.includes("oceania")) {
+        oceaniaFunct()
+        deleteNamesFromList()
+        showNames()
+        showCenterFlag()
+        currentPoints.textContent = "00"
+    }else if(region.includes("europe")) {
+        southOfEurope()
+        deleteNamesFromList()
+        showNames()
+        showCenterFlag()
+        currentPoints.textContent = "00"
+    }else if(region.includes("asia")) {
+        westernAsia()
+        deleteNamesFromList()
+        showNames()
+        showCenterFlag()
+        currentPoints.textContent = "00"
+    }else if(region.includes("africa")) {
+        easternAfrica()
+        deleteNamesFromList()
+        showNames()
+        showCenterFlag()
+        currentPoints.textContent = "00"
+    }else {
+        careerMode(stage.currentStage)
+        currentPoints.textContent = "00"
+        numberOfLives.textContent = "15"
+    }
     initialState()
-    currentPoints.textContent = "00"
-    numberOfLives.textContent = "15"
     dialogFailed.close()
 })
 

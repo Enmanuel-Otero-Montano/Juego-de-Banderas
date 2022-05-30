@@ -81,7 +81,8 @@ body {
 }
 
 .points,
-.stages {
+.stages,
+.region-name {
     margin: 0;
 }
 
@@ -626,8 +627,8 @@ img {
 @media screen and (min-width: 1366px) {
 
     .header {
-        padding-left: 270px;
-        padding-right: 270px;
+        padding-left: 260px;
+        padding-right: 260px;
     }
 
     .menu-container {
