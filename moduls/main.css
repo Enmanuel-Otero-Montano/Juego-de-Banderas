@@ -155,20 +155,6 @@ body {
     transition: transform .4s;
 }
 
-.internet-off {
-    transform: translateY(0%) scaleY(1);
-    transition: transform .4s;
-    background-color: var(--bg-color-windows);
-    z-index: 10;
-}
-
-.internet-on {
-    transform: translateY(0%) scaleY(1);
-    transition: transform .4s;
-    background-color: hsl(120, 100%, 30%);
-    z-index: 10;
-}
-
 /* Styles for the section main */
 
 .main {
@@ -408,6 +394,10 @@ img {
     transform: scale(0, 1);
 }
 
+.error-loading-hidden {
+    display: none;
+}
+
 .loading,
 .error-loading {
     margin: 0;
@@ -416,6 +406,10 @@ img {
     font-weight: 700;
     color: var(--text-color-secondary);
     letter-spacing: 1px;
+}
+
+.error-loading {
+    font-size: .9rem;
 }
 
 .loading__animation--one,

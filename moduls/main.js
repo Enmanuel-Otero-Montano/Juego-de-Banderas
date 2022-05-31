@@ -38,8 +38,8 @@ const buttonPopulation = document.querySelector(".btn-population")
 const populationCountryName = document.querySelector(".population-country-name")
 const countryPopulation = document.querySelector(".country-population")
 const internetNotification = document.querySelector(".internet")
+const regionName = document.querySelector(".region-name")
 
-closeModal.hidden = true
 loadingError.hidden = true
 
 const leftSideFlag = document.createElement("IMG")
@@ -81,10 +81,18 @@ const stop = {
     counter: undefined
 }
 
-const callCountry = async ()=> {//Función que hace la solicitud a la API de los países de América.
-    const result =  fetch("https://restcountries.com/v3.1/all")
-    const country = await result
-    return country.json()
+const callCountry = async ()=> {//Función que hace la solicitud a la API de todos los países.
+    try {
+        const result =  fetch("https://restcountries.com/v3.1/all")
+        const country = await result
+        return country.json()
+    }catch(error) {
+        if(error instanceof TypeError) {
+            loading.classList.add("loading-hidden")
+            loadingError.textContent = "!Ups! Hubo un error. Revisa si tienes internet."
+            loadingError.hidden = false
+        }
+    }
 }
 
 const saveCountriesInArray = async (locationHref)=> {
@@ -105,11 +113,11 @@ const saveCountriesInArray = async (locationHref)=> {
         }
         showNames()
         showCenterFlag()
+        loaded()
         /* stopSeconds = setInterval(counterDown, 1000) */
     } catch (error) {
         if(error instanceof TypeError) {
-            internetNotification.classList.add("internet-off")
-            loading.hidden = true
+            loading.classList.add("loading-hidden")
             loadingError.hidden = false
         }
     }
@@ -138,8 +146,8 @@ const showNames = ()=> {//Función para mostrar los nombres de los países
 const showLeftFlag = ()=> {//Función para mostrar la bandera de la izquierda
     flagIndex.index = Math.trunc(Math.random() * (currentRegion.region.length - 0) + 0)
     leftSideFlag.setAttribute("src", currentRegion.region[flagIndex.index].flags.png)
-    nameOfTheFlags["left flag name"] = currentRegion.region[flagIndex.index].name.common
     flagsContainer.prepend(leftSideFlag)
+    nameOfTheFlags["left flag name"] = currentRegion.region[flagIndex.index].name.common
     console.log(nameOfTheFlags["left flag name"])
     currentRegion.region.splice(flagIndex.index, 1)
 }
@@ -147,8 +155,8 @@ const showLeftFlag = ()=> {//Función para mostrar la bandera de la izquierda
 const showRightFlag = ()=> {//Función para mostrar la bandera de la derecha
     flagIndex.index = Math.trunc(Math.random() * (currentRegion.region.length - 0) + 0)
     rightSideFlag.setAttribute("src", currentRegion.region[flagIndex.index].flags.png)
-    nameOfTheFlags["right flag name"] = currentRegion.region[flagIndex.index].name.common
     flagsContainer.append(rightSideFlag)
+    nameOfTheFlags["right flag name"] = currentRegion.region[flagIndex.index].name.common
     console.log(nameOfTheFlags["right flag name"])
     currentRegion.region.splice(flagIndex.index, 1)
 }
@@ -156,11 +164,9 @@ const showRightFlag = ()=> {//Función para mostrar la bandera de la derecha
 const showCenterFlag = ()=> {//Función para mostrar la bandera del centro
     flagIndex.index = Math.trunc(Math.random() * (currentRegion.region.length - 0) + 0)
     centerFlag.setAttribute("src", currentRegion.region[flagIndex.index].flags.png)
+    leftSideFlag.after(centerFlag)
     nameOfTheFlags["center flag name"] = currentRegion.region[flagIndex.index].name.common
     console.log(nameOfTheFlags["center flag name"])
-    leftSideFlag.after(centerFlag)
-    closeModal.hidden = false
-    loading.classList.add("loading-hidden")
 }
 
 listOfNames.addEventListener("click", (e)=> {
@@ -371,14 +377,25 @@ buttonCheck.addEventListener("click", ()=> {
                     regionOrStage.textContent = "todas las etapas!"
                     dialog.show()
                 }
-            }else if(region.includes("america") && stage.currentStage === 2){
+            }else if(region.includes("america")){
+                if(stage.currentStage < 2){
+                    regionOrStage.textContent = "esta etapa!"
+                }else{
+                    regionOrStage.textContent = `la región de ${regionName.textContent}!`
+                    buttonNextRegion.style.display = "none"
+                }
                 dialog.show()
             }else if(region.includes("asia") || region.includes("europe") || region.includes("africa")){
-                regionOrStage.textContent = "esta región!"
+                if(stage.currentStage < 3){
+                    regionOrStage.textContent = "esta etapa!"
+                }else{
+                    regionOrStage.textContent = `la región de ${regionName.textContent}!`
+                    buttonNextRegion.style.display = "none"
+                }
                 dialog.show()
                 clearInterval(stop.counter)//Para el contador si es el final de la región actual
             }else if(region.includes("oceania") && stage.currentStage === 1) {
-                regionOrStage.textContent = "esta región!"
+                regionOrStage.textContent = `la región de ${regionName.textContent}!`
                 dialog.show()
                 clearInterval(stop.counter)//Para el contador si es el final de la región actual
             }
@@ -719,6 +736,12 @@ buttonRestart.addEventListener("click", ()=> {
         showNames()
         showCenterFlag()
         currentPoints.textContent = "00"
+    }else if(region.includes("america")) {
+        southAmerica()
+        deleteNamesFromList()
+        showNames()
+        showCenterFlag()
+        currentPoints.textContent = "00"
     }else {
         careerMode(stage.currentStage)
         currentPoints.textContent = "00"
@@ -776,30 +799,19 @@ buttonPista.addEventListener("click", ()=> {
     buttonPista.classList.add("btn-track-disabled")
 })
 
+const loaded = ()=> {
+    closeModal.classList.remove("close-button-hidden")
+    loading.classList.add("loading-hidden")
+}
+
 /* Eventos de escucha de windows */
 
 oncontextmenu = function() {
     return false
 }
 
-addEventListener("offline", ()=> {
-    internetNotification.classList.add("internet-off")
-})
-
 addEventListener("online", ()=> {
-    internetNotification.classList.remove("internet-off")
-    setTimeout(()=> {
-        internetNotification.textContent = "!Parece que tienes conexión!"
-        internetNotification.classList.add("internet-on")
-    }, 200)
-
-    setTimeout(()=> {
-        internetNotification.classList.remove("internet-on")
-        internetNotification.textContent = "!Parece que no tienes conexión!"
-    }, 1200)
-    if(allCountries.countries.length === 0) {/* Llama a la función en caso de que se haya ejecutado el "catch" en la primera llamada */
-        saveCountriesInArray(region)
+        saveCountriesInArray(region)/* Llama a la función en caso de que se haya ejecutado el "catch" en la primera llamada */
         loadingError.hidden = true
-        loading.hidden = false
-    }
+        loading.classList.remove("loading-hidden")
 })
