@@ -1,5 +1,6 @@
 {
- "name": "App",
+ "name": "Banderas, países y regiones",
+ "display": "standalone",
  "icons": [
   {
    "src": "assets/favicon/android-icon-36x36.png",
