@@ -2,6 +2,9 @@
 ### Descripción
 Aplicación web **interactiva** y **didáctica** donde pondrá a prueba su conocimiento sobre las banderas de los países. Está dividida en regiones y consta de **tiempo** y **chances** limitados, de esta manera es más interesnate en desafío.
 ### Como se ve
+![](extras/imagen-2.png)
+![](extras/imagen-3.png)
+![](extras/imagen-4.png)
 ### Como usar
 [Click aquí para iniciar](https://enmanuel-otero-montano.github.io/Juego-de-Banderas/index.html/ "Inicio")
 ### Tecnologías utilizadas
