@@ -1,6 +1,8 @@
 {
  "name": "Banderas, países y regiones",
+ "start_url": "/index.html",
  "display": "standalone",
+ "theme_color": "#23a0f3",
  "icons": [
   {
    "src": "assets/favicon/android-icon-36x36.png",

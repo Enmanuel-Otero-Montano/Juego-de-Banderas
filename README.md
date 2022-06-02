@@ -6,11 +6,12 @@ Aplicación web **interactiva** y **didáctica** donde pondrá a prueba su conoc
 ![](extras/imagen-3.png)
 ![](extras/imagen-4.png)
 ### Como usar
-[Click aquí para iniciar](https://enmanuel-otero-montano.github.io/Juego-de-Banderas/index.html/ "Inicio")
+[Click aquí para iniciar](https://enmanuel-otero-montano.github.io/Juego-de-Banderas/ "Inicio")
 ### Tecnologías utilizadas
 - **HTML**
 - **CSS**
 - **JavaScript**
+- **EsLint**
 - **REST Countries API**
 ### Actualizaciones futuras
 - Tabla de estadísticas

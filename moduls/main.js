@@ -37,7 +37,6 @@ const populationInformationContainer = document.querySelector(".population-infor
 const buttonPopulation = document.querySelector(".btn-population")
 const populationCountryName = document.querySelector(".population-country-name")
 const countryPopulation = document.querySelector(".country-population")
-const internetNotification = document.querySelector(".internet")
 const regionName = document.querySelector(".region-name")
 
 loadingError.hidden = true
@@ -114,7 +113,6 @@ const saveCountriesInArray = async (locationHref)=> {
         showNames()
         showCenterFlag()
         loaded()
-        /* stopSeconds = setInterval(counterDown, 1000) */
     } catch (error) {
         if(error instanceof TypeError) {
             loading.classList.add("loading-hidden")
@@ -135,7 +133,7 @@ const showNames = ()=> {//Función para mostrar los nombres de los países
         fragment.appendChild(names)
     }
     listOfNames.appendChild(fragment)
-    const mql = matchMedia("(min-width: 1024px)") 
+    const mql = matchMedia("(min-width: 1024px)")// Muestra la lista de nombre en tres columnas si contiene 18 nombres y el ancho de la pantalla es => a 1024px 
     if(listOfNames.childElementCount === 18 && mql.matches) {
         listOfNames.classList.add("section-names__list-eighteen")
     }else {
@@ -237,66 +235,22 @@ const calculatePoints = (containerLeft, containerCenter, containerRight)=>{
     }
 }
 
-buttonNextFlags.addEventListener("click", ()=> {
-    nameOfTheFlags["center flag name"] = undefined
-    nameOfTheFlags["left flag name"] = undefined
-    nameOfTheFlags["right flag name"] = undefined
-    dropFlagCenter.dataset.points = "10"
-    dropFlagLeft.dataset.points = "10"
-    dropFlagRight.dataset.points = "10"
-    buttonCheck.disabled = false
-    if(remainingTracks.textContent === "0" || currentRegion.region.length === 3) {
-        buttonPista.disabled = true
-        buttonPista.classList.add("btn-track-disabled")
-    }else {
-        buttonPista.disabled = false
-        buttonPista.classList.remove("btn-track-disabled")
-    }
-    if(flagsContainer.childElementCount === 1) {
-        centerFlag.remove()
-        centerFlag.setAttribute("src", "")
-        dropFlagLeft.classList.remove("flag-drop-area-hidden")
-        dropFlagRight.classList.remove("flag-drop-area-hidden")
-        flagsContainer.classList.add("flags-container-two-flags")
-        currentRegion.region.splice(flagIndex.index, 1)
-        flagsContainer.classList.add("flags-container-two-flags")
-        showLeftFlag()
-        showRightFlag()
-        dropFlagCenter.classList.add("flag-drop-area-hidden")
-        dropFlagCenter.textContent = ""
-    }else if(currentRegion.region.length === 3){
-        leftSideFlag.remove()
-        rightSideFlag.remove()
-        dropFlagCenter.classList.remove("flag-drop-area-hidden", "flag-drop-area-success", "flag-drop-area-failed")
-        dropFlagLeft.classList.remove("flag-drop-area-success", "flag-drop-area-failed")
-        dropFlagRight.classList.remove("flag-drop-area-success", "flag-drop-area-failed")
-        dropFlagLeft.textContent = ""
-        dropFlagRight.textContent = ""
-        showLeftFlag()
-        showRightFlag()
-        showCenterFlag()
-        currentRegion.region.splice(0)
-        buttonNextFlags.disabled = true
-    }else{
-        leftSideFlag.remove()
-        rightSideFlag.remove()
-        dropFlagLeft.textContent = ""
-        dropFlagRight.textContent = ""
-        dropFlagLeft.classList.remove("flag-drop-area-success")
-        dropFlagRight.classList.remove("flag-drop-area-success")
-        showLeftFlag()
-        showRightFlag()
-    }
-    buttonNextFlags.disabled = true
-    buttonNextFlags.style.opacity = ".2"
-})
-
 centerFlag.addEventListener("click", ()=> {
     flagsContainer.nextElementSibling.children[1].textContent = selectedName.name
     removeNameSelected()
 })
 
-flagsContainer.addEventListener("click", (e)=> {
+leftSideFlag.addEventListener("click", ()=> {
+    flagsContainer.nextElementSibling.children[0].textContent = selectedName.name
+    removeNameSelected()
+})
+
+rightSideFlag.addEventListener("click", ()=> {
+    flagsContainer.nextElementSibling.children[2].textContent = selectedName.name
+    removeNameSelected()
+})
+
+/* flagsContainer.addEventListener("click", (e)=> {
     if(flagsContainer.childElementCount == 2){
         removeNameSelected()
         if(e.target.classList.contains("flags-left")){
@@ -312,7 +266,7 @@ flagsContainer.addEventListener("click", (e)=> {
             flagsContainer.nextElementSibling.children[2].textContent = selectedName.name
         }
     }
-})
+}) */
 
 buttonCheck.addEventListener("click", ()=> {
     if(!dropFlagCenter.classList.contains("flag-drop-area-hidden") && dropFlagLeft.classList.contains("flag-drop-area-hidden")){
@@ -401,6 +355,7 @@ buttonCheck.addEventListener("click", ()=> {
             }
             buttonCheck.disabled = true
             buttonCheck.style.opacity = ".2"
+            centerFlag.setAttribute("src", "")
         }else if(dropFlagCenter.textContent !== nameOfTheFlags["center flag name"] && dropFlagLeft.textContent === nameOfTheFlags["left flag name"] && dropFlagRight.textContent === nameOfTheFlags["right flag name"]){
             dropFlagCenter.classList.add("flag-drop-area-failed")
             dropFlagCenter.setAttribute("data-pointd", "5")
@@ -459,6 +414,60 @@ buttonCheck.addEventListener("click", ()=> {
     if(region.includes("career-mode")){
         checkNumberOfLives()
     }
+})
+
+buttonNextFlags.addEventListener("click", ()=> {
+    nameOfTheFlags["center flag name"] = undefined
+    nameOfTheFlags["left flag name"] = undefined
+    nameOfTheFlags["right flag name"] = undefined
+    dropFlagCenter.dataset.points = "10"
+    dropFlagLeft.dataset.points = "10"
+    dropFlagRight.dataset.points = "10"
+    buttonCheck.disabled = false
+    if(remainingTracks.textContent === "0" || currentRegion.region.length === 3) {
+        buttonPista.disabled = true
+        buttonPista.classList.add("btn-track-disabled")
+    }else {
+        buttonPista.disabled = false
+        buttonPista.classList.remove("btn-track-disabled")
+    }
+    if(flagsContainer.childElementCount === 1) {
+        centerFlag.remove()
+        centerFlag.setAttribute("src", "")
+        dropFlagLeft.classList.remove("flag-drop-area-hidden")
+        dropFlagRight.classList.remove("flag-drop-area-hidden")
+        flagsContainer.classList.add("flags-container-two-flags")
+        currentRegion.region.splice(flagIndex.index, 1)
+        flagsContainer.classList.add("flags-container-two-flags")
+        showLeftFlag()
+        showRightFlag()
+        dropFlagCenter.classList.add("flag-drop-area-hidden")
+        dropFlagCenter.textContent = ""
+    }else if(currentRegion.region.length === 3){
+        leftSideFlag.remove()
+        rightSideFlag.remove()
+        dropFlagCenter.classList.remove("flag-drop-area-hidden", "flag-drop-area-success", "flag-drop-area-failed")
+        dropFlagLeft.classList.remove("flag-drop-area-success", "flag-drop-area-failed")
+        dropFlagRight.classList.remove("flag-drop-area-success", "flag-drop-area-failed")
+        dropFlagLeft.textContent = ""
+        dropFlagRight.textContent = ""
+        showLeftFlag()
+        showRightFlag()
+        showCenterFlag()
+        currentRegion.region.splice(0)
+        buttonNextFlags.disabled = true
+    }else{
+        leftSideFlag.remove()
+        rightSideFlag.remove()
+        dropFlagLeft.textContent = ""
+        dropFlagRight.textContent = ""
+        dropFlagLeft.classList.remove("flag-drop-area-success")
+        dropFlagRight.classList.remove("flag-drop-area-success")
+        showLeftFlag()
+        showRightFlag()
+    }
+    buttonNextFlags.disabled = true
+    buttonNextFlags.style.opacity = ".2"
 })
 
 howToPlay.addEventListener("click", ()=> {
