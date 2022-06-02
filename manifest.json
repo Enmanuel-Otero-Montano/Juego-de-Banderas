@@ -1,6 +1,6 @@
 {
  "name": "Banderas, países y regiones",
- "start_url": "/index.html",
+ "start_url": "index.html",
  "display": "standalone",
  "theme_color": "#23a0f3",
  "icons": [
