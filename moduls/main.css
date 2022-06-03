@@ -168,7 +168,7 @@ body {
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-height: 85px;
+    min-height: 88px;
     padding-bottom: 6px;
     margin: 10px auto 0;
     background-color: hsl(0, 0%, 100%);
@@ -630,6 +630,10 @@ img {
     .flags-drop-names-container {
         padding-left: 330px;
         padding-right: 330px;
+    }
+
+    .flags-container {
+        min-height: 104px;
     }
 
     .button-container {

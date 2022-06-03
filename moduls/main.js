@@ -146,7 +146,6 @@ const showLeftFlag = ()=> {//Función para mostrar la bandera de la izquierda
     leftSideFlag.setAttribute("src", currentRegion.region[flagIndex.index].flags.png)
     flagsContainer.prepend(leftSideFlag)
     nameOfTheFlags["left flag name"] = currentRegion.region[flagIndex.index].name.common
-    console.log(nameOfTheFlags["left flag name"])
     currentRegion.region.splice(flagIndex.index, 1)
 }
 
@@ -155,7 +154,6 @@ const showRightFlag = ()=> {//Función para mostrar la bandera de la derecha
     rightSideFlag.setAttribute("src", currentRegion.region[flagIndex.index].flags.png)
     flagsContainer.append(rightSideFlag)
     nameOfTheFlags["right flag name"] = currentRegion.region[flagIndex.index].name.common
-    console.log(nameOfTheFlags["right flag name"])
     currentRegion.region.splice(flagIndex.index, 1)
 }
 
@@ -164,7 +162,6 @@ const showCenterFlag = ()=> {//Función para mostrar la bandera del centro
     centerFlag.setAttribute("src", currentRegion.region[flagIndex.index].flags.png)
     leftSideFlag.after(centerFlag)
     nameOfTheFlags["center flag name"] = currentRegion.region[flagIndex.index].name.common
-    console.log(nameOfTheFlags["center flag name"])
 }
 
 listOfNames.addEventListener("click", (e)=> {
@@ -440,10 +437,10 @@ buttonNextFlags.addEventListener("click", ()=> {
     }else{
         leftSideFlag.remove()
         rightSideFlag.remove()
-        dropFlagLeft.textContent = ""
-        dropFlagRight.textContent = ""
         dropFlagLeft.classList.remove("flag-drop-area-success")
         dropFlagRight.classList.remove("flag-drop-area-success")
+        dropFlagLeft.textContent = ""
+        dropFlagRight.textContent = ""
         showLeftFlag()
         showRightFlag()
     }
