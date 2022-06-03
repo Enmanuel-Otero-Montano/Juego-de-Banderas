@@ -168,9 +168,9 @@ body {
     align-items: center;
     justify-content: center;
     width: 100%;
-    min-height: 80px;
+    min-height: 85px;
     padding-bottom: 6px;
-    margin: 12px auto 0;
+    margin: 10px auto 0;
     background-color: hsl(0, 0%, 100%);
 }
 
@@ -283,6 +283,7 @@ img {
 /* Estilos para "section-names" */
 
 .section-names {
+    min-height: 268.28px;
     position: relative;
     padding: 0px 10px;
 }
@@ -328,7 +329,7 @@ img {
 }
 
 .section-names__list {
-    width: min(100%, 750px);
+    width: min(100%, 710px);
     margin: 0 auto;
     padding: 5px 0 0;
     font-size: .9rem;
@@ -346,8 +347,8 @@ img {
     position: relative;
     width: max-content;
     margin: 6px auto;
-    padding: 5px;
-    letter-spacing: .8px;
+    padding: 5px 2px;
+    letter-spacing: .5px;
     user-select: none;
 }
 
@@ -480,7 +481,11 @@ img {
     }
 }
 
-@media screen and (max-width: 353px) {
+@media screen and (max-width: 358px) {
+
+    body {
+        padding: 8px 2px 0;
+    }
 
     .menu-container {
         flex-direction: column;
@@ -505,6 +510,7 @@ img {
     }
 
     .flag-names {
+        padding: 5px 0px;
         letter-spacing: initial;
     }
 
@@ -516,12 +522,13 @@ img {
 @media screen and (min-width: 425px) {
 
     img {
-        max-width: 28%;
+        max-width: 27%;
     }
 
     .drop-flag-left,
     .drop-flag-center,
     .drop-flag-right {
+        min-width: 27%;
         height: 22px;
         font-size: 1rem;
         letter-spacing: .8px;
@@ -553,7 +560,7 @@ img {
     .drop-flag-left,
     .drop-flag-center,
     .drop-flag-right {
-        width: 28%;
+        min-width: 25%;
     }
 }
 
@@ -566,7 +573,7 @@ img {
     .drop-flag-left,
     .drop-flag-center,
     .drop-flag-right {
-        min-width: max-content;
+        min-width: 20%;
     }
 }
 
@@ -582,20 +589,10 @@ img {
         width: 250px;
     }
 
-    img {
-        max-width: 15%;
-    }
-
     .flags-drop-names-container {
         padding-left: 170px;
         padding-right: 170px;
         background-color: hsl(0, 0%, 100%);
-    }
-
-    .drop-flag-left,
-    .drop-flag-center,
-    .drop-flag-right {
-        width: 15%;
     }
 
     .population-information-container,

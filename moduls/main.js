@@ -133,7 +133,7 @@ const showNames = ()=> {//Función para mostrar los nombres de los países
         fragment.appendChild(names)
     }
     listOfNames.appendChild(fragment)
-    const mql = matchMedia("(min-width: 1024px)")// Muestra la lista de nombre en tres columnas si contiene 18 nombres y el ancho de la pantalla es => a 1024px 
+    const mql = matchMedia("(min-width: 565px)")// Muestra la lista de nombre en tres columnas si contiene 18 nombres y el ancho de la pantalla es => a 1024px 
     if(listOfNames.childElementCount === 18 && mql.matches) {
         listOfNames.classList.add("section-names__list-eighteen")
     }else {
@@ -249,24 +249,6 @@ rightSideFlag.addEventListener("click", ()=> {
     flagsContainer.nextElementSibling.children[2].textContent = selectedName.name
     removeNameSelected()
 })
-
-/* flagsContainer.addEventListener("click", (e)=> {
-    if(flagsContainer.childElementCount == 2){
-        removeNameSelected()
-        if(e.target.classList.contains("flags-left")){
-            flagsContainer.nextElementSibling.children[0].textContent = selectedName.name
-        }else if(e.target.classList.contains("flags-right")){
-            flagsContainer.nextElementSibling.children[2].textContent = selectedName.name 
-        }
-    }else if(flagsContainer.childElementCount == 3){
-        removeNameSelected()
-        if(e.target.classList.contains("flags-left")){
-            flagsContainer.nextElementSibling.children[0].textContent = selectedName.name
-        }else if(e.target.classList.contains("flags-right")){
-            flagsContainer.nextElementSibling.children[2].textContent = selectedName.name
-        }
-    }
-}) */
 
 buttonCheck.addEventListener("click", ()=> {
     if(!dropFlagCenter.classList.contains("flag-drop-area-hidden") && dropFlagLeft.classList.contains("flag-drop-area-hidden")){
@@ -433,16 +415,15 @@ buttonNextFlags.addEventListener("click", ()=> {
     }
     if(flagsContainer.childElementCount === 1) {
         centerFlag.remove()
-        centerFlag.setAttribute("src", "")
-        dropFlagLeft.classList.remove("flag-drop-area-hidden")
-        dropFlagRight.classList.remove("flag-drop-area-hidden")
-        flagsContainer.classList.add("flags-container-two-flags")
         currentRegion.region.splice(flagIndex.index, 1)
         flagsContainer.classList.add("flags-container-two-flags")
         showLeftFlag()
         showRightFlag()
+        dropFlagLeft.classList.remove("flag-drop-area-hidden")
+        dropFlagRight.classList.remove("flag-drop-area-hidden")
         dropFlagCenter.classList.add("flag-drop-area-hidden")
         dropFlagCenter.textContent = ""
+        centerFlag.setAttribute("src", "")
     }else if(currentRegion.region.length === 3){
         leftSideFlag.remove()
         rightSideFlag.remove()
