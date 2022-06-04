@@ -657,6 +657,9 @@ function counterDown () {
         currentStageInformation.textContent = stage.currentStage
         textFaildeReason.textContent = "tiempo"
         dialogFailed.show()
+        if(heart.classList.contains("one-heart")) {
+            heart.classList.remove("one-heart")
+        }
     }
     if(listOfNames.children.length === 14) {
         counter.textContent = `${totalTime["fourteen names"]} s`
