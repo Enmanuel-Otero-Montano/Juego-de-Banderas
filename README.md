@@ -1,6 +1,6 @@
 # Banderas, países y regiones
 ### Descripción
-Aplicación web **interactiva** y **didáctica** donde pondrá a prueba su conocimiento sobre las banderas de los países. Está dividida en regiones y consta de **tiempo** y **chances** limitados, de esta manera es más interesnate en desafío.
+Aplicación web **interactiva** y **didáctica** donde pondrá a prueba su conocimiento sobre las banderas de los países. Está dividida en regiones y consta de **tiempo** y **chances** limitados, de esta manera es más interesante el desafío.
 ### Como se ve
 ![](extras/imagen-2.png)
 ![](extras/imagen-3.png)
