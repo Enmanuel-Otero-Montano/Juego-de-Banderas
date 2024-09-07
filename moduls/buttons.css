@@ -1,5 +1,6 @@
 :root {
     --text-color-secondary: hsl(0, 0%, 100%);
+    --bg-color: hsl(204, 100%, 22%);
     --border-radius: 12px;
 }
 
@@ -7,12 +8,24 @@ button {
     border: none;
 }
 
-.about-game-button {
-    padding: 0;
-    font-size: .9rem;
+.login-submit {
+    width: 165px;
+    height: 45px;
+    margin-top: 15px;
+    padding-top: 2px;
     font-weight: 700;
-    background-color: transparent;
-    color: var(--text-color-secondary);
+    font-size: .9rem;
+    color: var(--text-color-button-menu);
+    letter-spacing: .6px;
+    background-color: var(--bg-color-button-menu);
+    border-radius: 9px;
+    border: none;
+    text-align: center;
+    cursor: pointer;
+}
+
+.login-submit-hide {
+    display: none;
 }
 
 .start {
@@ -30,7 +43,8 @@ button {
     text-decoration: none;
 }
 
-.btn-regions-mode {
+.btn-regions-mode,
+.btn-request-verification {
     width: 160px;
     height: 45px;
     font-weight: 700;
@@ -38,6 +52,11 @@ button {
     background-color: var(--bg-color-button-menu);
     box-shadow: 0px 0px 5px hsl(50, 100%, 70%);
     border-radius: var(--border-radius);
+}
+
+.login-submit-hide,
+.btn-request-verification-hide {
+    display: none;
 }
 
 .region {
@@ -59,7 +78,8 @@ button {
     visibility: hidden;
 }
 
-.close-button {/* Botón de la ventana modal */
+.close-button,
+.close-button-login {/* Botón de la ventana modal */
     position: absolute;
     top: 12px;
     left: calc(100% - 44px);
@@ -69,17 +89,27 @@ button {
     background-color: hsl(0, 0%, 100%);
 }
 
+.login-game-button {
+    display: none;
+}
+
 .about-game-button,/* Botones del hedader, el de la página de inicio y las otras páginas */
 .how-to-play,
 .menu,
 .btn-population,
-.btn-capital {
+.btn-capital,
+.login-game-button-show {
     padding: 0;
     font-size: .9rem;
     font-weight: 700;
     background-color: transparent;
     color: var(--text-color-secondary);
     letter-spacing: 1px;
+}
+
+.login-game-button-show {
+    display: initial;
+    text-decoration: none;
 }
 
 .button-container > button,
@@ -142,6 +172,37 @@ button {
     padding-top: 10px;
 }
 
+.profile-button {
+    display: none;
+}
+
+.profile-button-show {
+    display: initial;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    font-size: 1.2rem;
+    color: var(--bg-color);
+    border-radius: 50%;
+    background-color: hsl(0, 0%, 100%);
+}
+
+.register-submit {
+    width: 170px;
+    height: 42px;
+    margin-top: 15px;
+    padding-top: 2px;
+    font-weight: 700;
+    font-size: .9rem;
+    color: var(--text-color-button-menu);
+    letter-spacing: .6px;
+    background-color: var(--bg-color-button-menu);
+    border-radius: 9px;
+    border: none;
+    text-align: center;
+    cursor: pointer;
+}
+
 @media (hover: hover) {
 
     button:hover {
@@ -151,18 +212,22 @@ button {
     .about-game-button:hover,
     .how-to-play:hover,
     .go-home:hover,
-    .menu:hover {
+    .menu:hover,
+    .login-button:hover {
         color: var(--text-color);
         text-decoration: underline;
     }
 
     .start:hover,
-    .btn-regions-mode:hover {
+    .btn-regions-mode:hover,
+    .login-submit:hover,
+    .register-submit:hover {
         background-color: hsl(110, 100%, 70%);
         transform: scale(1.02, 1.02);
     }
 
-    .close-button:hover {
+    .close-button:hover,
+    .close-button-login:hover {
         background-color: var(--text-color);
     }
 }

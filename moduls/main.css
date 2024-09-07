@@ -124,7 +124,7 @@ body {
     transition: transform 0.2s;
 }
 
-.one-heart {/* Regla css que se aplica al corazón cuande queda uno solo */
+.one-heart {/* Regla css que se aplica al corazón cuando queda uno solo */
     animation-name: one-heart;
     animation-duration: 1.2s;
     animation-iteration-count: infinite;
@@ -457,9 +457,13 @@ img {
 
 .how-to-play-explanation {
     font-size: .9rem;
-    padding-left: 5px;
+    padding-left: 20px;
     letter-spacing: 1px;
     line-height: 1.3;
+}
+
+.how-to-play-explanation > li {
+    margin-bottom: 10px;
 }
 
 @media (hover: hover) {
@@ -642,7 +646,6 @@ img {
 
     .how-to-play-explanation {
         font-size: 1rem;
-        padding-left: 5px;
     }
 
     .dialog-failed {

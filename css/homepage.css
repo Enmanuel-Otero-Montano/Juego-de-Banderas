@@ -5,6 +5,7 @@
     --text-color: hsl(60, 100%, 50%);
     --text-color-button-menu: hsl(0, 100%, 50%);
     --bg-color-button-menu: hsl(50, 100%, 70%);
+    --bg-color: hsl(204, 100%, 22%);
 }
 
 * {
@@ -45,7 +46,7 @@ body {
 .main {
     height: calc(100vh - 185px);
     padding: 25px 20px 0;
-    background-color: hsl(204, 100%, 22%)
+    background-color: var(--bg-color)
 }
 
 .hero {
@@ -92,7 +93,7 @@ body {
     padding-bottom: 20px;
     text-align: center;
     color: hsl(0, 0%, 100%);
-    background-color: hsl(204, 100%, 22%)
+    background-color: var(--bg-color)
 }
 
 .author {
@@ -103,7 +104,7 @@ body {
 
 .social-media-list {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     width: 100px;
     margin: 0 auto;
     padding-left: 0;
@@ -113,11 +114,13 @@ body {
     fill: hsl(0, 0%, 100%);
 }
 
-.modal-about-game {
+.modal-about-game,
+.modal-login {
     transform: scale(0, 1);
 }
 
-.modal-about-game-showing {
+.modal-about-game-showing,
+.modal-login-showing {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -149,6 +152,13 @@ body {
     padding-left: 3px;
     letter-spacing: 1px;
     line-height: 1.2;
+}
+
+.profile-img {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
 }
 
 @media (hover: hover) {
