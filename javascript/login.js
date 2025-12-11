@@ -1,31 +1,25 @@
+import { BASE_API_URL } from '../moduls/api.js';
+
 const formSubmitLogin = document.getElementById('login-form')
 
-const sendNewVerification = (email)=> {
-    console.log(JSON.stringify({email: email}), "JSON.stringify({user})")
-    fetch('http://127.0.0.1:8000/resend-verification-email', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: email
-    }).then(response => {
-        if (!response.ok) {
-            throw new Error('Error al reenviar el correo de verificación');
-        }
-        return response.json();
-    }).then(data => {
-        return data;
+const sendNewVerification = (email) => {
+    // Ojo: el backend espera un string JSON (p.ej. '"user@dominio.com"')
+    return fetch(`${BASE_API_URL}/resend-verification-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(email)
     })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('No se pudo reenviar el correo de verificación.');
+    .then(response => {
+      if (!response.ok) throw new Error('Error al reenviar el correo de verificación');
+      return response.json();
     });
-}
+  };
+  
 
 formSubmitLogin.addEventListener('submit', function(event) {
     event.preventDefault();
     const formData = new FormData(event.target);
-    fetch('http://127.0.0.1:8000/login', {
+    fetch(`${BASE_API_URL}/login`, {
       method: 'POST',
       body: formData
     }).then(async response => {
@@ -49,36 +43,50 @@ formSubmitLogin.addEventListener('submit', function(event) {
             successLoginContainer.textContent = "Inicio de sesión exitoso. Redirigiendo a la página principal...";
             successLoginContainer.classList.add("login-message-response-show")
         }
-        localStorage.setItem('accessToken', token);
+        try {
+            localStorage.setItem('accessToken', token);
+        } catch (e) {
+            sessionStorage.setItem('accessToken', token);
+        }
         localStorage.setItem('profile_image_url', profile_image_url);
         localStorage.setItem('name', name);
         localStorage.setItem('user_id', user_id);
         setTimeout(() => {
             window.location.href = '../index.html';
         }, 2900);
-    }).catch(errorData => {
-        // Aquí manejas el error (caso de fallo)
-        console.log(errorData)
-        error_response = errorData.detail
-        
-        // Puedes mostrar un mensaje de error en la interfaz
+    }).catch((errorData) => {
+        console.log('login error:', errorData);
+      
+        // Tu backend devuelve { error, message, path }
+        // donde "message" puede ser un string o un objeto { message, email }
+        const raw = errorData?.message;
+        const message = typeof raw === 'string' ? raw : raw?.message;
+        const email   = typeof raw === 'object' ? raw?.email : undefined;
+      
         const errorContainer = document.querySelector('.login-message-response');
-        if (errorContainer) {
-            if (error_response.message == 'Usuario no verificado') {
-                errorContainer.textContent = "Cuenta no verificada. Presiona el botón para enviar un nuevo token de verificación a tu correo. Una vez verificado, podrás iniciar sesión.";
-                const buttonRequestVerification = document.querySelector('.btn-request-verification');
-                const buttonLoginSubmit = document.querySelector('.login-submit');
-                buttonLoginSubmit.classList.add('login-submit-hide')
-                buttonRequestVerification.classList.remove('btn-request-verification-hide')
-    
-                buttonRequestVerification.addEventListener('click', () => {
-                    let responseSendNewVerification = sendNewVerification(error_response.email)
-                    console.log(responseSendNewVerification, "responseSendNewVerification")
-                })
-            }else if (error_response.message == 'Usuario o contraseña incorrectos') {
-                errorContainer.textContent = error_response.message;
-            }
-            errorContainer.classList.add("login-message-response-show")
+        if (!errorContainer) return;
+      
+        if (message === 'Usuario no verificado') {
+          errorContainer.textContent = "Cuenta no verificada. Presiona el botón para enviar un nuevo token de verificación a tu correo. Una vez verificado, podrás iniciar sesión.";
+          const buttonRequestVerification = document.querySelector('.btn-request-verification');
+          const buttonLoginSubmit = document.querySelector('.login-submit');
+          buttonLoginSubmit?.classList.add('login-submit-hide');
+          buttonRequestVerification?.classList.remove('btn-request-verification-hide');
+      
+          buttonRequestVerification?.addEventListener('click', () => {
+            sendNewVerification(email)
+              .then(() => alert('Te enviamos un nuevo correo de verificación.'))
+              .catch(err => {
+                console.error(err);
+                alert('No se pudo reenviar el correo de verificación.');
+              });
+          }, { once: true });
+        } else if (message === 'Usuario o contraseña incorrectos') {
+          errorContainer.textContent = message;
+        } else {
+          errorContainer.textContent = message || 'Error al iniciar sesión';
         }
-    });
+      
+        errorContainer.classList.add("login-message-response-show");
+    });        
 });

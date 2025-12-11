@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta property="og:url" content="https://enmanuel-otero-montano.github.io/Juego-de-Banderas/">
     <meta property="og:description" content="Aplicación interactiva y didáctica sobre banderas, países y regiones.">
+    <meta name="description" content="Juega el Modo Carrera de Banderas, Países y Regiones: completa 12 etapas, acierta banderas, usa pistas y mejora tu puntuación global.">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
@@ -19,14 +21,14 @@
     <link rel="apple-touch-icon" sizes="152x152" href="../assets/favicon/apple-icon-152x152.png">
     <link rel="apple-touch-icon" sizes="180x180" href="../assets/favicon/apple-icon-180x180.png">
     <link rel="icon" type="image/png" sizes="192x192" href="../assets/favicon/android-icon-192x192.png">
-    <link rel="icon" type="imagepng" href="../assets/favicon/favicon.ico">
+    <link rel="icon" type="image/png" href="../assets/favicon/favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="96x96" href="../assets/favicon/favicon-96x96.png">
     <link rel="icon" type="image/png" sizes="16x16" href="../assets/favicon/favicon-16x16.png">
     <link rel="manifest" href="../manifest.json">
     <link rel="stylesheet" href="../css/normalize.css">
     <link rel="stylesheet" href="../moduls/main-dist.css">
-    <title>Banderas, Países y regiones</title>
+    <title>Modo Carrera | Banderas, Países y Regiones</title>
 </head>
 <body>
     <header class="header"> 
@@ -120,6 +122,13 @@
                 <li><strong>Vidas:</strong> Comienzas con 15 corazones. Pierdes un corazón por cada respuesta incorrecta. Ganas un corazón cada vez que completas una etapa.</li>
             </ul>
         </div>
+    </div>
+    <div class="score-global-container score-global-container-hidden">
+        <p class="score-global-text">Puntuación Global</p>
+        <p class="score-global-top-10">Top 10</p>
+        <div id="score-global-list" class="score-global-list">
+        </div>
+        <!-- <button id="btn-my-scores" class="btn-my-scores">Mis Puntuaciones</button> -->
     </div>
     <script src="../moduls/main.js" type="module"></script>
 </body>

@@ -38,6 +38,12 @@ const buttonPopulation = document.querySelector(".btn-population")
 const populationCountryName = document.querySelector(".population-country-name")
 const countryPopulation = document.querySelector(".country-population")
 const regionName = document.querySelector(".region-name")
+const scoreGlobalList = document.getElementById("score-global-list")
+const scoreGlobalContainer = document.querySelector(".score-global-container")
+
+import {  saveScore, getGlobalTop, getUserTop, getCountryTop, getScoresSummary } from "../javascript/score.js"
+import { BASE_API_URL } from "../moduls/api.js";
+
 
 loadingError.hidden = true
 
@@ -80,19 +86,25 @@ const stop = {
     counter: undefined
 }
 
-const callCountry = async ()=> {//Función que hace la solicitud a la API de todos los países.
-    try {
-        const result =  fetch("https://restcountries.com/v3.1/all")
-        const country = await result
-        return country.json()
-    }catch(error) {
-        if(error instanceof TypeError) {
-            loading.classList.add("loading-hidden")
-            loadingError.textContent = "!Ups! Hubo un error. Revisa si tienes internet."
-            loadingError.hidden = false
-        }
+const REST_URL = 'https://restcountries.com/v3.1/all?fields=name,flags,subregion,region,independent,maps,capital,population';
+
+const callCountry = async () => {
+  try {
+    const resp = await fetch(REST_URL, { cache: 'no-store' });
+    if (!resp.ok) {
+      // Log útil para ver exactamente qué devolvió el server
+      const text = await resp.text().catch(()=>'');
+      throw new Error(`REST Countries ${resp.status} ${resp.statusText} - ${text}`);
     }
-}
+    return resp.json();
+  } catch (error) {
+    loading.classList.add("loading-hidden");
+    loadingError.textContent = "¡Ups! No pudimos cargar los países. Reintenta en unos segundos.";
+    loadingError.hidden = false;
+    console.error('Error cargando países:', error);
+    throw error; // para que no siga el flujo como si hubiera datos
+  }
+};
 
 const saveCountriesInArray = async (locationHref)=> {
     try {
@@ -121,7 +133,7 @@ const saveCountriesInArray = async (locationHref)=> {
     }
 }
 
-document.addEventListener("DOMContentLoad", saveCountriesInArray(region))
+document.addEventListener("DOMContentLoaded", () => saveCountriesInArray(region));
 
 const showNames = ()=> {//Función para mostrar los nombres de los países
     const fragment = document.createDocumentFragment()
@@ -197,30 +209,53 @@ const removeNameSelected = ()=> {//Función para remover el color del nombre sel
     }
 }
 
-const checkNumberOfCurrentLives = ()=>{
-    numberOfLives.textContent = --numberOfLives.textContent
-    if(numberOfLives.textContent === "1") {
-        heart.classList.add("one-heart")
-    }else {
-        heart.classList.add("heart-animation")
+const checkNumberOfCurrentLives = () => {
+    let lives = parseInt(numberOfLives.textContent, 10);
+
+    // Si ya no hay vidas, no hago nada
+    if (lives <= 0) {
+        return;
+    }
+
+    lives -= 1;
+    numberOfLives.textContent = lives;
+
+    if (lives === 1) {
+        heart.classList.add("one-heart");
+    } else {
+        heart.classList.add("heart-animation");
         setTimeout(() => {
-            heart.classList.remove("heart-animation")
+            heart.classList.remove("heart-animation");
         }, 280);
     }
-}
+};
 
-const checkNumberOfLives = ()=>{
-    if(numberOfLives.textContent === "0"){
-        clearInterval(stop.counter)
-        heart.classList.remove("one-heart")
-        totalTime["fourteen names"] = 115
-        totalTime["eighteen names"] = 140
-        stage.currentStage = 1
-        currentStageInformation.textContent = stage.currentStage
-        textFaildeReason.textContent = "corazones"
-        dialogFailed.show()
+
+const checkNumberOfLives = () => {
+    let lives = parseInt(numberOfLives.textContent, 10);
+
+    if (lives <= 0) {
+        // Forzamos a 0 para que no queden números negativos
+        numberOfLives.textContent = "0";
+
+        clearInterval(stop.counter);
+        heart.classList.remove("one-heart");
+        totalTime["fourteen names"] = 115;
+        totalTime["eighteen names"] = 140;
+        stage.currentStage = 1;
+        currentStageInformation.textContent = stage.currentStage;
+        textFaildeReason.textContent = "corazones";
+        dialogFailed.show();
+        buttonCheck.disabled = true;
+        buttonCheck.style.opacity = ".2";
+        return 'Game over';
+    } else {
+        buttonCheck.disabled = false;
+        buttonCheck.style.opacity = "initial";
+        return 'Game on';
     }
-}
+};
+
 
 const calculatePoints = (containerLeft, containerCenter, containerRight)=>{
     if(containerCenter.classList.contains("flag-drop-area-success") && containerLeft.classList.contains("flag-drop-area-hidden")){
@@ -248,6 +283,10 @@ rightSideFlag.addEventListener("click", ()=> {
 })
 
 buttonCheck.addEventListener("click", ()=> {
+    const lives = parseInt(numberOfLives.textContent, 10);
+    if(lives <= 0) {
+        return;
+    }
     if(!dropFlagCenter.classList.contains("flag-drop-area-hidden") && dropFlagLeft.classList.contains("flag-drop-area-hidden")){
         if(dropFlagCenter.textContent === nameOfTheFlags["center flag name"]){
             dropFlagCenter.classList.add("flag-drop-area-success")
@@ -391,7 +430,14 @@ buttonCheck.addEventListener("click", ()=> {
     }
     calculatePoints(dropFlagLeft, dropFlagCenter, dropFlagRight)
     if(region.includes("career-mode")){
-        checkNumberOfLives()
+        let state = checkNumberOfLives()
+        if (state === 'Game over') {
+            saveScore(Number.parseInt(currentPoints.textContent, 10) || 0)
+            getGlobalTop(10).then(data => {
+                displayScores(data, 'global')
+                console.log(data)
+            })
+        }
     }
 })
 
@@ -472,6 +518,7 @@ if(region.includes("career-mode")) {
         heart.classList.remove("one-heart")
         careerMode(stage.currentStage)
         initialState()
+        scoreGlobalContainer.classList.add("score-global-container-hidden")
     })
 }else if(region.includes("america")) {
     buttonNextRegion.addEventListener("click", ()=>{
@@ -483,6 +530,7 @@ if(region.includes("career-mode")) {
         initialState()
         stage.currentStage = ++stage.currentStage
         currentStageInformation.textContent = stage.currentStage
+        scoreGlobalContainer.classList.add("score-global-container-hidden")
     })
 }else if(region.includes("asia")) {
     buttonNextRegion.addEventListener("click", ()=>{
@@ -499,6 +547,7 @@ if(region.includes("career-mode")) {
         totalTime["eighteen names"] = 125//Reinicia el contador
         stage.currentStage = ++stage.currentStage
         currentStageInformation.textContent = stage.currentStage
+        scoreGlobalContainer.classList.add("score-global-container-hidden")
     })
 }else if(region.includes("europe")) {
     buttonNextRegion.addEventListener("click", ()=>{
@@ -515,6 +564,7 @@ if(region.includes("career-mode")) {
         initialState()
         stage.currentStage = ++stage.currentStage
         currentStageInformation.textContent = stage.currentStage
+        scoreGlobalContainer.classList.add("score-global-container-hidden")
     })
 }else if(region.includes("africa")) {
     buttonNextRegion.addEventListener("click", ()=>{
@@ -531,6 +581,7 @@ if(region.includes("career-mode")) {
         totalTime["eighteen names"] = 140//Reinicia el contador
         stage.currentStage = ++stage.currentStage
         currentStageInformation.textContent = stage.currentStage
+        scoreGlobalContainer.classList.add("score-global-container-hidden")
     })
 }
 
@@ -642,6 +693,8 @@ const initialState = ()=> {
     buttonPista.classList.remove("btn-track-disabled")
     buttonCheck.disabled = false
     buttonCheck.style.opacity = "initial"
+    buttonNextFlags.disabled = true
+    buttonNextFlags.style.opacity = "0.2"
     counter.classList.remove("counter-red")
     dialog.close()
     remainingTracks.textContent = "2"
@@ -649,29 +702,51 @@ const initialState = ()=> {
 }
 
 function counterDown () {
-    if(totalTime["fourteen names"] === 0 || totalTime["eighteen names"] === 0){
-        clearInterval(stop.counter)
-        totalTime["fourteen names"] = 115
-        totalTime["eighteen names"] = 140
-        stage.currentStage = 1
-        currentStageInformation.textContent = stage.currentStage
-        textFaildeReason.textContent = "tiempo"
-        dialogFailed.show()
-        if(heart.classList.contains("one-heart")) {
-            heart.classList.remove("one-heart")
+    const timeIsOver = totalTime["fourteen names"] === 0 || totalTime["eighteen names"] === 0;
+
+    if (timeIsOver) {
+        clearInterval(stop.counter);
+
+        // Guardar score también cuando pierde por tiempo
+        if (region.includes("career-mode")) {
+            const score = Number.parseInt(currentPoints.textContent, 10) || 0;
+            saveScore(score)
+                .then(() => getGlobalTop(10))
+                .then(data => {
+                    displayScores(data, 'global');
+                    console.log('Score guardado por tiempo agotado:', score, data);
+                })
+                .catch(err => {
+                    console.error('Error guardando score por tiempo agotado:', err);
+                });
         }
+
+        // Restablecer estado
+        totalTime["fourteen names"] = 115;
+        totalTime["eighteen names"] = 140;
+        stage.currentStage = 1;
+        currentStageInformation.textContent = stage.currentStage;
+        textFaildeReason.textContent = "tiempo";
+        dialogFailed.show();
+        if (heart.classList.contains("one-heart")) {
+            heart.classList.remove("one-heart");
+        }
+        return;
     }
-    if(listOfNames.children.length === 14) {
-        counter.textContent = `${totalTime["fourteen names"]} s`
-        totalTime["fourteen names"]--
-    }else if(listOfNames.children.length === 18) {
-        counter.textContent = `${totalTime["eighteen names"]} s`
-        totalTime["eighteen names"]--
+
+    if (listOfNames.children.length === 14) {
+        counter.textContent = `${totalTime["fourteen names"]} s`;
+        totalTime["fourteen names"]--;
+    } else if (listOfNames.children.length === 18) {
+        counter.textContent = `${totalTime["eighteen names"]} s`;
+        totalTime["eighteen names"]--;
     }
-    if(totalTime["fourteen names"] <= 24 || totalTime["eighteen names"] <= 24) {
-        counter.classList.add("counter-red")
+
+    if (totalTime["fourteen names"] <= 24 || totalTime["eighteen names"] <= 24) {
+        counter.classList.add("counter-red");
     }
 }
+
 
 const trueTrack = (flag)=> {//Recorre la lista de nombres para poner la clase al nombre que corresponda con la bandera que se muestra.
     Array.from(listOfNames.children).forEach((element)=> {
@@ -739,6 +814,7 @@ buttonRestart.addEventListener("click", ()=> {
     }
     initialState()
     dialogFailed.close()
+    scoreGlobalContainer.classList.add("score-global-container-hidden")
 })
 
 buttonPista.addEventListener("click", ()=> {
@@ -805,3 +881,104 @@ addEventListener("online", ()=> {
         loadingError.hidden = true
         loading.classList.remove("loading-hidden")
 })
+
+/**
+ * Función para mostrar los registros de puntuaciones
+ * @param {Array} scores - Array de puntuaciones obtenidas de la API
+ * @param {string} type - Tipo de ranking ('global', 'user', 'country', 'region')
+ */
+const displayScores = (scores, type) => {
+    // Siempre limpiamos antes de volver a pintar
+    clearScores();
+
+    // Verificar que hay datos para mostrar
+    if (!scores || scores.length === 0) {
+        console.warn('No hay puntuaciones para mostrar');
+        // Si querés, podrías ocultar el contenedor acá:
+        // scoreGlobalContainer.classList.add("score-global-container-hidden");
+        return;
+    }
+
+    const defaultImg = "../assets/images/toke-scaled.png";
+
+    scores.forEach((score, index) => {
+        const scoreGlobalItem = document.createElement('div');
+        scoreGlobalItem.className = 'score-global-item';
+
+        // Si el backend indica que tiene imagen, usamos el endpoint.
+        // Si no, usamos la imagen por defecto.
+        const imgSrc = score.has_profile_image
+            ? `${BASE_API_URL}/users/${score.user_id}/profile-image`
+            : defaultImg;
+
+        scoreGlobalItem.innerHTML = `
+            <span class="score-global-item-position">${index + 1}</span>
+            <img 
+                src="${imgSrc}" 
+                alt="Imagen de usuario" 
+                class="score-global-item-image-user"
+                onerror="this.onerror=null;this.src='${defaultImg}';"
+            >
+            <span class="score-global-item-name">${score.username}</span>
+            <span class="score-global-item-score">${score.max_score}</span>
+        `;
+        scoreGlobalList.appendChild(scoreGlobalItem);
+    });
+
+    // Solo mostramos el contenedor cuando hay datos
+    scoreGlobalContainer.classList.remove("score-global-container-hidden");
+};
+
+
+
+const clearScores = () => {
+    // Vacía el contenedor de la lista
+    while (scoreGlobalList.firstChild) {
+        scoreGlobalList.removeChild(scoreGlobalList.firstChild);
+    }
+};
+
+
+/**
+ * Función de utilidad para mostrar el ranking global
+ */
+const showGlobalRanking = () => {
+    getGlobalTop(10).then(data => {
+        displayScores(data, 'global');
+    }).catch(error => {
+        console.error('Error obteniendo ranking global:', error);
+    });
+};
+
+/**
+ * Función de utilidad para mostrar el ranking del usuario actual
+ */
+const showUserRanking = (userId) => {
+    getUserTop(userId, 10).then(data => {
+        displayScores(data, 'user');
+    }).catch(error => {
+        console.error('Error obteniendo ranking del usuario:', error);
+    });
+};
+
+/**
+ * Función de utilidad para mostrar el ranking de un país específico
+ */
+const showCountryRanking = (countryCode) => {
+    getCountryTop(countryCode, 10).then(data => {
+        displayScores(data, 'country');
+    }).catch(error => {
+        console.error('Error obteniendo ranking del país:', error);
+    });
+};
+
+/**
+ * Función de utilidad para mostrar el ranking de una región específica
+ */
+const showRegionRanking = (region) => {
+    getRegionTop(region, 10).then(data => {
+        displayScores(data, 'region');
+    }).catch(error => {
+        console.error('Error obteniendo ranking de la región:', error);
+    });
+};

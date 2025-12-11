@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Contacto — Banderas, países y regiones</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="../../css/normalize.css">
+  <link rel="stylesheet" href="../../css/homepage.css">
+</head>
+<body>
+<main>
+  <h1>Contacto</h1>
+  <p>¿Tenés consultas, sugerencias o encontraste un problema?</p>
+  <p>Escribinos a <a href="mailto:[EMAIL_CONTACTO]">[EMAIL_CONTACTO]</a>.</p>
+
+  <!-- Opción simple sin backend: mailto -->
+  <form action="mailto:[EMAIL_CONTACTO]" method="post" enctype="text/plain">
+    <input name="nombre" placeholder="Tu nombre" required>
+    <input name="email" type="email" placeholder="Tu email" required>
+    <textarea name="mensaje" rows="5" placeholder="Tu mensaje" required></textarea>
+    <button type="submit">Enviar</button>
+  </form>
+
+  <p class="muted">Al enviar tu mensaje, aceptás nuestra 
+    <a href="./privacidad.html">Política de Privacidad</a>.</p>
+
+  <p><a href="../index.html">← Volver</a></p>
+</main>
+</body>
+</html>

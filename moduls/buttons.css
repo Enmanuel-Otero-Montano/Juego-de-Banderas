@@ -180,14 +180,22 @@ button {
     display: initial;
     width: 40px;
     height: 40px;
-    padding: 0;
+    padding-top: 8px;
     font-size: 1.2rem;
     color: var(--bg-color);
+    text-align: center;
+    text-decoration: none;
     border-radius: 50%;
     background-color: hsl(0, 0%, 100%);
 }
 
-.register-submit {
+.profile-button-show-with-image {
+    padding-top: 0px;
+}
+
+.register-submit,
+.change-data-profile-submit,
+.go_back_homepage {
     width: 170px;
     height: 42px;
     margin-top: 15px;
@@ -201,6 +209,27 @@ button {
     border: none;
     text-align: center;
     cursor: pointer;
+}
+
+.change-data-profile-submit-hide {
+    display: none;
+}
+
+.go_back_homepage {
+    display: none;
+    padding-top: 12px;
+    text-decoration: none;
+}
+
+.go_back_homepage-show {
+    display: initial;
+}
+
+.toggle-password-text {
+    font-size: 0.8rem;
+    background-color: transparent;
+    border: none;
+    color: var(--text-color);
 }
 
 @media (hover: hover) {

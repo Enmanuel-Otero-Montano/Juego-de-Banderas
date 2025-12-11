@@ -1,4 +1,7 @@
+import { BASE_API_URL } from '../moduls/api.js';
+
 const formSubmitRegister = document.getElementById('register-form')
+const buttonTogglePassword = document.getElementById('toggle-password-text')
 
 
 formSubmitRegister.addEventListener('submit', function(event) {
@@ -7,17 +10,9 @@ formSubmitRegister.addEventListener('submit', function(event) {
     const formData = new FormData(event.target)
     const loadingIndicator = document.querySelector('.loading-indicator-register');
     loadingIndicator.classList.add('loading-indicator-register-show');
-    console.log(formData.get('profile-image'))
-    const jsonData = {
-        username: formData.get('username'),
-        full_name: formData.get('full-name'),
-        email: formData.get('email'),
-        password: formData.get('password'),
-        profile_picture: formData.get('profile-image'),
-        // Añadir más campos si es necesario
-    };
+    
     console.log(formData)
-    fetch('http://127.0.0.1:8000/register', {
+    fetch(`${BASE_API_URL}/register`, {
         method: 'POST',
         body: formData,
     }).then(async response => {
@@ -39,4 +34,15 @@ formSubmitRegister.addEventListener('submit', function(event) {
             errorContainer.classList.add("register-response-show")
         }
     })
+})
+
+buttonTogglePassword.addEventListener('click', function() {
+    const passwordInput = document.getElementById('password')
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text'
+        buttonTogglePassword.textContent = 'Ocultar'
+    } else {
+        passwordInput.type = 'password'
+        buttonTogglePassword.textContent = 'Mostrar'
+    }
 })
