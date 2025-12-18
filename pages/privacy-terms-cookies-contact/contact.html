@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="es">
+
 <head>
   <meta charset="utf-8">
   <title>Contacto — Banderas, países y regiones</title>
@@ -8,24 +9,32 @@
   <link rel="stylesheet" href="../../css/normalize.css">
   <link rel="stylesheet" href="../../css/homepage.css">
 </head>
+
 <body>
-<main>
-  <h1>Contacto</h1>
-  <p>¿Tenés consultas, sugerencias o encontraste un problema?</p>
-  <p>Escribinos a <a href="mailto:[EMAIL_CONTACTO]">[EMAIL_CONTACTO]</a>.</p>
+  <main class="main" style="height: auto; min-height: 100vh; padding-bottom: 2rem;">
+    <h1 class="hero" style="font-size: 2rem; margin-bottom: 1rem;">Contacto</h1>
+    <div class="about-game-container" style="max-width: 800px; margin: 0 auto; padding: 20px; color: black;">
+      <p>¿Tenés consultas, sugerencias o encontraste un problema?</p>
+      <p>Escribinos a <a href="mailto:contacto@banderas-paises-regiones.com">contacto@banderas-paises-regiones.com</a>.
+      </p>
 
-  <!-- Opción simple sin backend: mailto -->
-  <form action="mailto:[EMAIL_CONTACTO]" method="post" enctype="text/plain">
-    <input name="nombre" placeholder="Tu nombre" required>
-    <input name="email" type="email" placeholder="Tu email" required>
-    <textarea name="mensaje" rows="5" placeholder="Tu mensaje" required></textarea>
-    <button type="submit">Enviar</button>
-  </form>
+      <!-- Opción simple sin backend: mailto -->
+      <form action="mailto:contacto@banderas-paises-regiones.com" method="post" enctype="text/plain"
+        style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
+        <input name="nombre" placeholder="Tu nombre" required style="padding: 10px;">
+        <input name="email" type="email" placeholder="Tu email" required style="padding: 10px;">
+        <textarea name="mensaje" rows="5" placeholder="Tu mensaje" required style="padding: 10px;"></textarea>
+        <button type="submit" style="padding: 10px; cursor: pointer;">Enviar</button>
+      </form>
 
-  <p class="muted">Al enviar tu mensaje, aceptás nuestra 
-    <a href="./privacidad.html">Política de Privacidad</a>.</p>
+      <p class="muted" style="font-size: 0.8rem; margin-top: 20px;">Al enviar tu mensaje, aceptás nuestra
+        <a href="./privacy.html">Política de Privacidad</a>.
+      </p>
 
-  <p><a href="../index.html">← Volver</a></p>
-</main>
+      <p style="margin-top: 30px;"><a href="../../index.html" style="text-decoration: none; color: inherit;">← Volver al
+          inicio</a></p>
+    </div>
+  </main>
 </body>
+
 </html>

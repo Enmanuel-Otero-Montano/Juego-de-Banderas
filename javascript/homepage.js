@@ -1,14 +1,15 @@
-import { BASE_API_URL, authHeaders } from '../moduls/api.js';
+import { BASE_API_URL } from '../moduls/api.js';
+import { authenticatedFetch } from '../moduls/request.js';
 
 function isUserlogged() {
-  const buttonRegionsMode  = document.querySelector(".btn-regions-mode");
-  const regionsList        = document.querySelector(".region-list");
-  const aboutGameButton    = document.querySelector(".about-game-button");
-  const loginGameButton    = document.querySelector(".login-game-button");
-  const aboutGameModal     = document.querySelector(".modal-about-game");
-  const loginGameModal     = document.querySelector(".modal-login");
-  const closeModal         = document.querySelector(".close-button");
-  const profileButton      = document.querySelector('.profile-button');
+  const buttonRegionsMode = document.querySelector(".btn-regions-mode");
+  const regionsList = document.querySelector(".region-list");
+  const aboutGameButton = document.querySelector(".about-game-button");
+  const loginGameButton = document.querySelector(".login-game-button");
+  const aboutGameModal = document.querySelector(".modal-about-game");
+  const loginGameModal = document.querySelector(".modal-login");
+  const closeModal = document.querySelector(".close-button");
+  const profileButton = document.querySelector('.profile-button');
 
   const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
 
@@ -18,28 +19,28 @@ function isUserlogged() {
 
     profileButton.classList.add('profile-button-show');
 
-    fetch(`${BASE_API_URL}/user/${localStorage.getItem('user_id')}/profile_image`, {
-      headers: authHeaders()
+    authenticatedFetch(`/user/${localStorage.getItem('user_id')}/profile_image`, {
+      method: 'GET'
     })
-    .then(r => {
-      if (!r.ok) throw new Error('Error al obtener la imagen del perfil');
-      return r.blob();
-    })
-    .then(blob => {
-      const url = URL.createObjectURL(blob);
-      const img = document.createElement('img');
-      img.src = url;
-      img.classList.add('profile-img');
-      profileButton.appendChild(img);
-      profileButton.classList.add('profile-button-show-with-image');
-    })
-    .catch(err => {
-      console.error('Error al obtener la imagen del perfil:', err);
-      const name = localStorage.getItem('name') || '';
-      const parts = name.trim().split(/\s+/);
-      profileButton.textContent = parts.length > 1 ? (parts[0][0] + parts[1][0]) : (name[0] || '?');
-      profileButton.classList.remove('profile-button-show-with-image');
-    });
+      .then(r => {
+        if (!r.ok) throw new Error('Error al obtener la imagen del perfil');
+        return r.blob();
+      })
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        const img = document.createElement('img');
+        img.src = url;
+        img.classList.add('profile-img');
+        profileButton.appendChild(img);
+        profileButton.classList.add('profile-button-show-with-image');
+      })
+      .catch(err => {
+        console.error('Error al obtener la imagen del perfil:', err);
+        const name = localStorage.getItem('name') || '';
+        const parts = name.trim().split(/\s+/);
+        profileButton.textContent = parts.length > 1 ? (parts[0][0] + parts[1][0]) : (name[0] || '?');
+        profileButton.classList.remove('profile-button-show-with-image');
+      });
   } else {
     // No logueado
     loginGameButton?.classList.add('login-game-button-show');
@@ -59,5 +60,19 @@ function isUserlogged() {
   });
 }
 
-// ✅ Pasa la función, NO la ejecutes:
 document.addEventListener('DOMContentLoaded', isUserlogged);
+
+// Cookie Banner Logic
+document.addEventListener('DOMContentLoaded', () => {
+  const cookieBanner = document.getElementById('cookie-banner');
+  const acceptBtn = document.getElementById('accept-cookies');
+
+  if (!localStorage.getItem('cookiesAccepted')) {
+    cookieBanner.style.display = 'flex';
+  }
+
+  acceptBtn?.addEventListener('click', () => {
+    localStorage.setItem('cookiesAccepted', 'true');
+    cookieBanner.style.display = 'none';
+  });
+});

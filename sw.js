@@ -1,5 +1,6 @@
 // sw.js (dinámico: sirve para local y GH Pages)
-const CACHE_NAME = 'flags-game-v3';
+const CACHE_NAME = 'flags-game-v4';
+// Last Modified: 2025-12-13 (Force update)
 
 // scope = e.g. "http://127.0.0.1:5500/" o "https://...github.io/Juego-de-Banderas/"
 const SCOPE = self.registration.scope;
@@ -50,6 +51,9 @@ self.addEventListener('fetch', (e) => {
   const req = e.request;
   const url = new URL(req.url);
 
+  // Ignorar esquemas no soportados (ej: chrome-extension://)
+  if (!url.protocol.startsWith('http')) return;
+
   // HTML: NetworkFirst con fallback
   if (isHTML(req)) {
     e.respondWith(
@@ -62,7 +66,7 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  const staticTypes = ['script','style','image','font'];
+  const staticTypes = ['script', 'style', 'image', 'font'];
   if (staticTypes.includes(req.destination)) {
     e.respondWith(
       caches.match(req).then(cached => cached || fetch(req).then(res => {

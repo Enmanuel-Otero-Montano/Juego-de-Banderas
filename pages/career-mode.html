@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta property="og:url" content="https://enmanuel-otero-montano.github.io/Juego-de-Banderas/">
     <meta property="og:description" content="Aplicación interactiva y didáctica sobre banderas, países y regiones.">
-    <meta name="description" content="Juega el Modo Carrera de Banderas, Países y Regiones: completa 12 etapas, acierta banderas, usa pistas y mejora tu puntuación global.">
+    <meta name="description"
+        content="Juega el Modo Carrera de Banderas, Países y Regiones: completa 12 etapas, acierta banderas, usa pistas y mejora tu puntuación global.">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,8 +32,9 @@
     <link rel="stylesheet" href="../moduls/main-dist.css">
     <title>Modo Carrera | Banderas, Países y Regiones</title>
 </head>
+
 <body>
-    <header class="header"> 
+    <header class="header">
         <button class="menu">Menú</button>
         <div class="menu-container">
             <a href="../index.html" class="go-home">Ir a Inicio</a>
@@ -46,8 +49,10 @@
                 <p class="tracks">Pistas <span class="remaining-tracks">2</span>/2</p>
             </div>
             <div class="lives-container">
-                <svg class="heart" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="18" height="18" viewBox="0 0 96 96">
-                    <path d="m48.126,25.035c0,0-6-12.786-19.5-12.786-14.751,0-22.5,12.501-22.5,24.999 0,20.751 42,46.5 42,46.5s41.748-25.5 41.748-46.5c0-12.75-7.998-24.999-22.248-24.999s-19.5,12.786-19.5,12.786z"/>
+                <svg class="heart" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                    xmlns:xlink="http://www.w3.org/1999/xlink" width="18" height="18" viewBox="0 0 96 96">
+                    <path
+                        d="m48.126,25.035c0,0-6-12.786-19.5-12.786-14.751,0-22.5,12.501-22.5,24.999 0,20.751 42,46.5 42,46.5s41.748-25.5 41.748-46.5c0-12.75-7.998-24.999-22.248-24.999s-19.5,12.786-19.5,12.786z" />
                 </svg>
                 <span> x</span><span class="number-of-lives"> 15</span>
             </div>
@@ -63,8 +68,50 @@
             </dialog>
             <dialog class="dialog-failed">
                 <p class="failed-text">Te has quedado sin <span class="failed-text-reason"></span></p>
-                <p class="restart-text">¡Empecemos de nuevo!</p>
-                <button class="btn-restart">Aceptar</button>
+
+                <div class="game-over-info">
+                    <p class="score-text">Puntos: <span class="final-score">0</span></p>
+                    <p class="best-score-text">Tu mejor puntuación: <span class="best-score">Cargando...</span></p>
+                </div>
+
+                <div class="dialog-actions">
+                    <button class="btn-restart">Jugar</button>
+                    <button class="btn-show-leaderboard" aria-label="Ver Tabla de Posiciones">
+                        <svg version="1.1" width="24" height="24" viewBox="0 0 100 100"
+                            xmlns="http://www.w3.org/2000/svg">
+
+                            <defs>
+                                <solidColor id="goldMain" solid-color="#FFD700" />
+                                <solidColor id="goldDark" solid-color="#E6C200" />
+                                <linearGradient id="cupGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#E6C200" />
+                                    <stop offset="50%" stop-color="#FFD700" />
+                                    <stop offset="100%" stop-color="#E6C200" />
+                                </linearGradient>
+                            </defs>
+                            <g>
+                                <path d="M 25 35 C 10 35, 8 60, 30 62" stroke="#E6C200" stroke-width="6" fill="none"
+                                    stroke-linecap="round" />
+                                <path d="M 75 35 C 90 35, 92 60, 70 62" stroke="#E6C200" stroke-width="6" fill="none"
+                                    stroke-linecap="round" />
+
+                                <polygon points="20,90 80,90 75,80 25,80" fill="#E6C200" />
+                                <rect x="30" y="75" width="40" height="5" fill="#FFD700" />
+
+                                <polygon points="43,75 57,75 55,65 45,65" fill="#E6C200" />
+
+                                <path d="M 20,25 Q 20,65 50,70 Q 80,65 80,25 Z" fill="url(#cupGradient)" />
+
+                                <ellipse cx="50" cy="25" rx="30" ry="6" fill="#E6C200" />
+                                <ellipse cx="50" cy="25" rx="26" ry="4" fill="#FCEE90" />
+
+                                <path d="M 45,40 Q 50,35 55,40" stroke="#FFFACD" stroke-width="3" stroke-linecap="round"
+                                    opacity="0.6" fill="none" />
+                            </g>
+
+                        </svg>
+                    </button>
+                </div>
             </dialog>
             <div class="flags-container">
                 <img class="flags-center" src="" alt="">
@@ -77,10 +124,12 @@
         </div>
         <section class="section-names">
             <div class="information-container">
-                <p class="information">Si desea, seleccione un país para ver su ubicación geográfica, capital o población total</p>
+                <p class="information">Si desea, seleccione un país para ver su ubicación geográfica, capital o
+                    población total</p>
             </div>
             <div class="capital-information-container">
-                <p class="capital-information">La capital de <span class="capital-country-name"></span> es <span class="capital-name"></span></p>
+                <p class="capital-information">La capital de <span class="capital-country-name"></span> es <span
+                        class="capital-name"></span></p>
             </div>
             <div class="location-population-capital-container">
                 <a href="" class="location" target="_blank">Ubicación</a>
@@ -88,7 +137,8 @@
                 <button class="btn-population">Población</button>
             </div>
             <div class="population-information-container">
-                <p class="population-information"><span class="population-country-name"></span>, población estimada &sim; <span class="country-population"></span></p>
+                <p class="population-information"><span class="population-country-name"></span>, población estimada
+                    &sim; <span class="country-population"></span></p>
             </div>
             <h2 class="section-names__header">Nombre del país</h2>
             <ul class="section-names__list">
@@ -99,11 +149,21 @@
             <button class="btn-next" disabled>Siguiente</button>
             <button class="btn-check">Comprobar</button>
         </div>
+        <!-- Slot 1: Below buttons -->
+        <div class="ad-container ad-slot-1" id="ad-slot-main-game">
+            <!-- AdSense Code Here -->
+            <p class="ad-placeholder" style="display:none;">Publicidad</p>
+        </div>
     </main>
     <div class="modal-how-to-play">
-        <button class="close-button-hidden close-button" aria-label="cerrar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+        <button class="close-button-hidden close-button" aria-label="cerrar"><svg xmlns="http://www.w3.org/2000/svg"
+                width="24" height="24" viewBox="0 0 24 24">
+                <path
+                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+            </svg></button>
         <p class="error-loading-hidden error-loading"></p>
-        <p class="loading">Cargando <span class="loading__animation--one">.</span> <span class="loading__animation--two">.</span> <span class="loading__animation--three">.</span></p>
+        <p class="loading">Cargando <span class="loading__animation--one">.</span> <span
+                class="loading__animation--two">.</span> <span class="loading__animation--three">.</span></p>
         <div class="how-to-play-explanation-container">
             <p class="how-to-paly-title">Como jugar</p>
             <ol class="how-to-play-explanation">
@@ -115,11 +175,14 @@
                     </ul>
                 </li>
             </ol>
-            
+
             <ul class="how-to-play-explanation">
-                <li><strong>Regiones:</strong> Completa todas las banderas de la región actual para pasar a la siguiente.</li>
-                <li><strong>Pistas:</strong> Tienes 2 pistas por cada etapa. Úsalas haciendo clic en "Pista". Las pistas no estarán disponibles en las tres últimas banderas de cada etapa, así que úsalas sabiamente.</li>
-                <li><strong>Vidas:</strong> Comienzas con 15 corazones. Pierdes un corazón por cada respuesta incorrecta. Ganas un corazón cada vez que completas una etapa.</li>
+                <li><strong>Regiones:</strong> Completa todas las banderas de la región actual para pasar a la
+                    siguiente.</li>
+                <li><strong>Pistas:</strong> Tienes 2 pistas por cada etapa. Úsalas haciendo clic en "Pista". Las pistas
+                    no estarán disponibles en las tres últimas banderas de cada etapa, así que úsalas sabiamente.</li>
+                <li><strong>Vidas:</strong> Comienzas con 15 corazones. Pierdes un corazón por cada respuesta
+                    incorrecta. Ganas un corazón cada vez que completas una etapa.</li>
             </ul>
         </div>
     </div>
@@ -128,8 +191,14 @@
         <p class="score-global-top-10">Top 10</p>
         <div id="score-global-list" class="score-global-list">
         </div>
+        <!-- Slot 2: Inside Score Modal -->
+        <div class="ad-container ad-slot-2" id="ad-slot-score-modal">
+            <!-- AdSense Code Here -->
+            <p class="ad-placeholder" style="display:none;">Publicidad</p>
+        </div>
         <!-- <button id="btn-my-scores" class="btn-my-scores">Mis Puntuaciones</button> -->
     </div>
     <script src="../moduls/main.js" type="module"></script>
 </body>
+
 </html>

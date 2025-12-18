@@ -1,24 +1,23 @@
 // score.js
 import { BASE_API_URL, authHeaders } from '../moduls/api.js';
+import { authenticatedFetch } from '../moduls/request.js';
 
 /**
  * Guarda la puntuación del usuario actual
  * @param {number} score - Puntuación a guardar
  */
 export const saveScore = (score) => {
-  const headers = {
-    ...authHeaders(),
-    'Content-Type': 'application/json'
-  };
-  return fetch(`${BASE_API_URL}/scores/`, {  // <-- Cambio de endpoint
+  return authenticatedFetch('/scores/', {
     method: 'POST',
-    headers,
+    headers: {
+      'Content-Type': 'application/json'
+    },
     body: JSON.stringify({ score: Number.parseInt(score, 10) || 0 })
   })
-  .then(r => {
-    if (!r.ok) throw new Error('No se pudo guardar la puntuación');
-    return r.json();
-  });
+    .then(r => {
+      if (!r.ok) throw new Error('No se pudo guardar la puntuación');
+      return r.json();
+    });
 };
 
 /**
@@ -31,9 +30,9 @@ export const saveScore = (score) => {
  * @param {string} options.countryCode - Código de país (requerido si scope='country')
  * @param {string} options.region - Nombre de región (requerido si scope='region')
  */
-export const getScores = ({ 
-  scope = 'global', 
-  limit = 10, 
+export const getScores = ({
+  scope = 'global',
+  limit = 10,
   offset = 0,
   userId = null,
   countryCode = null,
@@ -56,14 +55,13 @@ export const getScores = ({
     params.append('region', region);
   }
 
-  return fetch(`${BASE_API_URL}/scores/?${params.toString()}`, {
-    method: 'GET',
-    headers: authHeaders()
+  return authenticatedFetch(`/scores/?${params.toString()}`, {
+    method: 'GET'
   })
-  .then(r => {
-    if (!r.ok) throw new Error('No se pudieron obtener las puntuaciones');
-    return r.json();
-  });
+    .then(r => {
+      if (!r.ok) throw new Error('No se pudieron obtener las puntuaciones');
+      return r.json();
+    });
 };
 
 /**
@@ -99,21 +97,30 @@ export const getRegionTop = (region, limit = 10) => {
  * Incluye: global, país, región y mejores scores personales
  */
 export const getScoresSummary = (limit = 10) => {
-  const headers = {
-    ...authHeaders(),
-    'Content-Type': 'application/json'
-  };
-  
   const params = new URLSearchParams({
     limit: limit.toString()
   });
 
-  return fetch(`${BASE_API_URL}/scores/summary?${params.toString()}`, {
+  return authenticatedFetch(`/scores/summary?${params.toString()}`, {
     method: 'GET',
-    headers
+    headers: { 'Content-Type': 'application/json' }
   })
-  .then(r => {
-    if (!r.ok) throw new Error('No se pudo obtener el resumen de puntuaciones');
-    return r.json();
-  });
+    .then(r => {
+      if (!r.ok) throw new Error('No se pudo obtener el resumen de puntuaciones');
+      return r.json();
+    });
+};
+
+/**
+ * Obtiene la mejor puntuación del usuario actual
+ */
+export const getUserBestScore = () => {
+  return authenticatedFetch('/scores/me/best', {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  })
+    .then(r => {
+      if (!r.ok) throw new Error('No se pudo obtener la mejor puntuación');
+      return r.json();
+    });
 };
