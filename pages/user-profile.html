@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="57x57" href="../assets/favicon/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="../assets/favicon/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="../assets/favicon/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="../assets/favicon/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="../assets/favicon/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="../assets/favicon/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="../assets/favicon/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="../assets/favicon/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="../assets/favicon/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="../assets/favicon/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="a../ssets/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="../assets/favicon/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../assets/favicon/favicon-16x16.png">
+    <link rel="manifest" href="../manifest.json">
+    <link rel="stylesheet" href="../css/normalize.css">
+    <link rel="stylesheet" href="../css/user-register-dist.css">
+    <title>Perfil de usuario</title>
+</head>
+<body>
+    <header class="header"></header>
+    <main class="main">
+        <h1 class="hero">Banderas, países y regiones</h1>
+        <div class="register-container">
+            <h2>¡Modifica tu perfil!</h2>
+            <form id="modify-profile-form" class="register-form">
+                <div class="register-input-container">
+                    <input type="text" id="username" class="register-input-container_input" name="username" placeholder="Ingrese su usuario" minlength="4" maxlength="15" required>
+                    <small class="register-input-container_small">Debe contener entre 4 y 15 caracteres.</small>
+                    <input type="text" id="full-name" class="register-input-container_input" name="full_name" placeholder="Ingrese su nombre completo">
+                    <small class="register-input-container_small">Optional</small>
+                    <div class="country-container">
+                        <select id="select-country" name="country">
+                            <option value="">Seleccione su país</option>
+                        </select>
+                    </div>
+                    <div class="register-input-container_image">    
+                    <label for="profile-image" class="register-input-container_label">Cambiar imagen de perfil</label>
+                        <input type="file" id="profile-image" class="register-input-container_input" name="profile_image" accept="image/*">
+                    </div>
+
+                    <div class="register-input-container_delete-image">
+                        <input type="checkbox" id="delete-imagen" name="delete_current_profile_image">
+                        <label for="eliminarImagen">Eliminar imagen de perfil actual</label>
+                    </div>
+
+                    <p class="modify-profile-response">texto de error</p>
+                    <p class="loading-indicator-register">Enviando datos, por favor espere<span class="loading__animation--one">.</span> <span class="loading__animation--two">.</span> <span class="loading__animation--three">.</span></p>
+                    <input type="submit" class="change-data-profile-submit" value="Aplicar cambios">
+                    <a href="../index.html" class="go_back_homepage">Ir a Inicio</a>
+                </div>
+            </form>
+        </div>
+    </main>
+    <footer class="footer">
+        <p class="author">Created by Enmanuel</p>
+    </footer>
+    <script type="module" src="../javascript/perfil.js"></script>
+</body>
+</html>
