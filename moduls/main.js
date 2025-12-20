@@ -43,6 +43,7 @@ const scoreGlobalContainer = document.querySelector(".score-global-container")
 
 import { saveScore, getGlobalTop, getUserTop, getCountryTop, getScoresSummary, getUserBestScore } from "../javascript/score.js"
 import { BASE_API_URL, SHOW_ADS } from "../moduls/api.js";
+import { initAnalytics, track } from "./analytics.js";
 
 
 loadingError.hidden = true
@@ -61,6 +62,36 @@ const initAds = () => {
 };
 
 initAds();
+initAnalytics();
+
+// Analytics Helper
+const getContext = () => {
+    let mode = 'region';
+    if (location.href.includes('career-mode')) {
+        mode = 'career';
+    }
+
+    let currentStageVal = 1;
+    if (typeof stage !== 'undefined' && stage.currentStage) {
+        currentStageVal = stage.currentStage;
+    }
+
+    let flagsCount = 0;
+    if (flagsContainer) {
+        flagsCount = flagsContainer.childElementCount;
+        if (flagsContainer.querySelector('.flags-center') && flagsContainer.childElementCount === 1) flagsCount = 1;
+    }
+
+    // region is global variable
+    return {
+        mode,
+        region: location.href,
+        stage: currentStageVal,
+        flags_count: flagsCount
+    };
+};
+
+let gameEnded = false;
 
 const leftSideFlag = document.createElement("IMG")
 leftSideFlag.setAttribute("class", "flags-left")
@@ -140,6 +171,9 @@ const saveCountriesInArray = async (locationHref) => {
         showNames()
         showCenterFlag()
         loaded()
+        // Analytics
+        const ctx = getContext();
+        track('game_start', { mode: ctx.mode, region: ctx.region, stage: ctx.stage });
     } catch (error) {
         if (error instanceof TypeError) {
             loading.classList.add("loading-hidden")
@@ -263,6 +297,20 @@ const checkNumberOfLives = () => {
         dialogFailed.show();
         buttonCheck.disabled = true;
         buttonCheck.style.opacity = ".2";
+        buttonCheck.style.opacity = ".2";
+
+        if (!gameEnded) {
+            gameEnded = true;
+            const ctx = getContext();
+            track('game_over', {
+                mode: ctx.mode,
+                region: ctx.region,
+                stage: ctx.stage,
+                reason: 'corazones',
+                score: parseInt(currentPoints.textContent, 10) || 0
+            });
+        }
+
         return 'Game over';
     } else {
         buttonCheck.disabled = false;
@@ -299,6 +347,18 @@ rightSideFlag.addEventListener("click", () => {
 
 buttonCheck.addEventListener("click", () => {
     const lives = parseInt(numberOfLives.textContent, 10);
+
+    // Analytics
+    const ctx = getContext();
+    track('check_click', {
+        mode: ctx.mode,
+        region: ctx.region,
+        stage: ctx.stage,
+        flags_count: ctx.flags_count,
+        lives: lives,
+        score: parseInt(currentPoints.textContent, 10) || 0
+    });
+
     if (lives <= 0) {
         return;
     }
@@ -478,7 +538,7 @@ buttonCheck.addEventListener("click", () => {
                             msg.className = 'session-expired-msg';
                             msg.style.color = 'red';
                             msg.style.fontSize = '0.9rem';
-                            msg.innerHTML = 'Tu sesión ha expirado. <a href="../pages/user-login.html" style="color: blue; text-decoration: underline;">Inicia sesión</a> para guardar tu progreso.';
+                            msg.innerHTML = 'Sesión expirada. <a href="../pages/user-login.html" style="color: blue; text-decoration: underline;">Inicia sesión</a> para guardar tu progreso.';
                             dialogFailed.appendChild(msg);
                         }
                         const bestScoreText = document.querySelector('.best-score-text');
@@ -748,6 +808,7 @@ const initialState = () => {
     counter.classList.remove("counter-red")
     dialog.close()
     remainingTracks.textContent = "2"
+    gameEnded = false;
     stop.counter = setInterval(counterDown, 1000)
 }
 
@@ -757,6 +818,18 @@ function counterDown() {
     if (timeIsOver) {
         counter.textContent = "0 s";
         clearInterval(stop.counter);
+
+        if (!gameEnded) {
+            gameEnded = true;
+            const ctx = getContext();
+            track('game_over', {
+                mode: ctx.mode,
+                region: ctx.region,
+                stage: ctx.stage,
+                reason: 'tiempo',
+                score: parseInt(currentPoints.textContent, 10) || 0
+            });
+        }
 
         // Guardar score también cuando pierde por tiempo
         if (region.includes("career-mode")) {
@@ -791,7 +864,7 @@ function counterDown() {
                             msg.className = 'session-expired-msg';
                             msg.style.color = 'red';
                             msg.style.fontSize = '0.9rem';
-                            msg.innerHTML = 'Tu sesión ha expirado. <a href="../pages/user-login.html" style="color: blue; text-decoration: underline;">Inicia sesión</a> para guardar tu progreso.';
+                            msg.innerHTML = 'Sesión expirada. <a href="../pages/user-login.html" style="color: blue; text-decoration: underline;">Inicia sesión</a> para guardar tu progreso.';
                             dialogFailed.appendChild(msg);
                         }
                         const bestScoreText = document.querySelector('.best-score-text');
@@ -901,6 +974,14 @@ buttonRestart.addEventListener("click", () => {
 })
 
 buttonPista.addEventListener("click", () => {
+    const ctx = getContext();
+    track('hint_used', {
+        mode: ctx.mode,
+        region: ctx.region,
+        stage: ctx.stage,
+        remaining_tracks: parseInt(remainingTracks.textContent)
+    });
+
     if (remainingTracks.textContent === "2" || remainingTracks.textContent === "1") {
         remainingTracks.textContent = parseInt(remainingTracks.textContent - 1)
     }
@@ -1072,6 +1153,9 @@ const showRegionRanking = (region) => {
 const btnShowLeaderboard = document.querySelector(".btn-show-leaderboard");
 if (btnShowLeaderboard) {
     btnShowLeaderboard.addEventListener("click", () => {
+        const ctx = getContext();
+        track('leaderboard_open', { mode: ctx.mode, region: ctx.region, stage: ctx.stage });
+
         scoreGlobalContainer.classList.remove("score-global-container-hidden");
         // Asegurar que el usuario pueda ver la tabla
         scoreGlobalContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });

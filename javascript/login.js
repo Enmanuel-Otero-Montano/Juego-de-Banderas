@@ -40,7 +40,7 @@ formSubmitLogin.addEventListener('submit', function (event) {
     // Por ejemplo:
     const successLoginContainer = document.querySelector('.login-message-response');
     if (successLoginContainer) {
-      successLoginContainer.textContent = "Inicio exitoso. Redirigiendo a la página principal...";
+      successLoginContainer.textContent = "Inicio exitoso. Redirigiendo...";
       successLoginContainer.classList.add("login-message-response-show")
     }
     try {

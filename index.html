@@ -53,6 +53,7 @@
 <body>
     <header class="header">
         <button class="about-game-button">Sobre el Juego</button>
+        <button class="tutorial-button">Ver Tutorial</button>
         <a href="pages/user-login.html" class="login-game-button">Iniciar sesión</a>
         <a href="pages/user-profile.html" class="profile-button"></a>
     </header>
@@ -70,6 +71,7 @@
                     <li><a href="./pages/oceania/oceania.html" class="region">Oceanía</a></li>
                 </ul>
             </div>
+            <a href="pages/daily-challenge.html" class="daily-challenge-btn">DESAFÍO DIARIO</a>
         </div>
     </main>
     <footer class="footer">
@@ -132,6 +134,83 @@
         </p>
         <button id="accept-cookies" class="btn-accept">Aceptar</button>
     </div>
+
+    <!-- Onboarding Modal -->
+    <div id="onboarding-modal" class="onboarding-overlay hidden">
+        <div class="onboarding-modal">
+            <!-- Step Indicators -->
+            <div class="onboarding-steps">
+                <span class="step active"></span>
+                <span class="step"></span>
+                <span class="step"></span>
+                <span class="step"></span>
+            </div>
+
+            <!-- Close Button -->
+            <button class="onboarding-close" aria-label="Cerrar">&times;</button>
+
+            <!-- Step 1: Video -->
+            <div class="onboarding-step active" data-step="1">
+                <h2>¡Bienvenido a Banderas, Países y Regiones!</h2>
+                <div class="video-container">
+                    <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Tutorial de Banderas"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                <p style="text-align: center; margin-top: 15px;">Mira este breve video para conocer el juego</p>
+            </div>
+
+            <!-- Step 2: Features -->
+            <div class="onboarding-step" data-step="2">
+                <h2>Características Principales</h2>
+                <ul class="features-list">
+                    <li data-icon="📚">Aprende geografía de forma divertida</li>
+                    <li data-icon="🎮">Dos modos de juego: Carrera y Regiones</li>
+                    <li data-icon="🏆">Compite en el ranking global</li>
+                    <li data-icon="💾">Guarda tu progreso y estadísticas</li>
+                </ul>
+            </div>
+
+            <!-- Step 3: How to Play -->
+            <div class="onboarding-step" data-step="3">
+                <h2>Cómo Jugar</h2>
+                <ol class="how-to-list">
+                    <li>Selecciona un país de la lista</li>
+                    <li>Haz clic en la bandera correcta</li>
+                    <li>Acumula puntos por cada acierto</li>
+                    <li>Compite en el ranking mundial</li>
+                </ol>
+                <p style="text-align: center; margin-top: 20px; font-size: 0.95rem; opacity: 0.9;">¡Usa las pistas
+                    sabiamente y mejora tu récord!</p>
+            </div>
+
+            <!-- Step 4: CTA -->
+            <div class="onboarding-step" data-step="4">
+                <div class="final-step-content">
+                    <h2>¡Todo Listo!</h2>
+                    <p>Ya puedes comenzar a jugar y aprender sobre banderas de todo el mundo.</p>
+                    <p style="font-size: 1rem; margin-top: 25px;">¡Que comience la aventura! 🌍🚀</p>
+                    <label class="dont-show">
+                        <input type="checkbox" id="dont-show-again">
+                        No volver a mostrar este tutorial
+                    </label>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="onboarding-nav">
+                <button class="btn-skip">Saltar</button>
+                <div class="nav-buttons">
+                    <button class="btn-prev" disabled>Anterior</button>
+                    <button class="btn-next">Siguiente</button>
+                    <button class="btn-start hidden">¡Empezar!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="css/onboarding.css">
+    <script type="module" src="javascript/onboarding.js"></script>
 </body>
 
 </html>
