@@ -1,5 +1,6 @@
 import { BASE_API_URL } from '../moduls/api.js';
 import { authenticatedFetch } from '../moduls/request.js';
+import { track } from '../moduls/analytics.js';
 
 function isUserlogged() {
   const buttonRegionsMode = document.querySelector(".btn-regions-mode");
@@ -14,6 +15,7 @@ function isUserlogged() {
   const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
 
   if (token) {
+    track('login_state', { state: 'logged_in' });
     // Si no existe el botón de perfil en esta página, salir sin romper
     if (!profileButton) return;
 
@@ -42,6 +44,7 @@ function isUserlogged() {
         profileButton.classList.remove('profile-button-show-with-image');
       });
   } else {
+    track('login_state', { state: 'logged_out' });
     // No logueado
     loginGameButton?.classList.add('login-game-button-show');
   }
@@ -61,6 +64,18 @@ function isUserlogged() {
 }
 
 document.addEventListener('DOMContentLoaded', isUserlogged);
+
+// Tutorial Button Handler
+document.addEventListener('DOMContentLoaded', () => {
+  const tutorialButton = document.querySelector('.tutorial-button');
+  if (tutorialButton) {
+    tutorialButton.addEventListener('click', async () => {
+      // Import and trigger onboarding manually
+      const { showOnboardingManual } = await import('./onboarding.js');
+      showOnboardingManual();
+    });
+  }
+});
 
 // Cookie Banner Logic
 document.addEventListener('DOMContentLoaded', () => {

@@ -44,6 +44,7 @@ button {
 }
 
 .btn-regions-mode,
+.daily-challenge-btn,
 .btn-request-verification {
     width: 160px;
     height: 45px;
@@ -52,6 +53,15 @@ button {
     background-color: var(--bg-color-button-menu);
     box-shadow: 0px 0px 5px hsl(50, 100%, 70%);
     border-radius: var(--border-radius);
+}
+
+.daily-challenge-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    letter-spacing: .6px;
+    margin-top: 20px;
 }
 
 .login-submit-hide,
@@ -79,7 +89,8 @@ button {
 }
 
 .close-button,
-.close-button-login {/* Botón de la ventana modal */
+.close-button-login {
+    /* Botón de la ventana modal */
     position: absolute;
     top: 12px;
     left: calc(100% - 44px);
@@ -93,7 +104,8 @@ button {
     display: none;
 }
 
-.about-game-button,/* Botones del hedader, el de la página de inicio y las otras páginas */
+.about-game-button,
+/* Botones del hedader, el de la página de inicio y las otras páginas */
 .how-to-play,
 .menu,
 .btn-population,
@@ -112,8 +124,9 @@ button {
     text-decoration: none;
 }
 
-.button-container > button,
-.btn-restart {/* Estilos generales para los botones inferiores */
+.button-container>button,
+.btn-restart {
+    /* Estilos generales para los botones inferiores */
     width: 100px;
     height: 38px;
     font-size: .9rem;
@@ -249,6 +262,7 @@ button {
 
     .start:hover,
     .btn-regions-mode:hover,
+    .daily-challenge-btn:hover,
     .login-submit:hover,
     .register-submit:hover {
         background-color: hsl(110, 100%, 70%);
@@ -267,14 +281,18 @@ button {
         margin-bottom: 0px;
     }
 
+    .daily-challenge-btn {
+        margin-top: 0px;
+    }
+
 }
 
 @media screen and (min-width: 1366px) {
 
-    .button-container > button,
-    .btn-restart {/* Estilos generales para los botones inferiores */
+    .button-container>button,
+    .btn-restart {
+        /* Estilos generales para los botones inferiores */
         width: 115px;
         height: 40px;
     }
 }
-

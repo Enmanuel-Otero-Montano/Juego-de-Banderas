@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desafío Diario - Banderas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/normalize.css">
+    <link rel="stylesheet" href="../moduls/main.css"> <!-- Reuse main styles -->
+    <link rel="stylesheet" href="../css/daily-challenge.css">
+    <link rel="stylesheet" href="../moduls/ads.css">
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon/favicon-32x32.png">
+</head>
+
+<body>
+    <header class="header">
+        <a href="../index.html" class="back-button">← Menú</a>
+        <h1>Desafío Diario</h1>
+        <div class="spacer"></div> <!-- Balance header -->
+    </header>
+
+    <main class="main daily-challenge-container">
+        <h2 id="daily-date" class="daily-date">Cargando...</h2>
+
+        <div class="canvas-container">
+            <canvas id="flag-canvas" width="320" height="200"></canvas>
+            <div id="loading-spinner" class="loading-spinner">Cargando bandera...</div>
+        </div>
+
+        <div class="game-controls">
+            <div class="attempts-grid" id="attempts-grid">
+                <!-- 6 boxes injected by JS -->
+            </div>
+
+            <div class="input-area">
+                <input type="text" id="guess-input" list="country-suggestions" placeholder="Selecciona un país..."
+                    autocomplete="off">
+                <datalist id="country-suggestions"></datalist>
+                <button id="submit-guess" class="btn-primary">Probar</button>
+            </div>
+
+            <div id="message-area" class="message-area"></div>
+
+            <button id="share-result" class="btn-share hidden">
+                Compartir Resultado <span class="icon">📤</span>
+            </button>
+        </div>
+
+        <!-- AdSense Banner -->
+        <div class="ad-container ad-slot-1" id="ad-slot-daily-challenge">
+            <!-- AdSense Code Here -->
+            <p class="ad-placeholder" style="display:none;">Publicidad</p>
+        </div>
+    </main>
+
+    <!-- Success/Fail Modal -->
+    <div id="result-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="modal-title"></h2>
+            <p id="modal-answer">La respuesta era: <strong id="correct-country"></strong></p>
+            <div id="modal-stats"></div>
+            <button id="modal-share" class="btn-share">Compartir</button>
+            <button id="modal-close" class="btn-secondary">Cerrar</button>
+        </div>
+    </div>
+
+    <script type="module" src="../javascript/daily-challenge.js"></script>
+</body>
+
+</html>
