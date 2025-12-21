@@ -8,6 +8,12 @@ button {
     border: none;
 }
 
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(80%);
+}
+
 .login-submit {
     width: 165px;
     height: 45px;

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -26,8 +27,9 @@
     <link rel="stylesheet" href="../../moduls/main-dist.css">
     <title>Banderas, Países y regiones</title>
 </head>
+
 <body>
-    <header class="header"> 
+    <header class="header">
         <button class="menu">Menú</button>
         <div class="menu-container">
             <a href="../../index.html" class="go-home">Ir a Inicio</a>
@@ -68,10 +70,12 @@
         </div>
         <section class="section-names">
             <div class="information-container">
-                <p class="information">Si desea, seleccione un país para ver su ubicación geográfica o su población total</p>
+                <p class="information">Si desea, seleccione un país para ver su ubicación geográfica o su población
+                    total</p>
             </div>
             <div class="capital-information-container">
-                <p class="capital-information">La capital de <span class="capital-country-name"></span> es <span class="capital-name"></span></p>
+                <p class="capital-information">La capital de <span class="capital-country-name"></span> es <span
+                        class="capital-name"></span></p>
             </div>
             <div class="location-population-capital-container">
                 <a href="" class="location" target="_blank">Ubicación</a>
@@ -79,7 +83,8 @@
                 <button class="btn-population">Población</button>
             </div>
             <div class="population-information-container">
-                <p class="population-information"><span class="population-country-name"></span>, población estimada &sim; <span class="country-population"></span></p>
+                <p class="population-information"><span class="population-country-name"></span>, población estimada
+                    &sim; <span class="country-population"></span></p>
             </div>
             <h2 class="section-names__header">Nombre del país</h2>
             <ul class="section-names__list">
@@ -92,17 +97,37 @@
         </div>
     </main>
     <div class="modal-how-to-play">
-        <button class="close-button-hidden close-button" aria-label="cerrar"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+        <button class="close-button-hidden close-button" aria-label="cerrar"><svg xmlns="http://www.w3.org/2000/svg"
+                width="24" height="24" viewBox="0 0 24 24">
+                <path
+                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+            </svg></button>
         <p class="error-loading-hidden error-loading"></p>
-        <p class="loading">Cargando <span class="loading__animation--one">.</span> <span class="loading__animation--two">.</span> <span class="loading__animation--three">.</span></p>
+        <p class="loading">Cargando <span class="loading__animation--one">.</span> <span
+                class="loading__animation--two">.</span> <span class="loading__animation--three">.</span></p>
         <div class="how-to-play-explanation-container">
             <p class="how-to-paly-title">Como jugar</p>
-            <p class="how-to-play-explanation">Seleccione un nombre con un clic o un tap, luego presione la bandera que crea corresponda al nombre seleccionado y presione "Comprobar", si es correcta su elección, podrá presionar en "Siguiente" para pasar a las siguientes banderas.</p>
-            <p class="how-to-play-explanation">Cuando haya completado todas las banderas de la región actual podrá pasar a la siguiente región.</p>
-            <p class="how-to-play-explanation">Note que tiene 2 pistas por cada etapa, se mostrarán dichas pistas presionando en "Pista", las pistas no estarán disponibles en las tres últimas banderas de cada etapa, por lo que le recomiendo no dejarla para lo último.</p>
+            <p class="how-to-play-explanation">Seleccione un nombre con un clic o un tap, luego presione la bandera que
+                crea corresponda al nombre seleccionado y presione "Comprobar", si es correcta su elección, podrá
+                presionar en "Siguiente" para pasar a las siguientes banderas.</p>
+            <p class="how-to-play-explanation">Cuando haya completado todas las banderas de la región actual podrá pasar
+                a la siguiente región.</p>
+            <p class="how-to-play-explanation">Note que tiene 2 pistas por cada etapa, se mostrarán dichas pistas
+                presionando en "Pista", las pistas no estarán disponibles en las tres últimas banderas de cada etapa,
+                por lo que le recomiendo no dejarla para lo último.</p>
             <p class="how-to-play-explanation">Dispone de un tiempo limitado para completar la etapa.</p>
         </div>
     </div>
+    <audio id="sfx-correct" preload="auto">
+        <source src="../../assets/sounds/correct.ogg" type="audio/ogg">
+        <source src="../../assets/sounds/correct.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="sfx-error" preload="auto">
+        <source src="../../assets/sounds/error.ogg" type="audio/ogg">
+        <source src="../../assets/sounds/error.mp3" type="audio/mpeg">
+    </audio>
     <script src="../../moduls/main.js" type="module"></script>
+
 </body>
+
 </html>
