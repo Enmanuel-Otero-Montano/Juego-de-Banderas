@@ -40,7 +40,8 @@ const countryPopulation = document.querySelector(".country-population")
 const regionName = document.querySelector(".region-name")
 const scoreGlobalList = document.getElementById("score-global-list")
 const scoreGlobalContainer = document.querySelector(".score-global-container")
-
+const correctSfx = document.getElementById("sfx-correct")
+const errorSfx = document.getElementById("sfx-error")
 import { saveScore, getGlobalTop, getUserTop, getCountryTop, getScoresSummary, getUserBestScore } from "../javascript/score.js"
 import { BASE_API_URL, SHOW_ADS } from "../moduls/api.js";
 import { initAnalytics, track } from "./analytics.js";
@@ -90,6 +91,21 @@ const getContext = () => {
         flags_count: flagsCount
     };
 };
+
+const playSfx = (audioEl, volume = 0.5) => {
+    if (!audioEl) return;
+    setTimeout(() => {
+        try {
+            audioEl.volume = volume;
+            audioEl.currentTime = 0;
+            audioEl.play().catch(err => {
+                console.warn("Autoplay prevented or audio error:", err);
+            });
+        } catch (e) {
+            console.error("Error playing sfx:", e);
+        }
+    }, 100);
+}
 
 let gameEnded = false;
 
@@ -313,8 +329,6 @@ const checkNumberOfLives = () => {
 
         return 'Game over';
     } else {
-        buttonCheck.disabled = false;
-        buttonCheck.style.opacity = "initial";
         return 'Game on';
     }
 };
@@ -346,7 +360,7 @@ rightSideFlag.addEventListener("click", () => {
 })
 
 buttonCheck.addEventListener("click", () => {
-    const lives = parseInt(numberOfLives.textContent, 10);
+    const lives = numberOfLives ? parseInt(numberOfLives.textContent, 10) : Infinity;
 
     // Analytics
     const ctx = getContext();
@@ -365,11 +379,13 @@ buttonCheck.addEventListener("click", () => {
     if (!dropFlagCenter.classList.contains("flag-drop-area-hidden") && dropFlagLeft.classList.contains("flag-drop-area-hidden")) {
         if (dropFlagCenter.textContent === nameOfTheFlags["center flag name"]) {
             dropFlagCenter.classList.add("flag-drop-area-success")
+            playSfx(correctSfx)
             buttonNextFlags.disabled = false
             buttonNextFlags.style.opacity = "initial"
             buttonCheck.disabled = true
         } else {
             dropFlagCenter.classList.add("flag-drop-area-failed")
+            playSfx(errorSfx)
             dropFlagCenter.setAttribute("data-points", "5")
             if (region.includes("career-mode")) {
                 checkNumberOfCurrentLives()
@@ -385,12 +401,14 @@ buttonCheck.addEventListener("click", () => {
             }
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-success")
+            playSfx(correctSfx)
             buttonNextFlags.disabled = false
             buttonNextFlags.style.opacity = "initial"
             buttonCheck.disabled = true
         } else if (dropFlagLeft.textContent === nameOfTheFlags["left flag name"] && dropFlagRight.textContent !== nameOfTheFlags["right flag name"]) {
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-failed")
+            playSfx(errorSfx)
             dropFlagRight.setAttribute("data-points", "5")
             if (region.includes("career-mode")) {
                 checkNumberOfCurrentLives()
@@ -398,6 +416,7 @@ buttonCheck.addEventListener("click", () => {
         } else if (dropFlagLeft.textContent !== nameOfTheFlags["left flag name"] && dropFlagRight.textContent === nameOfTheFlags["right flag name"]) {
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-success")
+            playSfx(errorSfx)
             dropFlagLeft.setAttribute("data-points", "5")
             if (region.includes("career-mode")) {
                 checkNumberOfCurrentLives()
@@ -405,15 +424,19 @@ buttonCheck.addEventListener("click", () => {
         } else {
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-failed")
+            playSfx(errorSfx)
             if (region.includes("career-mode")) {
                 checkNumberOfCurrentLives()
             }
         }
     } else {
         if (dropFlagCenter.textContent === nameOfTheFlags["center flag name"] && dropFlagLeft.textContent === nameOfTheFlags["left flag name"] && dropFlagRight.textContent === nameOfTheFlags["right flag name"]) {
+            buttonCheck.disabled = true
+            buttonCheck.style.opacity = ".2"
             dropFlagCenter.classList.add("flag-drop-area-success")
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-success")
+            playSfx(correctSfx)
             informationContainer.classList.add("information-container-show")
             clearInterval(stop.counter)//Para el contador si es el final de la región actual
             if (region.includes("career-mode")) {
@@ -446,11 +469,11 @@ buttonCheck.addEventListener("click", () => {
                 dialog.show()
                 clearInterval(stop.counter)//Para el contador si es el final de la región actual
             }
-            buttonCheck.disabled = true
-            buttonCheck.style.opacity = ".2"
+
             centerFlag.setAttribute("src", "")
         } else if (dropFlagCenter.textContent !== nameOfTheFlags["center flag name"] && dropFlagLeft.textContent === nameOfTheFlags["left flag name"] && dropFlagRight.textContent === nameOfTheFlags["right flag name"]) {
             dropFlagCenter.classList.add("flag-drop-area-failed")
+            playSfx(errorSfx)
             dropFlagCenter.setAttribute("data-pointd", "5")
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-success")
@@ -461,6 +484,7 @@ buttonCheck.addEventListener("click", () => {
             dropFlagCenter.classList.add("flag-drop-area-success")
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-success")
+            playSfx(errorSfx)
             dropFlagLeft.setAttribute("data-pointd", "5")
             if (location.href.includes("career-mode")) {
                 checkNumberOfCurrentLives()
@@ -469,6 +493,7 @@ buttonCheck.addEventListener("click", () => {
             dropFlagCenter.classList.add("flag-drop-area-success")
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-failed")
+            playSfx(errorSfx)
             dropFlagRight.setAttribute("data-pointd", "5")
             if (location.href.includes("career-mode")) {
                 checkNumberOfCurrentLives()
@@ -477,6 +502,7 @@ buttonCheck.addEventListener("click", () => {
             dropFlagCenter.classList.add("flag-drop-area-success")
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-failed")
+            playSfx(errorSfx)
             if (location.href.includes("career-mode")) {
                 checkNumberOfCurrentLives()
             }
@@ -484,6 +510,7 @@ buttonCheck.addEventListener("click", () => {
             dropFlagCenter.classList.add("flag-drop-area-failed")
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-failed")
+            playSfx(errorSfx)
             if (location.href.includes("career-mode")) {
                 checkNumberOfCurrentLives()
             }
@@ -491,10 +518,12 @@ buttonCheck.addEventListener("click", () => {
             dropFlagCenter.classList.add("flag-drop-area-failed")
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-success")
+            playSfx(errorSfx)
             if (location.href.includes("career-mode")) {
                 checkNumberOfCurrentLives()
             }
         } else {
+            playSfx(errorSfx)
             dropFlagCenter.classList.add("flag-drop-area-failed")
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-failed")
@@ -507,7 +536,11 @@ buttonCheck.addEventListener("click", () => {
     if (region.includes("career-mode")) {
         let state = checkNumberOfLives()
         if (state === 'Game over') {
-            saveScore(Number.parseInt(currentPoints.textContent, 10) || 0)
+            const currentScore = Number.parseInt(currentPoints.textContent, 10) || 0;
+            const finalScoreEl = document.querySelector(".final-score");
+            if (finalScoreEl) finalScoreEl.textContent = currentScore;
+
+            saveScore(currentScore)
                 .then(() => Promise.all([
                     getGlobalTop(10),
                     getUserBestScore().catch(e => null)
@@ -515,12 +548,9 @@ buttonCheck.addEventListener("click", () => {
                 .then(([globalData, bestScoreData]) => {
                     displayScores(globalData, 'global', false)
 
-                    // Update Modal Scores
-                    const finalScoreEl = document.querySelector(".final-score");
+                    // Update Modal Best Score
                     const bestScoreEl = document.querySelector(".best-score");
-                    const currentScore = Number.parseInt(currentPoints.textContent, 10) || 0;
 
-                    if (finalScoreEl) finalScoreEl.textContent = currentScore;
                     if (bestScoreEl) {
                         if (bestScoreData && bestScoreData.max_score !== undefined) {
                             bestScoreEl.textContent = bestScoreData.max_score;
@@ -834,6 +864,9 @@ function counterDown() {
         // Guardar score también cuando pierde por tiempo
         if (region.includes("career-mode")) {
             const score = Number.parseInt(currentPoints.textContent, 10) || 0;
+            const finalScoreEl = document.querySelector(".final-score");
+            if (finalScoreEl) finalScoreEl.textContent = score;
+
             saveScore(score)
                 .then(() => Promise.all([
                     getGlobalTop(10),
@@ -842,11 +875,9 @@ function counterDown() {
                 .then(([globalData, bestScoreData]) => {
                     displayScores(globalData, 'global', false);
 
-                    // Update Modal Scores
-                    const finalScoreEl = document.querySelector(".final-score");
+                    // Update Modal Best Score
                     const bestScoreEl = document.querySelector(".best-score");
 
-                    if (finalScoreEl) finalScoreEl.textContent = score;
                     if (bestScoreEl) {
                         if (bestScoreData && bestScoreData.max_score !== undefined) {
                             bestScoreEl.textContent = bestScoreData.max_score;
