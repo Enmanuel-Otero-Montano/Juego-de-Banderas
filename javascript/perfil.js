@@ -66,6 +66,22 @@ changeDataProfileFormSubmit?.addEventListener('submit', async (e) => {
 
   try {
     const formData = new FormData(e.target);
+
+    // Validar tipo de archivo de imagen
+    const fileInput = document.getElementById('profile-image');
+    if (fileInput && fileInput.files && fileInput.files[0]) {
+      const file = fileInput.files[0];
+      if (!file.type.startsWith('image/')) {
+        loadingIndicator?.classList.remove('loading-indicator-register-show');
+        const errorContainer = document.querySelector('.modify-profile-response');
+        if (errorContainer) {
+          errorContainer.textContent = 'El archivo seleccionado no es una imagen válida.';
+          errorContainer.classList.add('modify-profile-response-show');
+        }
+        return;
+      }
+    }
+
     const resp = await authenticatedFetch('/user/profile', {
       method: 'PUT',
       body: formData,
