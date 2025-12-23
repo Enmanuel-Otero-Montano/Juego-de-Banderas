@@ -1,4 +1,5 @@
-import { BASE_API_URL, authHeaders } from './api.js';
+import { BASE_API_URL } from './api.js';
+import { getValidToken, clearSession } from './session.js';
 
 /**
  * Realiza una petición fetch autenticada.
@@ -12,9 +13,17 @@ export const authenticatedFetch = async (endpoint, options = {}) => {
   // Construir URL completa si no es absoluta
   const url = endpoint.startsWith('http') ? endpoint : `${BASE_API_URL}${endpoint}`;
 
+  const token = getValidToken();
+
+  if (!token) {
+    const error = new Error('Sesión expirada');
+    error.status = 401;
+    throw error;
+  }
+
   // Combinar headers
   const headers = {
-    ...authHeaders(),
+    'Authorization': `Bearer ${token}`,
     ...(options.headers || {})
   };
 
@@ -25,6 +34,7 @@ export const authenticatedFetch = async (endpoint, options = {}) => {
 
   if (response.status === 401) {
     console.warn('Sesión expirada o no autorizada.');
+    clearSession();
     const error = new Error('Sesión expirada');
     error.status = 401;
     throw error;
@@ -32,16 +42,3 @@ export const authenticatedFetch = async (endpoint, options = {}) => {
 
   return response;
 };
-
-/**
- * Maneja el cierre de sesión forzado.
- * @deprecated - Se maneja en la UI ahora
- */
-function handleLogout() {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('name');
-  localStorage.removeItem('user_id');
-  localStorage.removeItem('profile_image_url');
-  sessionStorage.removeItem('accessToken');
-  window.location.href = '../pages/user-login.html';
-}
