@@ -45,6 +45,7 @@ const errorSfx = document.getElementById("sfx-error")
 import { saveScore, getGlobalTop, getUserTop, getCountryTop, getScoresSummary, getUserBestScore } from "../javascript/score.js"
 import { BASE_API_URL, SHOW_ADS } from "../moduls/api.js";
 import { initAnalytics, track } from "./analytics.js";
+import { getValidToken } from '../moduls/session.js';
 
 
 loadingError.hidden = true
@@ -539,6 +540,24 @@ buttonCheck.addEventListener("click", () => {
             const currentScore = Number.parseInt(currentPoints.textContent, 10) || 0;
             const finalScoreEl = document.querySelector(".final-score");
             if (finalScoreEl) finalScoreEl.textContent = currentScore;
+
+            const token = getValidToken();
+            if (!token) {
+                const dialogFailed = document.querySelector('.dialog-failed');
+                if (!dialogFailed.querySelector('.session-expired-msg')) {
+                    const msg = document.createElement('p');
+                    msg.className = 'session-expired-msg';
+                    msg.style.color = 'red';
+                    msg.style.fontSize = '0.9rem';
+                    msg.innerHTML = 'No has iniciado sesión. <a href="../pages/user-login.html" style="color: blue; text-decoration: underline;">Inicia sesión</a> para guardar tu progreso.';
+                    dialogFailed.appendChild(msg);
+                }
+                const bestScoreText = document.querySelector('.best-score-text');
+                const leaderboardBtn = document.querySelector('.btn-show-leaderboard');
+                if (bestScoreText) bestScoreText.style.display = 'none';
+                if (leaderboardBtn) leaderboardBtn.style.display = 'none';
+                return;
+            }
 
             saveScore(currentScore)
                 .then(() => Promise.all([

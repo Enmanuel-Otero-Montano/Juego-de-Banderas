@@ -1,6 +1,7 @@
 import { BASE_API_URL } from '../moduls/api.js';
 import { authenticatedFetch } from '../moduls/request.js';
 import { track } from '../moduls/analytics.js';
+import { getValidToken } from '../moduls/session.js';
 
 function isUserlogged() {
   const buttonRegionsMode = document.querySelector(".btn-regions-mode");
@@ -12,7 +13,7 @@ function isUserlogged() {
   const closeModal = document.querySelector(".close-button");
   const profileButton = document.querySelector('.profile-button');
 
-  const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+  const token = getValidToken();
 
   if (token) {
     track('login_state', { state: 'logged_in' });
