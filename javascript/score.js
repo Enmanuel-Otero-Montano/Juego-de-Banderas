@@ -6,15 +6,28 @@ import { authenticatedFetch } from '../moduls/request.js';
  * Guarda la puntuación del usuario actual
  * @param {number} score - Puntuación a guardar
  */
-export const saveScore = (score) => {
+export const saveScore = (score, metadata = {}) => {
+  const payload = {
+    score: Number.parseInt(score, 10) || 0,
+    ...metadata
+  };
+
+  console.log('Sending score payload:', payload);
+
   return authenticatedFetch('/scores/', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ score: Number.parseInt(score, 10) || 0 })
+    body: JSON.stringify(payload)
   })
     .then(r => {
+      // Si el backend devuelve 422, lanzamos un error con una propiedad especial para identificarlo
+      if (r.status === 422) {
+        const err = new Error('Datos de puntuación inválidos');
+        err.status = 422;
+        throw err;
+      }
       if (!r.ok) throw new Error('No se pudo guardar la puntuación');
       return r.json();
     });

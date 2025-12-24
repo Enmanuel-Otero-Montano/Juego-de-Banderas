@@ -71,6 +71,7 @@ const init = async () => {
         flagImage.src = apiFlagUrl(gameState.revealLevel);
         flagImage.onload = () => {
             loadingSpinner.classList.add('hidden');
+            console.log(ctx);
             ctx.imageSmoothingEnabled = true;
             ctx.drawImage(flagImage, 0, 0, canvas.width, canvas.height);
         };
