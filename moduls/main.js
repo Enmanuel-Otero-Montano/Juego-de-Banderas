@@ -113,6 +113,8 @@ let gameEnded = false;
 const leftSideFlag = document.createElement("IMG")
 leftSideFlag.setAttribute("class", "flags-left")
 
+let startTime = 0; // Initialize game start time
+
 const rightSideFlag = document.createElement("IMG")
 rightSideFlag.setAttribute("class", "flags-right")
 
@@ -191,6 +193,8 @@ const saveCountriesInArray = async (locationHref) => {
         // Analytics
         const ctx = getContext();
         track('game_start', { mode: ctx.mode, region: ctx.region, stage: ctx.stage });
+        // Start Timer for Anti-Cheat
+        startTime = Date.now();
     } catch (error) {
         if (error instanceof TypeError) {
             loading.classList.add("loading-hidden")
@@ -559,7 +563,22 @@ buttonCheck.addEventListener("click", () => {
                 return;
             }
 
-            saveScore(currentScore)
+            const ctx = getContext();
+            const attempts = parseInt(numberOfLives.textContent, 10);
+
+            // Calculate Duration
+            const endTime = Date.now();
+            const durationSeconds = Math.floor((endTime - startTime) / 1000);
+
+            // Prepare Metadata
+            const metadata = {
+                game_duration_seconds: durationSeconds,
+                game_mode: ctx.mode,
+                game_region: ctx.region, // This might be a URL, maybe clean it up? keeping raw for now as requested
+                attempts: attempts
+            };
+
+            saveScore(currentScore, metadata)
                 .then(() => Promise.all([
                     getGlobalTop(10),
                     getUserBestScore().catch(e => null)
@@ -580,8 +599,9 @@ buttonCheck.addEventListener("click", () => {
                 })
                 .catch(err => {
                     console.error('Error saving score:', err);
+                    const dialogFailed = document.querySelector('.dialog-failed');
+
                     if (err.status === 401) {
-                        const dialogFailed = document.querySelector('.dialog-failed');
                         if (!dialogFailed.querySelector('.session-expired-msg')) {
                             const msg = document.createElement('p');
                             msg.className = 'session-expired-msg';
@@ -594,6 +614,18 @@ buttonCheck.addEventListener("click", () => {
                         const leaderboardBtn = document.querySelector('.btn-show-leaderboard');
                         if (bestScoreText) bestScoreText.style.display = 'none';
                         if (leaderboardBtn) leaderboardBtn.style.display = 'none';
+                    } else if (err.status === 422) {
+                        if (!dialogFailed.querySelector('.session-expired-msg')) {
+                            const msg = document.createElement('p');
+                            msg.className = 'session-expired-msg';
+                            msg.style.color = 'red'; // Changed to red as requested
+                            msg.style.fontSize = '0.9rem';
+                            msg.textContent = 'Puntuación rechazada por inconsistencias.';
+                            dialogFailed.appendChild(msg);
+                        }
+                        // Hide current score
+                        const scoreTextEl = document.querySelector('.score-text');
+                        if (scoreTextEl) scoreTextEl.style.display = 'none';
                     }
                 })
         }

@@ -71,6 +71,7 @@ const init = async () => {
         flagImage.src = apiFlagUrl(gameState.revealLevel);
         flagImage.onload = () => {
             loadingSpinner.classList.add('hidden');
+            console.log(ctx);
             ctx.imageSmoothingEnabled = true;
             ctx.drawImage(flagImage, 0, 0, canvas.width, canvas.height);
         };
@@ -145,8 +146,13 @@ const handleGuess = async () => {
             result: result.correct ? 'correct' : 'wrong'
         });
 
-        if (result.correct) {
-            endGame(true, result.correct_answer);
+        if (result.correct || gameState.status === 'solved') {
+            let answer = result.correct_answer;
+            if (!answer && gameState.status === 'solved') {
+                // Try to get answer from result or current state if missing
+                answer = result.correct_answer || { name: guess }; // Fallback
+            }
+            endGame(true, answer || result.correct_answer);
         } else if (gameState.status === 'failed') {
             let answer = result.correct_answer;
             if (!answer) {
