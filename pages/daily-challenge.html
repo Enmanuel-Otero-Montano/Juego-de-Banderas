@@ -28,6 +28,11 @@
             <div id="loading-spinner" class="loading-spinner">Cargando bandera...</div>
         </div>
 
+        <div id="hints-area" class="hints-area hidden">
+            <h3>Pistas</h3>
+            <ul id="hints-list"></ul>
+        </div>
+
         <div class="game-controls">
             <div class="attempts-grid" id="attempts-grid">
                 <!-- 6 boxes injected by JS -->
@@ -60,7 +65,30 @@
             <h2 id="modal-title"></h2>
             <p id="modal-answer">La respuesta era: <strong id="correct-country"></strong></p>
             <div id="modal-stats"></div>
-            <button id="modal-share" class="btn-share">Compartir</button>
+
+            <div class="share-section">
+                <p class="share-label">Compartir resultado:</p>
+
+                <!-- Native Share / Copy Toggle -->
+                <button id="modal-share-native" class="btn-share full-width hidden">
+                    Compartir <span class="icon">📱</span>
+                </button>
+
+                <div id="fallback-share-buttons" class="fallback-share-buttons">
+                    <a id="share-wa" target="_blank" class="share-btn wa" aria-label="WhatsApp">WA</a>
+                    <a id="share-x" target="_blank" class="share-btn x" aria-label="X / Twitter">X</a>
+                    <a id="share-tg" target="_blank" class="share-btn tg" aria-label="Telegram">TG</a>
+                    <a id="share-fb" target="_blank" class="share-btn fb" aria-label="Facebook">FB</a>
+                    <button id="modal-copy-btn" class="share-btn copy" aria-label="Copiar Texto">📋</button>
+                    <button id="modal-download-btn" class="share-btn download hidden"
+                        aria-label="Descargar Imagen">⬇️</button>
+                </div>
+
+                <div class="share-text-preview-container">
+                    <textarea id="share-text-preview" readonly class="share-text-box"></textarea>
+                </div>
+            </div>
+
             <button id="modal-close" class="btn-secondary">Cerrar</button>
         </div>
     </div>

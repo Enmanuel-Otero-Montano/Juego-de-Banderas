@@ -9,16 +9,21 @@ export const getAnonId = () => {
     return anonId;
 };
 
-const buildHeaders = () => {
-    const headers = {
-        'Content-Type': 'application/json'
-    };
+export const buildHeaders = (isJson = true) => {
+    const headers = {};
+    if (isJson) {
+        headers['Content-Type'] = 'application/json';
+    }
+
+    // Always include Anonymous ID
+    headers['X-Anonymous-Id'] = getAnonId();
+
+    // Add Authorization if token exists
     const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
-    } else {
-        headers['X-Anonymous-Id'] = getAnonId();
     }
+
     return headers;
 };
 
@@ -44,6 +49,16 @@ export const apiSubmitGuess = async (guess) => {
     return response.json();
 };
 
-export const apiFlagUrl = (revealLevel = 0) => {
-    return `${BASE_API_URL}/daily-challenge/today/flag?reveal_level=${revealLevel}`;
+export const apiFlagUrl = () => {
+    return `${BASE_API_URL}/daily-challenge/today/flag`;
+};
+
+export const apiGetFlagBlob = async () => {
+    const response = await fetch(`${apiFlagUrl()}?t=${Date.now()}`, {
+        headers: buildHeaders(false)
+    });
+    if (!response.ok) {
+        throw new Error(`Error loading flag: ${response.status}`);
+    }
+    return response.blob();
 };

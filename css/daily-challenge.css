@@ -32,9 +32,14 @@ canvas {
     max-width: 100%;
     height: 100%;
     image-rendering: pixelated;
+    /* Default for the game */
     margin: 0 auto;
     user-select: none;
     /* Crucial for pixel art look */
+}
+
+.canvas-clear {
+    image-rendering: auto !important;
 }
 
 .loading-spinner {
@@ -176,4 +181,158 @@ canvas {
 .modal h2 {
     color: var(--text-color);
     margin-top: 0;
+}
+
+/* Hints Area */
+.hints-area {
+    width: 100%;
+    margin-bottom: 20px;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color-modals);
+    text-align: left;
+}
+
+.hints-area h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    color: var(--text-color-secondary);
+    border-bottom: 2px solid var(--bg-color-main);
+    padding-bottom: 5px;
+}
+
+#hints-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.hint-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 0.95rem;
+    animation: fadeIn 0.5s ease-in-out;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.hint-item:last-child {
+    border-bottom: none;
+}
+
+.hint-icon {
+    font-size: 1.2rem;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Share Section inside Modal */
+.share-section {
+    margin: 20px 0;
+    text-align: left;
+}
+
+.share-label {
+    font-size: 0.9rem;
+    color: #ccc;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.full-width {
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.fallback-share-buttons {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.share-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    color: white;
+    font-size: 1.2rem;
+    /* Icons/Text bigger */
+    cursor: pointer;
+    border: none;
+    transition: filter 0.2s;
+}
+
+.share-btn:hover {
+    filter: brightness(1.1);
+}
+
+.share-btn.wa {
+    background-color: #25D366;
+    font-size: 0.9rem;
+}
+
+/* WhatsApp Green */
+.share-btn.x {
+    background-color: #000000;
+    font-size: 1rem;
+}
+
+/* X Black */
+.share-btn.tg {
+    background-color: #0088cc;
+    font-size: 0.9rem;
+}
+
+/* Telegram Blue */
+.share-btn.fb {
+    background-color: #1877F2;
+    font-size: 0.9rem;
+}
+
+/* Facebook Blue */
+.share-btn.copy {
+    background-color: #7f8c8d;
+}
+
+/* Gray */
+.share-btn.download {
+    background-color: #e67e22;
+}
+
+/* Orange */
+
+.share-text-preview-container {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.share-text-box {
+    width: 100%;
+    height: 80px;
+    background: transparent;
+    border: none;
+    color: #eee;
+    font-family: monospace;
+    font-size: 0.85rem;
+    resize: none;
 }
