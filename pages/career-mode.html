@@ -187,16 +187,37 @@
         </div>
     </div>
     <div class="score-global-container score-global-container-hidden">
-        <p class="score-global-text">Puntuación Global</p>
-        <p class="score-global-top-10">Top 10</p>
-        <div id="score-global-list" class="score-global-list">
+        <div class="leaderboard-header">
+            <p class="score-global-text">Ranking</p>
+            <div class="leaderboard-tabs">
+                <button class="tab-btn active" data-tab="global">Global</button>
+                <button class="tab-btn" data-tab="country">Mi País</button>
+                <button class="tab-btn" data-tab="region">Región</button>
+                <button class="tab-btn" data-tab="user">Mios</button>
+            </div>
+            <div class="leaderboard-subheaders">
+                <span class="subheader-rank">#</span>
+                <span class="subheader-user">Usuario</span>
+                <span class="subheader-score">Pts</span>
+            </div>
         </div>
+
+        <div id="score-global-list" class="score-global-list">
+            <!-- Scores loaded via JS -->
+        </div>
+
+        <div class="leaderboard-footer hidden">
+            <span class="my-position-text">Tu posición: -</span>
+            <span class="my-best-score">Mejor: -</span>
+        </div>
+
         <!-- Slot 2: Inside Score Modal -->
-        <div class="ad-container ad-slot-2" id="ad-slot-score-modal">
+        <div class="ad-container ad-slot-2" id="ad-slot-score-modal" style="margin-top: 10px;">
             <!-- AdSense Code Here -->
             <p class="ad-placeholder" style="display:none;">Publicidad</p>
         </div>
-        <!-- <button id="btn-my-scores" class="btn-my-scores">Mis Puntuaciones</button> -->
+
+        <button class="btn-close-leaderboard">Cerrar</button>
     </div>
     <audio id="sfx-correct" preload="auto">
         <source src="../assets/sounds/correct.ogg" type="audio/ogg">

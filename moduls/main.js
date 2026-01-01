@@ -42,7 +42,7 @@ const scoreGlobalList = document.getElementById("score-global-list")
 const scoreGlobalContainer = document.querySelector(".score-global-container")
 const correctSfx = document.getElementById("sfx-correct")
 const errorSfx = document.getElementById("sfx-error")
-import { saveScore, getGlobalTop, getUserTop, getCountryTop, getScoresSummary, getUserBestScore } from "../javascript/score.js"
+import { saveScore, getGlobalTop, getUserTop, getCountryTop, getRegionTop, getScoresSummary, getMyPosition } from '../javascript/score.js';
 import { BASE_API_URL, SHOW_ADS } from "../moduls/api.js";
 import { initAnalytics, track } from "./analytics.js";
 import { getValidToken } from '../moduls/session.js';
@@ -107,6 +107,16 @@ const playSfx = (audioEl, volume = 0.5) => {
         }
     }, 100);
 }
+
+const getRegionKeyFromLocation = (url) => {
+    if (url.includes('career-mode')) return 'career';
+    if (url.includes('america')) return 'america';
+    if (url.includes('europe')) return 'europe';
+    if (url.includes('asia')) return 'asia';
+    if (url.includes('africa')) return 'africa';
+    if (url.includes('oceania')) return 'oceania';
+    return 'global';
+};
 
 let gameEnded = false;
 
@@ -574,7 +584,8 @@ buttonCheck.addEventListener("click", () => {
             const metadata = {
                 game_duration_seconds: durationSeconds,
                 game_mode: ctx.mode,
-                game_region: ctx.region, // This might be a URL, maybe clean it up? keeping raw for now as requested
+                game_region: ctx.region,
+                region_key: getRegionKeyFromLocation(location.href),
                 attempts: attempts
             };
 
@@ -1134,15 +1145,140 @@ addEventListener("online", () => {
  * @param {string} type - Tipo de ranking ('global', 'user', 'country', 'region')
  * @param {boolean} showContainer - Si debe mostrar el contenedor inmediatamente (default: true)
  */
+// --- Leaderboard Logic ---
+
+const leaderboardState = {
+    currentScope: 'global',
+    userSummary: null
+};
+
+const setupLeaderboardTabs = () => {
+    const tabs = document.querySelectorAll('.tab-btn');
+    if (!tabs.length) return;
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // UI Update
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            // Logic
+            const scope = tab.dataset.tab;
+            leaderboardState.currentScope = scope;
+            loadLeaderboard(scope);
+        });
+    });
+
+    const closeBtn = document.querySelector('.btn-close-leaderboard');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            scoreGlobalContainer.classList.add("score-global-container-hidden");
+        });
+    }
+};
+
+const loadLeaderboard = (scope) => {
+    clearScores();
+    scoreGlobalList.innerHTML = '<div style="text-align:center; padding: 20px;">Cargando...</div>';
+
+    // Check login for restricted scopes
+    const token = getValidToken();
+    if ((scope === 'country' || scope === 'user') && !token) {
+        scoreGlobalList.innerHTML = '<div style="text-align:center; padding: 20px;">Inicia sesión para ver esto. <br><a href="../pages/user-login.html" style="color: yellow; text-decoration: underline;">Login</a></div>';
+        updateMyPositionFooter(null);
+        return;
+    }
+
+    let promise;
+    const ctx = getContext();
+    const regionKey = getRegionKeyFromLocation(location.href);
+
+    if (scope === 'global') {
+        promise = getGlobalTop(10);
+    } else if (scope === 'country') {
+        // We need user country code, assuming it's in localStorage or we fetch 'me'
+        // For now, let's try to get it from profile or summary if we have it.
+        // Or simpler: getScoresSummary returns everything we might need, or we call getUserTop?
+        // Actually getCountryTop needs countryCode. 
+        // Let's use getScoresSummary which returns everything? No, it returns user's rank.
+        // We probably need to fetch user profile first to get country code if not stored.
+        // Let's fallback to getScoresSummary if we don't have country code easily?
+        // Or better: The backend usually handles "my country" if we pass a specific flag or we fetch user info first.
+        // The current score.js has `getCountryTop(countryCode)`.
+        // Let's try to fetch user Country info from localStorage if available (set during login).
+        // If not, we might fail or need to fetch /users/me. 
+        // Optimization: Let's assume we can fetch /users/me or check localStorage.
+        promise = authenticatedFetch('/users/me').then(r => r.json()).then(u => getCountryTop(u.country_code || 'US', 10)); // Default fallback
+    } else if (scope === 'region') {
+        // region is from context or URL
+        // getRegionTop(regionName)
+        // Our backend expects strict region names maybe? 'america', 'europe'?
+        // `ctx.region` is URL. `regionKey` is 'america'.
+        promise = getRegionTop(regionKey, 10);
+    } else if (scope === 'user') {
+        promise = authenticatedFetch('/users/me').then(r => r.json()).then(u => getUserTop(u.id, 10));
+    }
+
+    promise
+        .then(data => {
+            displayScores(data, scope, false); // false = don't toggle container visibility here
+            updateMyPositionFooter(scope);
+        })
+        .catch(err => {
+            console.error('Leaderboard error:', err);
+            scoreGlobalList.innerHTML = '<div style="text-align:center; padding: 20px;">Error al cargar.</div>';
+        });
+};
+
+const updateMyPositionFooter = (scope) => {
+    const footer = document.querySelector('.leaderboard-footer');
+    if (!footer) return;
+
+    const token = getValidToken();
+    if (!token) {
+        footer.classList.add('hidden');
+        return;
+    }
+
+    // Determine correct scope and region for the API call
+    let apiScope = scope;
+    let apiRegion = null;
+
+    if (scope === 'user') {
+        // "My Best" tab -> Usually we just want to show My Best Score globally or just hide rank?
+        // User asked for "My Position" in tabs.
+        // If I am in "My Best", maybe I want to see my Global Rank?
+        // Let's standard to Global for now, or just show "Your Best".
+        apiScope = 'global';
+    } else if (scope === 'region') {
+        const regionKey = getRegionKeyFromLocation(location.href);
+        apiRegion = regionKey;
+    }
+
+    getMyPosition({ scope: apiScope, region: apiRegion })
+        .then(data => {
+            // data format: { rank, max_score, total_players, region, scope }
+            const rank = data.rank || '-';
+            const score = data.max_score || '-';
+
+            footer.querySelector('.my-position-text').textContent = `Tu posición: #${rank}`;
+            footer.querySelector('.my-best-score').textContent = `Mejor: ${score}`;
+            footer.classList.remove('hidden');
+        })
+        .catch(e => {
+            console.error('Error fetching position:', e);
+            footer.classList.add('hidden');
+        });
+};
+
 const displayScores = (scores, type, showContainer = true) => {
     // Siempre limpiamos antes de volver a pintar
     clearScores();
+    scoreGlobalList.innerHTML = '';
 
     // Verificar que hay datos para mostrar
     if (!scores || scores.length === 0) {
-        console.warn('No hay puntuaciones para mostrar');
-        // Si querés, podrías ocultar el contenedor acá:
-        // scoreGlobalContainer.classList.add("score-global-container-hidden");
+        scoreGlobalList.innerHTML = '<div style="text-align:center; padding: 20px;">No hay puntuaciones aún.</div>';
         return;
     }
 
@@ -1152,8 +1288,6 @@ const displayScores = (scores, type, showContainer = true) => {
         const scoreGlobalItem = document.createElement('div');
         scoreGlobalItem.className = 'score-global-item';
 
-        // Si el backend indica que tiene imagen, usamos el endpoint.
-        // Si no, usamos la imagen por defecto.
         const imgSrc = score.has_profile_image
             ? `${BASE_API_URL}/users/${score.user_id}/profile-image`
             : defaultImg;
@@ -1172,20 +1306,21 @@ const displayScores = (scores, type, showContainer = true) => {
         scoreGlobalList.appendChild(scoreGlobalItem);
     });
 
-    // Solo mostramos el contenedor cuando hay datos Y se solicita mostrarlo
     if (showContainer) {
         scoreGlobalContainer.classList.remove("score-global-container-hidden");
     }
 };
 
-
-
 const clearScores = () => {
-    // Vacía el contenedor de la lista
-    while (scoreGlobalList.firstChild) {
-        scoreGlobalList.removeChild(scoreGlobalList.firstChild);
+    if (scoreGlobalList) {
+        scoreGlobalList.innerHTML = '';
     }
 };
+
+// Initialize Tabs
+document.addEventListener('DOMContentLoaded', () => {
+    setupLeaderboardTabs();
+});
 
 
 /**
@@ -1227,6 +1362,7 @@ const showCountryRanking = (countryCode) => {
 const showRegionRanking = (region) => {
     getRegionTop(region, 10).then(data => {
         displayScores(data, 'region');
+    }).catch(error => {
         console.error('Error obteniendo ranking de la región:', error);
     });
 };
@@ -1239,7 +1375,9 @@ if (btnShowLeaderboard) {
         track('leaderboard_open', { mode: ctx.mode, region: ctx.region, stage: ctx.stage });
 
         scoreGlobalContainer.classList.remove("score-global-container-hidden");
-        // Asegurar que el usuario pueda ver la tabla
         scoreGlobalContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        // Initial load: Global
+        loadLeaderboard('global');
     });
 }
