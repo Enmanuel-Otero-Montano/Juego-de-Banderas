@@ -46,6 +46,7 @@ import { saveScore, getGlobalTop, getUserTop, getCountryTop, getRegionTop, getSc
 import { BASE_API_URL, SHOW_ADS } from "../moduls/api.js";
 import { initAnalytics, track } from "./analytics.js";
 import { getValidToken } from '../moduls/session.js';
+import { authenticatedFetch } from '../moduls/request.js';
 
 
 loadingError.hidden = true
