@@ -10,9 +10,19 @@ import { getValidToken, clearSession } from './session.js';
  * @returns {Promise<Response>} - Promesa con la respuesta fetch.
  */
 export const authenticatedFetch = async (endpoint, options = {}) => {
-  // Construir URL completa si no es absoluta
-  const url = endpoint.startsWith('http') ? endpoint : `${BASE_API_URL}${endpoint}`;
+  // 1. Construcción segura de la URL y validación de origen
+  // Nota: BASE_API_URL puede o no tener slash final, new URL() lo maneja bien.
+  const base = new URL(BASE_API_URL);
+  const finalUrl = new URL(endpoint, base);
 
+  // Validar estrictamente el origen (evitar enviar token a terceros)
+  if (finalUrl.origin !== base.origin) {
+    const error = new Error(`Security Error: Request to external origin blocked (${finalUrl.origin})`);
+    error.status = 403;
+    throw error;
+  }
+
+  // 2. Obtener token SOLO si el origen es confiable
   const token = getValidToken();
 
   if (!token) {
@@ -21,13 +31,14 @@ export const authenticatedFetch = async (endpoint, options = {}) => {
     throw error;
   }
 
-  // Combinar headers
+  // 3. Combinar headers
   const headers = {
     'Authorization': `Bearer ${token}`,
     ...(options.headers || {})
   };
 
-  const response = await fetch(url, {
+  // 4. Ejecutar fetch usando la URL validada
+  const response = await fetch(finalUrl.toString(), {
     ...options,
     headers
   });
