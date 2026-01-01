@@ -137,3 +137,22 @@ export const getUserBestScore = () => {
       return r.json();
     });
 };
+
+/**
+ * Obtiene la posición del usuario actual en un leaderboard específico
+ * @param {Object} options
+ * @param {string} options.scope - 'global', 'country', 'region'
+ * @param {string} options.region - Requerido si scope es 'region'
+ */
+export const getMyPosition = ({ scope = 'global', region = null } = {}) => {
+  const params = new URLSearchParams({ scope });
+  if (region) params.append('region', region);
+
+  return authenticatedFetch(`/scores/me/position?${params.toString()}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  }).then(r => {
+    if (!r.ok) throw new Error('No se pudo obtener la posición');
+    return r.json();
+  });
+};

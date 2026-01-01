@@ -52,11 +52,31 @@
 
 <body>
     <header class="header">
-        <button class="about-game-button">Sobre el Juego</button>
-        <button class="tutorial-button">Ver Tutorial</button>
+        <button class="hamburger-menu-home" aria-label="Menu principal">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
         <a href="pages/user-login.html" class="login-game-button">Iniciar sesión</a>
         <a href="pages/user-profile.html" class="profile-button"></a>
     </header>
+
+    <!-- Side Drawer Menu -->
+    <div class="side-menu-overlay hidden"></div>
+    <div class="side-menu-container">
+        <button class="side-menu-close">&times;</button>
+        <nav class="side-menu-nav">
+            <ul>
+                <li><a href="pages/user-profile.html">Modificar Perfil</a></li>
+                <li><a href="pages/user-stats.html">Estadísticas</a></li>
+                <li><a href="#" class="about-game-trigger">Sobre el Juego</a></li>
+                <li><a href="#" class="tutorial-trigger">Ver Tutorial</a></li>
+                <!-- Future items can go here -->
+            </ul>
+        </nav>
+    </div>
+
     <main class="main">
         <h1 class="hero">Banderas, países y regiones</h1>
         <div class="buttons-container">

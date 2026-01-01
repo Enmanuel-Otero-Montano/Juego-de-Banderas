@@ -57,6 +57,36 @@
                 <p class="failed-text">Te has quedado sin <span class="failed-text-reason"></span></p>
                 <p class="restart-text">¡Empecemos de nuevo!</p>
                 <button class="btn-restart">Aceptar</button>
+                <div class="dialog-actions">
+                    <button class="btn-show-leaderboard" aria-label="Ver Tabla de Posiciones">
+                        <svg version="1.1" width="24" height="24" viewBox="0 0 100 100"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <solidColor id="goldMain" solid-color="#FFD700" />
+                                <solidColor id="goldDark" solid-color="#E6C200" />
+                                <linearGradient id="cupGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#E6C200" />
+                                    <stop offset="50%" stop-color="#FFD700" />
+                                    <stop offset="100%" stop-color="#E6C200" />
+                                </linearGradient>
+                            </defs>
+                            <g>
+                                <path d="M 25 35 C 10 35, 8 60, 30 62" stroke="#E6C200" stroke-width="6" fill="none"
+                                    stroke-linecap="round" />
+                                <path d="M 75 35 C 90 35, 92 60, 70 62" stroke="#E6C200" stroke-width="6" fill="none"
+                                    stroke-linecap="round" />
+                                <polygon points="20,90 80,90 75,80 25,80" fill="#E6C200" />
+                                <rect x="30" y="75" width="40" height="5" fill="#FFD700" />
+                                <polygon points="43,75 57,75 55,65 45,65" fill="#E6C200" />
+                                <path d="M 20,25 Q 20,65 50,70 Q 80,65 80,25 Z" fill="url(#cupGradient)" />
+                                <ellipse cx="50" cy="25" rx="30" ry="6" fill="#E6C200" />
+                                <ellipse cx="50" cy="25" rx="26" ry="4" fill="#FCEE90" />
+                                <path d="M 45,40 Q 50,35 55,40" stroke="#FFFACD" stroke-width="3" stroke-linecap="round"
+                                    opacity="0.6" fill="none" />
+                            </g>
+                        </svg>
+                    </button>
+                </div>
             </dialog>
             <div class="flags-container">
                 <img class="flags-center" src="" alt="">
@@ -95,6 +125,39 @@
             <button class="btn-check">Comprobar</button>
         </div>
     </main>
+    <div class="score-global-container score-global-container-hidden">
+        <div class="leaderboard-header">
+            <p class="score-global-text">Ranking</p>
+            <div class="leaderboard-tabs">
+                <button class="tab-btn active" data-tab="global">Global</button>
+                <button class="tab-btn" data-tab="country">Mi País</button>
+                <button class="tab-btn" data-tab="region">Región</button>
+                <button class="tab-btn" data-tab="user">Mios</button>
+            </div>
+            <div class="leaderboard-subheaders">
+                <span class="subheader-rank">#</span>
+                <span class="subheader-user">Usuario</span>
+                <span class="subheader-score">Pts</span>
+            </div>
+        </div>
+
+        <div id="score-global-list" class="score-global-list">
+            <!-- Scores loaded via JS -->
+        </div>
+
+        <div class="leaderboard-footer hidden">
+            <span class="my-position-text">Tu posición: -</span>
+            <span class="my-best-score">Mejor: -</span>
+        </div>
+
+        <!-- Slot 2: Inside Score Modal -->
+        <div class="ad-container ad-slot-2" id="ad-slot-score-modal" style="margin-top: 10px;">
+            <!-- AdSense Code Here -->
+            <p class="ad-placeholder" style="display:none;">Publicidad</p>
+        </div>
+
+        <button class="btn-close-leaderboard">Cerrar</button>
+    </div>
     <div class="modal-how-to-play">
         <button class="close-button-hidden close-button" aria-label="cerrar"><svg xmlns="http://www.w3.org/2000/svg"
                 width="24" height="24" viewBox="0 0 24 24">

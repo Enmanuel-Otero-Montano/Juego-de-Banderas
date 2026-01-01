@@ -50,8 +50,38 @@ function isUserlogged() {
     loginGameButton?.classList.add('login-game-button-show');
   }
 
-  // Listeners con optional chaining para no reventar si faltan nodos:
-  aboutGameButton?.addEventListener("click", () => {
+  buttonRegionsMode?.addEventListener("click", () => {
+    regionsList?.classList.toggle("region-list-show");
+  });
+
+  // Side Menu Logic
+  const hmHome = document.querySelector('.hamburger-menu-home');
+  const sideMenu = document.querySelector('.side-menu-container');
+  const sideOverlay = document.querySelector('.side-menu-overlay');
+  const sideClose = document.querySelector('.side-menu-close');
+
+  const aboutGameTrigger = document.querySelector(".about-game-trigger");
+  const tutorialTrigger = document.querySelector(".tutorial-trigger");
+
+  const toggleMenu = (show) => {
+    if (show) {
+      sideMenu?.classList.add('open');
+      sideOverlay?.classList.remove('hidden'); // Ensure access
+      setTimeout(() => sideOverlay?.classList.add('open'), 10); // Fade in
+    } else {
+      sideMenu?.classList.remove('open');
+      sideOverlay?.classList.remove('open');
+      setTimeout(() => sideOverlay?.classList.add('hidden'), 300); // Fade out then hide
+    }
+  };
+
+  hmHome?.addEventListener('click', () => toggleMenu(true));
+  sideClose?.addEventListener('click', () => toggleMenu(false));
+  sideOverlay?.addEventListener('click', () => toggleMenu(false));
+
+  aboutGameTrigger?.addEventListener("click", (e) => {
+    e.preventDefault();
+    toggleMenu(false);
     aboutGameModal?.classList.add("modal-about-game-showing");
   });
 
@@ -59,24 +89,15 @@ function isUserlogged() {
     aboutGameModal?.classList.remove("modal-about-game-showing");
   });
 
-  buttonRegionsMode?.addEventListener("click", () => {
-    regionsList?.classList.toggle("region-list-show");
+  tutorialTrigger?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    toggleMenu(false);
+    const { showOnboardingManual } = await import('./onboarding.js');
+    showOnboardingManual();
   });
 }
 
 document.addEventListener('DOMContentLoaded', isUserlogged);
-
-// Tutorial Button Handler
-document.addEventListener('DOMContentLoaded', () => {
-  const tutorialButton = document.querySelector('.tutorial-button');
-  if (tutorialButton) {
-    tutorialButton.addEventListener('click', async () => {
-      // Import and trigger onboarding manually
-      const { showOnboardingManual } = await import('./onboarding.js');
-      showOnboardingManual();
-    });
-  }
-});
 
 // Cookie Banner Logic
 document.addEventListener('DOMContentLoaded', () => {

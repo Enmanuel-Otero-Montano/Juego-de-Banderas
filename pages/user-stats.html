@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="57x57" href="../assets/favicon/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="../assets/favicon/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="../assets/favicon/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="../assets/favicon/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="../assets/favicon/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="../assets/favicon/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="../assets/favicon/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="../assets/favicon/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="../assets/favicon/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="../assets/favicon/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="../assets/favicon/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../assets/favicon/favicon-16x16.png">
+    <link rel="manifest" href="../manifest.json">
+    <link rel="stylesheet" href="../css/normalize.css">
+    <link rel="stylesheet" href="../css/user-register-dist.css">
+    <title>Estadísticas</title>
+</head>
+
+<body>
+    <header class="header">
+        <a href="../index.html" class="logo-link"
+            style="text-decoration: none; color: white; display: flex; align-items: center; gap: 10px;">
+            <!-- Logo or simple text -->
+            <img src="../assets/favicon/apple-icon-60x60.png" alt="Logo"
+                style="height: 40px; width: 40px; border-radius: 5px;">
+            <span>Banderas</span>
+        </a>
+        <a href="../index.html" style="color: white; text-decoration: none; font-weight: bold;">Inicio</a>
+    </header>
+    <main class="main">
+        <h1 class="hero" style="margin-top: 20px;">Tus Estadísticas</h1>
+        <div class="register-container">
+            <div id="stats" class="profile-stats-container"
+                style="margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; color: white;">
+                <h3 style="text-align: center; margin-top: 0;">Rendimiento General</h3>
+                <div class="stats-grid"
+                    style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px;">
+                    <div class="stat-item" style="text-align: center;">
+                        <span class="stat-value" id="stat-best-score"
+                            style="display: block; font-size: 1.5rem; font-weight: bold; color: yellow;">-</span>
+                        <span class="stat-label" style="font-size: 0.9rem;">Mejor Score</span>
+                    </div>
+                    <div class="stat-item" style="text-align: center;">
+                        <span class="stat-value" id="stat-global-rank"
+                            style="display: block; font-size: 1.5rem; font-weight: bold;">-</span>
+                        <span class="stat-label" style="font-size: 0.9rem;">Ranking Global</span>
+                    </div>
+                    <div class="stat-item" style="text-align: center;">
+                        <span class="stat-value" id="stat-country-rank"
+                            style="display: block; font-size: 1.5rem; font-weight: bold;">-</span>
+                        <span class="stat-label" style="font-size: 0.9rem;">Ranking País</span>
+                    </div>
+                </div>
+                <div style="margin-top: 20px; text-align: center;">
+                    <p style="font-size: 0.8rem; opacity: 0.8;">Más estadísticas detalladas próximamente...</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    <footer class="footer">
+        <p class="author">Created by Enmanuel</p>
+    </footer>
+    <script type="module" src="../javascript/stats.js"></script>
+</body>
+
+</html>

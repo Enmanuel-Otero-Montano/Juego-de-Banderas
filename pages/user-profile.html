@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,7 +16,7 @@
     <link rel="apple-touch-icon" sizes="144x144" href="../assets/favicon/apple-icon-144x144.png">
     <link rel="apple-touch-icon" sizes="152x152" href="../assets/favicon/apple-icon-152x152.png">
     <link rel="apple-touch-icon" sizes="180x180" href="../assets/favicon/apple-icon-180x180.png">
-    <link rel="icon" type="image/png" sizes="192x192"  href="../assets/favicon/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="../assets/favicon/android-icon-192x192.png">
     <link rel="icon" type="image/png" sizes="32x32" href="a../ssets/favicon/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="96x96" href="../assets/favicon/favicon-96x96.png">
     <link rel="icon" type="image/png" sizes="16x16" href="../assets/favicon/favicon-16x16.png">
@@ -24,26 +25,51 @@
     <link rel="stylesheet" href="../css/user-register-dist.css">
     <title>Perfil de usuario</title>
 </head>
+
 <body>
-    <header class="header"></header>
+    <header class="header">
+        <a href="../index.html" class="logo-link"
+            style="text-decoration: none; color: white; display: flex; align-items: center; gap: 10px;">
+            <!-- Using the Apple Icon as logo for now due to path availability, or just text -->
+            <img src="../assets/favicon/apple-icon-60x60.png" alt="Logo"
+                style="height: 40px; width: 40px; border-radius: 5px;">
+            <span>Banderas</span>
+        </a>
+        <button class="hamburger-menu" aria-label="Abrir menú">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="profile-nav">
+            <ul>
+                <li><a href="#stats">Estadísticas</a></li>
+                <li><a href="#modify">Modificar perfil</a></li>
+                <li><a href="../index.html">Ir a Inicio</a></li>
+            </ul>
+        </nav>
+    </header>
     <main class="main">
-        <h1 class="hero">Banderas, países y regiones</h1>
+        <h1 class="hero" style="margin-top: 20px;">Banderas, países y regiones</h1>
         <div class="register-container">
-            <h2>¡Modifica tu perfil!</h2>
+            <h2 id="modify">¡Modifica tu perfil!</h2>
             <form id="modify-profile-form" class="register-form">
                 <div class="register-input-container">
-                    <input type="text" id="username" class="register-input-container_input" name="username" placeholder="Ingrese su usuario" minlength="4" maxlength="15" required>
+                    <input type="text" id="username" class="register-input-container_input" name="username"
+                        placeholder="Ingrese su usuario" minlength="4" maxlength="15" required>
                     <small class="register-input-container_small">Debe contener entre 4 y 15 caracteres.</small>
-                    <input type="text" id="full-name" class="register-input-container_input" name="full_name" placeholder="Ingrese su nombre completo">
+                    <input type="text" id="full-name" class="register-input-container_input" name="full_name"
+                        placeholder="Ingrese su nombre completo">
                     <small class="register-input-container_small">Optional</small>
                     <div class="country-container">
                         <select id="select-country" name="country">
                             <option value="">Seleccione su país</option>
                         </select>
                     </div>
-                    <div class="register-input-container_image">    
-                    <label for="profile-image" class="register-input-container_label">Cambiar imagen de perfil</label>
-                        <input type="file" id="profile-image" class="register-input-container_input" name="profile_image" accept="image/*">
+                    <div class="register-input-container_image">
+                        <label for="profile-image" class="register-input-container_label">Cambiar imagen de
+                            perfil</label>
+                        <input type="file" id="profile-image" class="register-input-container_input"
+                            name="profile_image" accept="image/*">
                     </div>
 
                     <div class="register-input-container_delete-image">
@@ -52,7 +78,10 @@
                     </div>
 
                     <p class="modify-profile-response">texto de error</p>
-                    <p class="loading-indicator-register">Enviando datos, por favor espere<span class="loading__animation--one">.</span> <span class="loading__animation--two">.</span> <span class="loading__animation--three">.</span></p>
+                    <p class="loading-indicator-register">Enviando datos, por favor espere<span
+                            class="loading__animation--one">.</span> <span class="loading__animation--two">.</span>
+                        <span class="loading__animation--three">.</span>
+                    </p>
                     <input type="submit" class="change-data-profile-submit" value="Aplicar cambios">
                     <a href="../index.html" class="go_back_homepage">Ir a Inicio</a>
                 </div>
@@ -64,4 +93,5 @@
     </footer>
     <script type="module" src="../javascript/perfil.js"></script>
 </body>
+
 </html>

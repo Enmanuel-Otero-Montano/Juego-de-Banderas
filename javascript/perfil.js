@@ -1,6 +1,7 @@
 import { BASE_API_URL } from '../moduls/api.js';
 import { authenticatedFetch } from '../moduls/request.js';
 
+
 const selectCountry = document.getElementById('select-country');
 const changeDataProfileFormSubmit = document.getElementById('modify-profile-form');
 
