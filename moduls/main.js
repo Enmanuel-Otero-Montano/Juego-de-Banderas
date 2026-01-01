@@ -42,7 +42,7 @@ const scoreGlobalList = document.getElementById("score-global-list")
 const scoreGlobalContainer = document.querySelector(".score-global-container")
 const correctSfx = document.getElementById("sfx-correct")
 const errorSfx = document.getElementById("sfx-error")
-import { saveScore, getGlobalTop, getUserTop, getCountryTop, getRegionTop, getScoresSummary, getMyPosition } from '../javascript/score.js';
+import { saveScore, getGlobalTop, getUserTop, getCountryTop, getRegionTop, getScoresSummary, getMyPosition, getUserBestScore } from '../javascript/score.js';
 import { BASE_API_URL, SHOW_ADS } from "../moduls/api.js";
 import { initAnalytics, track } from "./analytics.js";
 import { getValidToken } from '../moduls/session.js';
