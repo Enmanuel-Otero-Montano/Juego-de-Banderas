@@ -92,7 +92,6 @@ canvas {
     border-radius: 4px;
 }
 
-.btn-primary,
 .btn-share,
 .btn-secondary {
     padding: 10px 20px;
@@ -102,16 +101,6 @@ canvas {
     cursor: pointer;
     font-size: 1rem;
     color: white;
-}
-
-.btn-primary {
-    background-color: var(--text-color);
-    /* Yellowish from main */
-    color: black;
-}
-
-.btn-primary:hover {
-    filter: brightness(1.1);
 }
 
 .btn-share {

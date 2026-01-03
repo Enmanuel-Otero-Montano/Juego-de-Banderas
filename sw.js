@@ -1,5 +1,5 @@
 // sw.js (dinámico: sirve para local y GH Pages)
-const CACHE_NAME = 'flags-game-v4';
+const CACHE_NAME = 'flags-game-v5';
 // Last Modified: 2025-12-13 (Force update)
 
 // scope = e.g. "http://127.0.0.1:5500/" o "https://...github.io/Juego-de-Banderas/"
