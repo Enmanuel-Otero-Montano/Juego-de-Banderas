@@ -348,8 +348,8 @@ body {
 
 .side-menu-container {
     position: fixed;
-    top: 0;
-    left: 0;
+    top: 70px;
+    left: -5px;
     width: 250px;
     height: 100vh;
     background-color: hsl(204, 100%, 20%);

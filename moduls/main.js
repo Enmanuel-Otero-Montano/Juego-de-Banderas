@@ -42,10 +42,11 @@ const scoreGlobalList = document.getElementById("score-global-list")
 const scoreGlobalContainer = document.querySelector(".score-global-container")
 const correctSfx = document.getElementById("sfx-correct")
 const errorSfx = document.getElementById("sfx-error")
-import { saveScore, getGlobalTop, getUserTop, getCountryTop, getRegionTop, getScoresSummary, getMyPosition } from '../javascript/score.js';
+import { saveScore, getGlobalTop, getUserTop, getCountryTop, getRegionTop, getScoresSummary, getMyPosition, getUserBestScore } from '../javascript/score.js';
 import { BASE_API_URL, SHOW_ADS } from "../moduls/api.js";
 import { initAnalytics, track } from "./analytics.js";
 import { getValidToken } from '../moduls/session.js';
+import { authenticatedFetch } from '../moduls/request.js';
 
 
 loadingError.hidden = true
@@ -1292,17 +1293,36 @@ const displayScores = (scores, type, showContainer = true) => {
             ? `${BASE_API_URL}/users/${score.user_id}/profile-image`
             : defaultImg;
 
-        scoreGlobalItem.innerHTML = `
-            <span class="score-global-item-position">${index + 1}</span>
-            <img 
-                src="${imgSrc}" 
-                alt="Imagen de usuario" 
-                class="score-global-item-image-user"
-                onerror="this.onerror=null;this.src='${defaultImg}';"
-            >
-            <span class="score-global-item-name">${score.username}</span>
-            <span class="score-global-item-score">${score.max_score}</span>
-        `;
+        // Position
+        const spanPos = document.createElement('span');
+        spanPos.className = 'score-global-item-position';
+        spanPos.textContent = index + 1;
+
+        // Image
+        const img = document.createElement('img');
+        img.src = imgSrc;
+        img.alt = 'Imagen de usuario';
+        img.className = 'score-global-item-image-user';
+        img.onerror = function () {
+            this.onerror = null;
+            this.src = defaultImg;
+        };
+
+        // Name (XSS Protected)
+        const spanName = document.createElement('span');
+        spanName.className = 'score-global-item-name';
+        spanName.textContent = score.username;
+
+        // Score
+        const spanScore = document.createElement('span');
+        spanScore.className = 'score-global-item-score';
+        spanScore.textContent = score.max_score;
+
+        scoreGlobalItem.appendChild(spanPos);
+        scoreGlobalItem.appendChild(img);
+        scoreGlobalItem.appendChild(spanName);
+        scoreGlobalItem.appendChild(spanScore);
+
         scoreGlobalList.appendChild(scoreGlobalItem);
     });
 

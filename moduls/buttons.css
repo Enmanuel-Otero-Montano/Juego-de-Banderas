@@ -143,7 +143,21 @@ button:disabled {
 }
 
 .btn-check {
+    width: 115px;
+    height: 40px;
+    font-size: .9rem;
+    font-weight: 700;
+    color: var(--text-color-button-menu);
+    letter-spacing: .5px;
+    border-radius: var(--border-radius);
     background-color: var(--bg-color-button-menu);
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.2s, transform 0.1s;
 }
 
 .btn-next {
@@ -270,7 +284,8 @@ button:disabled {
     .btn-regions-mode:hover,
     .daily-challenge-btn:hover,
     .login-submit:hover,
-    .register-submit:hover {
+    .register-submit:hover,
+    .btn-check:hover {
         background-color: hsl(110, 100%, 70%);
         transform: scale(1.02, 1.02);
     }

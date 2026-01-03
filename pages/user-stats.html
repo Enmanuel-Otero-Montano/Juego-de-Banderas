@@ -23,22 +23,16 @@
     <link rel="manifest" href="../manifest.json">
     <link rel="stylesheet" href="../css/normalize.css">
     <link rel="stylesheet" href="../css/user-register-dist.css">
+    <link rel="stylesheet" href="../moduls/buttons.css">
     <title>Estadísticas</title>
 </head>
 
 <body>
     <header class="header">
-        <a href="../index.html" class="logo-link"
-            style="text-decoration: none; color: white; display: flex; align-items: center; gap: 10px;">
-            <!-- Logo or simple text -->
-            <img src="../assets/favicon/apple-icon-60x60.png" alt="Logo"
-                style="height: 40px; width: 40px; border-radius: 5px;">
-            <span>Banderas</span>
-        </a>
-        <a href="../index.html" style="color: white; text-decoration: none; font-weight: bold;">Inicio</a>
+        <a href="../index.html" class="go-home">Inicio</a>
     </header>
     <main class="main">
-        <h1 class="hero" style="margin-top: 20px;">Tus Estadísticas</h1>
+        <h1 class="hero" style="margin-top: 20px;">Tus estadísticas</h1>
         <div class="register-container">
             <div id="stats" class="profile-stats-container"
                 style="margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; color: white;">
@@ -64,6 +58,11 @@
                 <div style="margin-top: 20px; text-align: center;">
                     <p style="font-size: 0.8rem; opacity: 0.8;">Más estadísticas detalladas próximamente...</p>
                 </div>
+            </div>
+            <div id="login-message" style="display: none; text-align: center; margin-top: 10px;">
+                <p style="color: #ff9800; font-weight: bold;">Inicia sesión para ver tus estadísticas.
+                </p>
+                <a href="user-login.html" class="btn-check">Iniciar sesión</a>
             </div>
 
         </div>
