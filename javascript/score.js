@@ -156,3 +156,29 @@ export const getMyPosition = ({ scope = 'global', region = null } = {}) => {
     return r.json();
   });
 };
+
+/**
+ * Saves stage completion result for career mode.
+ * @param {string} stageId - The ID of the stage completed
+ * @param {Object} stageData - Stage completion payload
+ * @returns {Promise} API response
+ */
+export const saveStageResult = (stageId, stageData) => {
+  return authenticatedFetch(`/career/stages/${stageId}/complete`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(stageData)
+  }).then(async r => {
+    if (r.status === 422) {
+      const data = await r.json();
+      const err = new Error('Payload de etapa inválido');
+      err.status = 422;
+      err.detail = data.detail;
+      throw err;
+    }
+    if (!r.ok) throw new Error('No se pudo guardar el progreso de la etapa');
+    return r.json();
+  });
+};

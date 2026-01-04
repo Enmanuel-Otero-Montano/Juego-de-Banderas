@@ -42,11 +42,13 @@ const scoreGlobalList = document.getElementById("score-global-list")
 const scoreGlobalContainer = document.querySelector(".score-global-container")
 const correctSfx = document.getElementById("sfx-correct")
 const errorSfx = document.getElementById("sfx-error")
-import { saveScore, getGlobalTop, getUserTop, getCountryTop, getRegionTop, getScoresSummary, getMyPosition, getUserBestScore } from '../javascript/score.js';
+import { saveScore, getGlobalTop, getUserTop, getCountryTop, getRegionTop, getScoresSummary, getMyPosition, getUserBestScore, saveStageResult } from '../javascript/score.js';
 import { BASE_API_URL, SHOW_ADS } from "../moduls/api.js";
 import { initAnalytics, track } from "./analytics.js";
 import { getValidToken } from '../moduls/session.js';
 import { authenticatedFetch } from '../moduls/request.js';
+import { isCareerMode, getGameMode, getRegionKey } from './game-context.js';
+import { stageTracker, resetStage, recordGroupError, recordGroupResult, getStagePayload } from './stage-tracker.js';
 
 
 loadingError.hidden = true
@@ -67,13 +69,8 @@ const initAds = () => {
 initAds();
 initAnalytics();
 
-// Analytics Helper
+// Analytics Helper - uses centralized game-context module
 const getContext = () => {
-    let mode = 'region';
-    if (location.href.includes('career-mode')) {
-        mode = 'career';
-    }
-
     let currentStageVal = 1;
     if (typeof stage !== 'undefined' && stage.currentStage) {
         currentStageVal = stage.currentStage;
@@ -85,9 +82,8 @@ const getContext = () => {
         if (flagsContainer.querySelector('.flags-center') && flagsContainer.childElementCount === 1) flagsCount = 1;
     }
 
-    // region is global variable
     return {
-        mode,
+        mode: getGameMode(),
         region: location.href,
         stage: currentStageVal,
         flags_count: flagsCount
@@ -109,15 +105,8 @@ const playSfx = (audioEl, volume = 0.5) => {
     }, 100);
 }
 
-const getRegionKeyFromLocation = (url) => {
-    if (url.includes('career-mode')) return 'career';
-    if (url.includes('america')) return 'america';
-    if (url.includes('europe')) return 'europe';
-    if (url.includes('asia')) return 'asia';
-    if (url.includes('africa')) return 'africa';
-    if (url.includes('oceania')) return 'oceania';
-    return 'global';
-};
+// Alias for backward compatibility - uses centralized getRegionKey
+const getRegionKeyFromLocation = () => getRegionKey();
 
 let gameEnded = false;
 
@@ -125,6 +114,7 @@ const leftSideFlag = document.createElement("IMG")
 leftSideFlag.setAttribute("class", "flags-left")
 
 let startTime = 0; // Initialize game start time
+let stageStartScore = 0; // Tracks score at start of current stage
 
 const rightSideFlag = document.createElement("IMG")
 rightSideFlag.setAttribute("class", "flags-right")
@@ -152,6 +142,8 @@ const nameOfTheFlags = {//Para guardar el nombre de la bandera.
     "center flag name": undefined,
     "right flag name": undefined
 }
+
+const REGION_URL = location.href;
 
 const totalTime = {
     "fourteen names": 115,
@@ -185,8 +177,10 @@ const callCountry = async () => {
 const saveCountriesInArray = async (locationHref) => {
     try {
         allCountries.countries = await callCountry()//Llamada a la función que hace la solicitud.
-        if (locationHref.includes("career-mode")) {
+        if (isCareerMode()) {
             southAmerica()
+            resetStage(stage.currentStage)
+            stageStartScore = 0;
         } else if (locationHref.includes("america")) {
             southAmerica()
         } else if (locationHref.includes("europe")) {
@@ -392,10 +386,12 @@ buttonCheck.addEventListener("click", () => {
     if (lives <= 0) {
         return;
     }
+    let stageCompPayload = null;
     if (!dropFlagCenter.classList.contains("flag-drop-area-hidden") && dropFlagLeft.classList.contains("flag-drop-area-hidden")) {
         if (dropFlagCenter.textContent === nameOfTheFlags["center flag name"]) {
             dropFlagCenter.classList.add("flag-drop-area-success")
             playSfx(correctSfx)
+            if (isCareerMode()) recordGroupResult(1, 1);
             buttonNextFlags.disabled = false
             buttonNextFlags.style.opacity = "initial"
             buttonCheck.disabled = true
@@ -403,8 +399,9 @@ buttonCheck.addEventListener("click", () => {
             dropFlagCenter.classList.add("flag-drop-area-failed")
             playSfx(errorSfx)
             dropFlagCenter.setAttribute("data-points", "5")
-            if (region.includes("career-mode")) {
+            if (isCareerMode()) {
                 checkNumberOfCurrentLives()
+                recordGroupError()
             }
         }
     } else if (!dropFlagLeft.classList.contains("flag-drop-area-hidden") && !dropFlagRight.classList.contains("flag-drop-area-hidden") && dropFlagCenter.classList.contains("flag-drop-area-hidden")) {
@@ -418,6 +415,7 @@ buttonCheck.addEventListener("click", () => {
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-success")
             playSfx(correctSfx)
+            if (isCareerMode()) recordGroupResult(2, 2);
             buttonNextFlags.disabled = false
             buttonNextFlags.style.opacity = "initial"
             buttonCheck.disabled = true
@@ -426,23 +424,26 @@ buttonCheck.addEventListener("click", () => {
             dropFlagRight.classList.add("flag-drop-area-failed")
             playSfx(errorSfx)
             dropFlagRight.setAttribute("data-points", "5")
-            if (region.includes("career-mode")) {
+            if (isCareerMode()) {
                 checkNumberOfCurrentLives()
+                recordGroupError()
             }
         } else if (dropFlagLeft.textContent !== nameOfTheFlags["left flag name"] && dropFlagRight.textContent === nameOfTheFlags["right flag name"]) {
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-success")
             playSfx(errorSfx)
             dropFlagLeft.setAttribute("data-points", "5")
-            if (region.includes("career-mode")) {
+            if (isCareerMode()) {
                 checkNumberOfCurrentLives()
+                recordGroupError()
             }
         } else {
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-failed")
             playSfx(errorSfx)
-            if (region.includes("career-mode")) {
+            if (isCareerMode()) {
                 checkNumberOfCurrentLives()
+                recordGroupError()
             }
         }
     } else {
@@ -453,9 +454,14 @@ buttonCheck.addEventListener("click", () => {
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-success")
             playSfx(correctSfx)
+            if (isCareerMode()) {
+                recordGroupResult(3, 3);
+                // Mark for stage persistence after points calculation
+                stageCompPayload = { isComplete: true };
+            }
             informationContainer.classList.add("information-container-show")
             clearInterval(stop.counter)//Para el contador si es el final de la región actual
-            if (region.includes("career-mode")) {
+            if (isCareerMode()) {
                 if (currentStageInformation.textContent !== "12") {
                     regionOrStage.textContent = "esta etapa!"
                     dialog.show()
@@ -493,8 +499,9 @@ buttonCheck.addEventListener("click", () => {
             dropFlagCenter.setAttribute("data-pointd", "5")
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-success")
-            if (location.href.includes("career-mode")) {
+            if (isCareerMode()) {
                 checkNumberOfCurrentLives()
+                recordGroupError()
             }
         } else if (dropFlagCenter.textContent == nameOfTheFlags["center flag name"] && dropFlagLeft.textContent !== nameOfTheFlags["left flag name"] && dropFlagRight.textContent === nameOfTheFlags["right flag name"]) {
             dropFlagCenter.classList.add("flag-drop-area-success")
@@ -502,8 +509,9 @@ buttonCheck.addEventListener("click", () => {
             dropFlagRight.classList.add("flag-drop-area-success")
             playSfx(errorSfx)
             dropFlagLeft.setAttribute("data-pointd", "5")
-            if (location.href.includes("career-mode")) {
+            if (isCareerMode()) {
                 checkNumberOfCurrentLives()
+                recordGroupError()
             }
         } else if (dropFlagCenter.textContent == nameOfTheFlags["center flag name"] && dropFlagLeft.textContent === nameOfTheFlags["left flag name"] && dropFlagRight.textContent !== nameOfTheFlags["right flag name"]) {
             dropFlagCenter.classList.add("flag-drop-area-success")
@@ -511,45 +519,78 @@ buttonCheck.addEventListener("click", () => {
             dropFlagRight.classList.add("flag-drop-area-failed")
             playSfx(errorSfx)
             dropFlagRight.setAttribute("data-pointd", "5")
-            if (location.href.includes("career-mode")) {
+            if (isCareerMode()) {
                 checkNumberOfCurrentLives()
+                recordGroupError()
             }
         } else if (dropFlagCenter.textContent == nameOfTheFlags["center flag name"] && dropFlagLeft.textContent !== nameOfTheFlags["left flag name"] && dropFlagRight.textContent !== nameOfTheFlags["right flag name"]) {
             dropFlagCenter.classList.add("flag-drop-area-success")
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-failed")
             playSfx(errorSfx)
-            if (location.href.includes("career-mode")) {
+            if (isCareerMode()) {
                 checkNumberOfCurrentLives()
+                recordGroupError()
             }
         } else if (dropFlagCenter.textContent !== nameOfTheFlags["center flag name"] && dropFlagLeft.textContent === nameOfTheFlags["left flag name"] && dropFlagRight.textContent !== nameOfTheFlags["right flag name"]) {
             dropFlagCenter.classList.add("flag-drop-area-failed")
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-failed")
             playSfx(errorSfx)
-            if (location.href.includes("career-mode")) {
+            if (isCareerMode()) {
                 checkNumberOfCurrentLives()
+                recordGroupError()
             }
         } else if (dropFlagCenter.textContent !== nameOfTheFlags["center flag name"] && dropFlagLeft.textContent !== nameOfTheFlags["left flag name"] && dropFlagRight.textContent === nameOfTheFlags["right flag name"]) {
             dropFlagCenter.classList.add("flag-drop-area-failed")
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-success")
             playSfx(errorSfx)
-            if (location.href.includes("career-mode")) {
+            if (isCareerMode()) {
                 checkNumberOfCurrentLives()
+                recordGroupError()
             }
         } else {
             playSfx(errorSfx)
             dropFlagCenter.classList.add("flag-drop-area-failed")
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-failed")
-            if (location.href.includes("career-mode")) {
+            if (isCareerMode()) {
                 checkNumberOfCurrentLives()
+                recordGroupError()
             }
         }
     }
     calculatePoints(dropFlagLeft, dropFlagCenter, dropFlagRight)
-    if (region.includes("career-mode")) {
+
+    // Handle Stage Persistence if level was completed
+    if (isCareerMode() && stageCompPayload) {
+        const token = getValidToken();
+        const totalCurrentScore = parseInt(currentPoints.textContent, 10) || 0;
+
+        const payload = getStagePayload(
+            stage.currentStage,
+            totalCurrentScore,
+            listOfNames.children.length === 14 ? 115 : 140,
+            listOfNames.children.length === 14 ? totalTime["fourteen names"] : totalTime["eighteen names"],
+            parseInt(remainingTracks.textContent, 10)
+        );
+
+        if (token) {
+            saveStageResult(String(stage.currentStage), payload)
+                .then(() => console.log('Progreso de etapa guardado con éxito'))
+                .catch(err => {
+                    console.error('Error guardando progreso de etapa:', err);
+                    if (err.status === 422 && err.detail) {
+                        console.error('Detalle del error (422):', err.detail);
+                    }
+                });
+        } else {
+            console.log('Usuario no logueado: se omite la persistencia de etapa.');
+        }
+    }
+
+    if (isCareerMode()) {
         let state = checkNumberOfLives()
         if (state === 'Game over') {
             const currentScore = Number.parseInt(currentPoints.textContent, 10) || 0;
@@ -711,7 +752,7 @@ const stage = {
     currentStage: 1
 }
 
-if (region.includes("career-mode")) {
+if (isCareerMode()) {
     buttonNextRegion.addEventListener("click", () => {
         numberOfLives.textContent = ++numberOfLives.textContent
         stage.currentStage = ++stage.currentStage
@@ -720,6 +761,8 @@ if (region.includes("career-mode")) {
         totalTime["eighteen names"] = 140// Reinicia el contador.
         heart.classList.remove("one-heart")
         careerMode(stage.currentStage)
+        resetStage(stage.currentStage)
+        stageStartScore = parseInt(currentPoints.textContent, 10) || 0;
         initialState()
         scoreGlobalContainer.classList.add("score-global-container-hidden")
     })
@@ -925,12 +968,21 @@ function counterDown() {
         }
 
         // Guardar score también cuando pierde por tiempo
-        if (region.includes("career-mode")) {
+        if (isCareerMode()) {
             const score = Number.parseInt(currentPoints.textContent, 10) || 0;
             const finalScoreEl = document.querySelector(".final-score");
             if (finalScoreEl) finalScoreEl.textContent = score;
 
-            saveScore(score)
+            const ctx = getContext();
+            const metadata = {
+                game_duration_seconds: Math.floor((Date.now() - startTime) / 1000),
+                game_mode: ctx.mode,
+                game_region: ctx.region,
+                region_key: getRegionKey(),
+                attempts: parseInt(numberOfLives.textContent, 10)
+            };
+
+            saveScore(score, metadata)
                 .then(() => Promise.all([
                     getGlobalTop(10),
                     getUserBestScore().catch(e => null)
@@ -1061,6 +1113,10 @@ buttonRestart.addEventListener("click", () => {
         careerMode(stage.currentStage)
         currentPoints.textContent = "00"
         numberOfLives.textContent = "15"
+        if (isCareerMode()) {
+            resetStage(stage.currentStage)
+            stageStartScore = 0;
+        }
     }
     initialState()
     dialogFailed.close()
