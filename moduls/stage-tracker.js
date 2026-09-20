@@ -51,7 +51,7 @@ export const recordGroupResult = (flagsCount, correctCount) => {
 /**
  * Build the stage completion payload for persistence.
  * @param {number} stageNumber - Current stage number
- * @param {number} scoreAccumulated - Legacy score (ignored in new system but kept for compatibility)
+ * @param {number} scoreAccumulated - Accumulated score (kept for compatibility)
  * @param {number} timeLimit - Original time limit in seconds
  * @param {number} remainingSeconds - Seconds left on timer
  * @param {number} remainingTracks - Hints remaining (0-2)

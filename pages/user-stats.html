@@ -36,27 +36,56 @@
         <div class="register-container">
             <div id="stats" class="profile-stats-container"
                 style="margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; color: white;">
-                <h3 style="text-align: center; margin-top: 0;">Rendimiento General</h3>
-                <div class="stats-grid"
-                    style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px;">
-                    <div class="stat-item" style="text-align: center;">
-                        <span class="stat-value" id="stat-best-score"
-                            style="display: block; font-size: 1.5rem; font-weight: bold; color: yellow;">-</span>
-                        <span class="stat-label" style="font-size: 0.9rem;">Mejor Score</span>
+                <h3 style="text-align: center; margin-top: 0;">Rendimiento - Modo Carrera</h3>
+                <div id="stats-container" class="stats-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-top: 15px;">
+
+                    <!-- Card A: Highest Stage -->
+                    <div class="stat-card"
+                        style="text-align: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+                        <span class="stat-label"
+                            style="font-size: 0.8rem; opacity: 0.8; display: block; margin-bottom: 5px;">Etapa
+                            Máxima</span>
+                        <span class="stat-value" id="stat-highest-stage"
+                            style="display: block; font-size: 1.2rem; font-weight: bold; color: #4CAF50;">-</span>
                     </div>
-                    <div class="stat-item" style="text-align: center;">
-                        <span class="stat-value" id="stat-global-rank"
-                            style="display: block; font-size: 1.5rem; font-weight: bold;">-</span>
-                        <span class="stat-label" style="font-size: 0.9rem;">Ranking Global</span>
+
+                    <!-- Card B: Max Score -->
+                    <div class="stat-card"
+                        style="text-align: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+                        <span class="stat-label"
+                            style="font-size: 0.8rem; opacity: 0.8; display: block; margin-bottom: 5px;">Mejor
+                            Rating</span>
+                        <span class="stat-value" id="stat-max-score"
+                            style="display: block; font-size: 1.2rem; font-weight: bold; color: yellow;">-</span>
                     </div>
-                    <div class="stat-item" style="text-align: center;">
-                        <span class="stat-value" id="stat-country-rank"
-                            style="display: block; font-size: 1.5rem; font-weight: bold;">-</span>
-                        <span class="stat-label" style="font-size: 0.9rem;">Ranking País</span>
+
+                    <!-- Card C: Last Played -->
+                    <div class="stat-card"
+                        style="text-align: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+                        <span class="stat-label"
+                            style="font-size: 0.8rem; opacity: 0.8; display: block; margin-bottom: 5px;">Última
+                            Partida</span>
+                        <span class="stat-value" id="stat-last-played"
+                            style="display: block; font-size: 0.9rem; font-weight: normal;">-</span>
                     </div>
+
+                    <!-- Card D: Leaderboard Rank -->
+                    <div class="stat-card"
+                        style="text-align: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+                        <span class="stat-label"
+                            style="font-size: 0.8rem; opacity: 0.8; display: block; margin-bottom: 5px;">Ranking
+                            Global</span>
+                        <span class="stat-value" id="stat-leaderboard-rank"
+                            style="display: block; font-size: 1.2rem; font-weight: bold;">-</span>
+                    </div>
+
                 </div>
-                <div style="margin-top: 20px; text-align: center;">
-                    <p style="font-size: 0.8rem; opacity: 0.8;">Más estadísticas detalladas próximamente...</p>
+                <div style="margin-top: 25px; text-align: center;">
+                    <a href="career-mode.html" class="btn-check" id="btn-view-ranking"
+                        style="padding: 8px 20px; font-size: 0.9rem;">Ver ranking</a>
+                    <p style="font-size: 0.75rem; opacity: 0.6; margin-top: 15px;">Estas estadísticas corresponden
+                        exclusivamente al Modo Carrera.</p>
                 </div>
             </div>
             <div id="login-message" style="display: none; text-align: center; margin-top: 10px;">

@@ -42,7 +42,7 @@ const scoreGlobalList = document.getElementById("score-global-list")
 const scoreGlobalContainer = document.querySelector(".score-global-container")
 const correctSfx = document.getElementById("sfx-correct")
 const errorSfx = document.getElementById("sfx-error")
-import { saveScore, getGlobalTop, getUserTop, getCountryTop, getRegionTop, getScoresSummary, getMyPosition, getUserBestScore, saveStageResult } from '../javascript/score.js';
+import { getCareerMe, getCareerMeStats, getCareerLeaderboard, saveStageResult } from '../javascript/score.js';
 import { BASE_API_URL, SHOW_ADS } from "../moduls/api.js";
 import { initAnalytics, track } from "./analytics.js";
 import { getValidToken } from '../moduls/session.js';
@@ -496,7 +496,7 @@ buttonCheck.addEventListener("click", () => {
         } else if (dropFlagCenter.textContent !== nameOfTheFlags["center flag name"] && dropFlagLeft.textContent === nameOfTheFlags["left flag name"] && dropFlagRight.textContent === nameOfTheFlags["right flag name"]) {
             dropFlagCenter.classList.add("flag-drop-area-failed")
             playSfx(errorSfx)
-            dropFlagCenter.setAttribute("data-pointd", "5")
+            dropFlagCenter.setAttribute("data-points", "5")
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-success")
             if (isCareerMode()) {
@@ -508,7 +508,7 @@ buttonCheck.addEventListener("click", () => {
             dropFlagLeft.classList.add("flag-drop-area-failed")
             dropFlagRight.classList.add("flag-drop-area-success")
             playSfx(errorSfx)
-            dropFlagLeft.setAttribute("data-pointd", "5")
+            dropFlagLeft.setAttribute("data-points", "5")
             if (isCareerMode()) {
                 checkNumberOfCurrentLives()
                 recordGroupError()
@@ -518,7 +518,7 @@ buttonCheck.addEventListener("click", () => {
             dropFlagLeft.classList.add("flag-drop-area-success")
             dropFlagRight.classList.add("flag-drop-area-failed")
             playSfx(errorSfx)
-            dropFlagRight.setAttribute("data-pointd", "5")
+            dropFlagRight.setAttribute("data-points", "5")
             if (isCareerMode()) {
                 checkNumberOfCurrentLives()
                 recordGroupError()
@@ -615,43 +615,29 @@ buttonCheck.addEventListener("click", () => {
                 return;
             }
 
-            const ctx = getContext();
-            const attempts = parseInt(numberOfLives.textContent, 10);
+            // Las etapas se persisten individualmente mediante saveStageResult.
+            // Al finalizar sólo refrescamos el resumen y el ranking; el endpoint
+            // legacy /career/match ya no forma parte del contrato del backend.
+            Promise.all([
+                    getCareerLeaderboard({ limit: 10 }),
+                    getCareerMe().catch(() => null)
+                ])
+                .then(([leaderboardData, careerData]) => {
+                    displayScores(leaderboardData.items, 'global', false)
 
-            // Calculate Duration
-            const endTime = Date.now();
-            const durationSeconds = Math.floor((endTime - startTime) / 1000);
-
-            // Prepare Metadata
-            const metadata = {
-                game_duration_seconds: durationSeconds,
-                game_mode: ctx.mode,
-                game_region: ctx.region,
-                region_key: getRegionKeyFromLocation(location.href),
-                attempts: attempts
-            };
-
-            saveScore(currentScore, metadata)
-                .then(() => Promise.all([
-                    getGlobalTop(10),
-                    getUserBestScore().catch(e => null)
-                ]))
-                .then(([globalData, bestScoreData]) => {
-                    displayScores(globalData, 'global', false)
-
-                    // Update Modal Best Score
+                    // Update Modal Best Rating
                     const bestScoreEl = document.querySelector(".best-score");
 
                     if (bestScoreEl) {
-                        if (bestScoreData && bestScoreData.max_score !== undefined) {
-                            bestScoreEl.textContent = bestScoreData.max_score;
+                        if (careerData && careerData.total_score !== undefined) {
+                            bestScoreEl.textContent = careerData.total_score;
                         } else {
-                            bestScoreEl.textContent = "Ver tabla";
+                            bestScoreEl.textContent = "-";
                         }
                     }
                 })
                 .catch(err => {
-                    console.error('Error saving score:', err);
+                    console.error('Error refreshing career ranking:', err);
                     const dialogFailed = document.querySelector('.dialog-failed');
 
                     if (err.status === 401) {
@@ -973,36 +959,26 @@ function counterDown() {
             const finalScoreEl = document.querySelector(".final-score");
             if (finalScoreEl) finalScoreEl.textContent = score;
 
-            const ctx = getContext();
-            const metadata = {
-                game_duration_seconds: Math.floor((Date.now() - startTime) / 1000),
-                game_mode: ctx.mode,
-                game_region: ctx.region,
-                region_key: getRegionKey(),
-                attempts: parseInt(numberOfLives.textContent, 10)
-            };
+            Promise.all([
+                    getCareerLeaderboard({ limit: 10 }),
+                    getCareerMe().catch(() => null)
+                ])
+                .then(([leaderboardData, careerData]) => {
+                    displayScores(leaderboardData.items, 'global', false);
 
-            saveScore(score, metadata)
-                .then(() => Promise.all([
-                    getGlobalTop(10),
-                    getUserBestScore().catch(e => null)
-                ]))
-                .then(([globalData, bestScoreData]) => {
-                    displayScores(globalData, 'global', false);
-
-                    // Update Modal Best Score
+                    // Update Modal Best Rating
                     const bestScoreEl = document.querySelector(".best-score");
 
                     if (bestScoreEl) {
-                        if (bestScoreData && bestScoreData.max_score !== undefined) {
-                            bestScoreEl.textContent = bestScoreData.max_score;
+                        if (careerData && careerData.total_score !== undefined) {
+                            bestScoreEl.textContent = careerData.total_score;
                         } else {
-                            bestScoreEl.textContent = "Ver tabla";
+                            bestScoreEl.textContent = "-";
                         }
                     }
                 })
                 .catch(err => {
-                    console.error('Error guardando score por tiempo agotado:', err);
+                    console.error('Error refrescando ranking por tiempo agotado:', err);
                     if (err.status === 401) {
                         const dialogFailed = document.querySelector('.dialog-failed');
                         if (!dialogFailed.querySelector('.session-expired-msg')) {
@@ -1234,60 +1210,62 @@ const setupLeaderboardTabs = () => {
     }
 };
 
-const loadLeaderboard = (scope) => {
+const loadLeaderboard = (scope = 'global') => {
     clearScores();
-    scoreGlobalList.innerHTML = '<div style="text-align:center; padding: 20px;">Cargando...</div>';
+    scoreGlobalList.innerHTML = '<div class="leaderboard-status">Cargando ranking...</div>';
 
-    // Check login for restricted scopes
-    const token = getValidToken();
-    if ((scope === 'country' || scope === 'user') && !token) {
-        scoreGlobalList.innerHTML = '<div style="text-align:center; padding: 20px;">Inicia sesión para ver esto. <br><a href="../pages/user-login.html" style="color: yellow; text-decoration: underline;">Login</a></div>';
-        updateMyPositionFooter(null);
+    let options = { limit: 10 };
+
+    // Si el scope es country, necesitamos el código de país del usuario
+    if (scope === 'country') {
+        authenticatedFetch('/users/me')
+            .then(response => {
+                if (!response.ok) throw new Error('No se pudo obtener el perfil');
+                return response.json();
+            })
+            .then(user => {
+                if (user.country) {
+                    options.country = user.country;
+                    return getCareerLeaderboard(options);
+                } else {
+                    throw new Error('No se encontró código de país para el usuario');
+                }
+            })
+            .then(data => handleLeaderboardResponse(data))
+            .catch(err => handleLeaderboardError(err));
         return;
     }
 
-    let promise;
-    const ctx = getContext();
-    const regionKey = getRegionKeyFromLocation(location.href);
-
-    if (scope === 'global') {
-        promise = getGlobalTop(10);
-    } else if (scope === 'country') {
-        // We need user country code, assuming it's in localStorage or we fetch 'me'
-        // For now, let's try to get it from profile or summary if we have it.
-        // Or simpler: getScoresSummary returns everything we might need, or we call getUserTop?
-        // Actually getCountryTop needs countryCode. 
-        // Let's use getScoresSummary which returns everything? No, it returns user's rank.
-        // We probably need to fetch user profile first to get country code if not stored.
-        // Let's fallback to getScoresSummary if we don't have country code easily?
-        // Or better: The backend usually handles "my country" if we pass a specific flag or we fetch user info first.
-        // The current score.js has `getCountryTop(countryCode)`.
-        // Let's try to fetch user Country info from localStorage if available (set during login).
-        // If not, we might fail or need to fetch /users/me. 
-        // Optimization: Let's assume we can fetch /users/me or check localStorage.
-        promise = authenticatedFetch('/users/me').then(r => r.json()).then(u => getCountryTop(u.country_code || 'US', 10)); // Default fallback
-    } else if (scope === 'region') {
-        // region is from context or URL
-        // getRegionTop(regionName)
-        // Our backend expects strict region names maybe? 'america', 'europe'?
-        // `ctx.region` is URL. `regionKey` is 'america'.
-        promise = getRegionTop(regionKey, 10);
-    } else if (scope === 'user') {
-        promise = authenticatedFetch('/users/me').then(r => r.json()).then(u => getUserTop(u.id, 10));
-    }
-
-    promise
-        .then(data => {
-            displayScores(data, scope, false); // false = don't toggle container visibility here
-            updateMyPositionFooter(scope);
-        })
-        .catch(err => {
-            console.error('Leaderboard error:', err);
-            scoreGlobalList.innerHTML = '<div style="text-align:center; padding: 20px;">Error al cargar.</div>';
-        });
+    getCareerLeaderboard(options)
+        .then(data => handleLeaderboardResponse(data))
+        .catch(err => handleLeaderboardError(err));
 };
 
-const updateMyPositionFooter = (scope) => {
+const handleLeaderboardResponse = (data) => {
+    const scores = data?.items || [];
+    if (scores.length === 0) {
+        scoreGlobalList.innerHTML = '<div class="leaderboard-status">Aún no hay jugadores en el ranking.</div>';
+    } else {
+        displayScores(scores, 'global', false);
+    }
+    updateMyPositionFooter();
+};
+
+const handleLeaderboardError = (err) => {
+    console.error('Leaderboard error:', err);
+    scoreGlobalList.innerHTML = `
+        <div class="leaderboard-status error">
+            Error al cargar el ranking.
+            <button class="btn-retry-leaderboard" style="display:block; margin: 10px auto; padding: 5px 10px; cursor:pointer;">Reintentar</button>
+        </div>`;
+
+    const btnRetry = scoreGlobalList.querySelector('.btn-retry-leaderboard');
+    if (btnRetry) {
+        btnRetry.onclick = () => loadLeaderboard();
+    }
+};
+
+const updateMyPositionFooter = () => {
     const footer = document.querySelector('.leaderboard-footer');
     if (!footer) return;
 
@@ -1297,33 +1275,17 @@ const updateMyPositionFooter = (scope) => {
         return;
     }
 
-    // Determine correct scope and region for the API call
-    let apiScope = scope;
-    let apiRegion = null;
-
-    if (scope === 'user') {
-        // "My Best" tab -> Usually we just want to show My Best Score globally or just hide rank?
-        // User asked for "My Position" in tabs.
-        // If I am in "My Best", maybe I want to see my Global Rank?
-        // Let's standard to Global for now, or just show "Your Best".
-        apiScope = 'global';
-    } else if (scope === 'region') {
-        const regionKey = getRegionKeyFromLocation(location.href);
-        apiRegion = regionKey;
-    }
-
-    getMyPosition({ scope: apiScope, region: apiRegion })
+    getCareerMe()
         .then(data => {
-            // data format: { rank, max_score, total_players, region, scope }
             const rank = data.rank || '-';
-            const score = data.max_score || '-';
+            const score = data.total_score ?? '-';
 
             footer.querySelector('.my-position-text').textContent = `Tu posición: #${rank}`;
-            footer.querySelector('.my-best-score').textContent = `Mejor: ${score}`;
+            footer.querySelector('.my-best-score').textContent = `Rating: ${score}`;
             footer.classList.remove('hidden');
         })
         .catch(e => {
-            console.error('Error fetching position:', e);
+            console.error('Error fetching career position:', e);
             footer.classList.add('hidden');
         });
 };
@@ -1345,14 +1307,12 @@ const displayScores = (scores, type, showContainer = true) => {
         const scoreGlobalItem = document.createElement('div');
         scoreGlobalItem.className = 'score-global-item';
 
-        const imgSrc = score.has_profile_image
-            ? `${BASE_API_URL}/users/${score.user_id}/profile-image`
-            : defaultImg;
+        const imgSrc = score.avatar_url ? `${BASE_API_URL}${score.avatar_url}` : defaultImg;
 
         // Position
         const spanPos = document.createElement('span');
         spanPos.className = 'score-global-item-position';
-        spanPos.textContent = index + 1;
+        spanPos.textContent = score.rank || index + 1;
 
         // Image
         const img = document.createElement('img');
@@ -1367,12 +1327,12 @@ const displayScores = (scores, type, showContainer = true) => {
         // Name (XSS Protected)
         const spanName = document.createElement('span');
         spanName.className = 'score-global-item-name';
-        spanName.textContent = score.username;
+        spanName.textContent = score.display_name || score.username;
 
-        // Score
+        // Score (Rating in career mode)
         const spanScore = document.createElement('span');
         spanScore.className = 'score-global-item-score';
-        spanScore.textContent = score.max_score;
+        spanScore.textContent = score.total_score ?? score.score ?? 0;
 
         scoreGlobalItem.appendChild(spanPos);
         scoreGlobalItem.appendChild(img);
@@ -1400,48 +1360,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 /**
- * Función de utilidad para mostrar el ranking global
+ * Función de utilidad para mostrar el ranking global de carrera
  */
 const showGlobalRanking = () => {
-    getGlobalTop(10).then(data => {
-        displayScores(data, 'global');
-    }).catch(error => {
-        console.error('Error obteniendo ranking global:', error);
-    });
+    loadLeaderboard('global');
 };
 
-/**
- * Función de utilidad para mostrar el ranking del usuario actual
- */
-const showUserRanking = (userId) => {
-    getUserTop(userId, 10).then(data => {
-        displayScores(data, 'user');
-    }).catch(error => {
-        console.error('Error obteniendo ranking del usuario:', error);
-    });
-};
+/* Ranking legacy eliminado */
 
-/**
- * Función de utilidad para mostrar el ranking de un país específico
- */
-const showCountryRanking = (countryCode) => {
-    getCountryTop(countryCode, 10).then(data => {
-        displayScores(data, 'country');
-    }).catch(error => {
-        console.error('Error obteniendo ranking del país:', error);
-    });
-};
 
-/**
- * Función de utilidad para mostrar el ranking de una región específica
- */
-const showRegionRanking = (region) => {
-    getRegionTop(region, 10).then(data => {
-        displayScores(data, 'region');
-    }).catch(error => {
-        console.error('Error obteniendo ranking de la región:', error);
-    });
-};
+
+
 
 /* Listener para mostrar Leaderboard desde Game Over Modal */
 const btnShowLeaderboard = document.querySelector(".btn-show-leaderboard");

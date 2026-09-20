@@ -23,3 +23,7 @@ Aplicación web **interactiva** y **didáctica** donde pondrá a prueba su conoc
 [Twitter](https://twitter.com/Enmanue78366929/ "twitter")
 
 [Linkedin](https://www.linkedin.com/in/enmanuel-otero-montano// "linkedin")
+
+## Nueva versión Android
+
+El rediseño móvil publicable está en [`mobile/`](mobile/README.md). Incluye juego offline, desafío diario, Viaje contrarreloj con 12 etapas de asociación más una Expedición global, progreso persistente, anuncios recompensados, opción Pro y un proyecto nativo de Android con Capacitor.
