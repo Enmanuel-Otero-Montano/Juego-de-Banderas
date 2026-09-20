@@ -1,5 +1,6 @@
 import type { AnswerRecord, Country, GameConfig, PlayerProfile, Question, QuestionKind, SessionReward } from './types';
 import { calculateScore } from './rules';
+import { initialProfile, MAX_CAMPAIGN_HEARTS } from './storage';
 
 export const isoDate = (date = new Date()): string => {
   const year = date.getFullYear();
@@ -111,8 +112,10 @@ export const completeSession = (
   if (config.mode === 'daily' && !dailyResults[today]) dailyResults[today] = { correct, total: answers.length };
 
   const score = calculateScore(answers, secondsRemaining);
-  const campaignHearts = config.mode === 'career' && accuracy >= 0.7
-    ? Math.min(15, profile.campaignHearts + 1)
+  const campaignHearts = config.mode === 'career'
+    ? accuracy >= 0.7
+      ? Math.min(MAX_CAMPAIGN_HEARTS, profile.campaignHearts + 1)
+      : MAX_CAMPAIGN_HEARTS
     : profile.campaignHearts;
 
   return {

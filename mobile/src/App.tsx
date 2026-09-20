@@ -78,6 +78,8 @@ type GameResult = { reward: SessionReward; records: AnswerRecord[]; config: Game
 
 const regions: RegionKey[] = ['Americas', 'Europe', 'Asia', 'Africa', 'Oceania'];
 const today = isoDate();
+const JOURNEY_FEEDBACK_MS = 750;
+const startingJourneyHearts = (hearts: number) => (hearts > 0 ? hearts : initialProfile.campaignHearts);
 
 const playFeedback = (success: boolean, soundEnabled: boolean, hapticsEnabled: boolean) => {
   if (hapticsEnabled && Capacitor.isNativePlatform()) {
@@ -375,10 +377,11 @@ function CareerScreen({ profile, startGame, onChooseOrigin, onChooseRoute, onLea
   );
 }
 
-function JourneyGameScreen({ config, profile, setProfile, onExit, onComplete }: {
+function JourneyGameScreen({ config, profile, setProfile, paused, onExit, onComplete }: {
   config: GameConfig;
   profile: PlayerProfile;
   setProfile: (profile: PlayerProfile) => void;
+  paused?: boolean;
   onExit: () => void;
   onComplete: (reward: SessionReward, records: AnswerRecord[], config: GameConfig) => void;
 }) {
@@ -400,8 +403,8 @@ function JourneyGameScreen({ config, profile, setProfile, onExit, onComplete }: 
   const [groupIndex, setGroupIndex] = useState(0);
   const [selectedName, setSelectedName] = useState<string | null>(null);
   const [resolved, setResolved] = useState<Set<string>>(() => new Set());
-  const [lives, setLives] = useState(profile.campaignHearts);
-  const [feedback, setFeedback] = useState<{ correct: boolean; name: string } | null>(null);
+  const [lives, setLives] = useState(() => startingJourneyHearts(profile.campaignHearts));
+  const [feedback, setFeedback] = useState<{ correct: boolean; flagCode: string } | null>(null);
   const [hintFor, setHintFor] = useState<string | null>(null);
   const [hintCandidates, setHintCandidates] = useState<string[]>([]);
   const [adLoading, setAdLoading] = useState(false);
@@ -412,7 +415,7 @@ function JourneyGameScreen({ config, profile, setProfile, onExit, onComplete }: 
   const hintedRef = useRef<Set<string>>(new Set());
   const wrongAttemptsRef = useRef<globalThis.Map<string, number>>(new globalThis.Map());
   const selectedCodesRef = useRef<globalThis.Map<string, string[]>>(new globalThis.Map());
-  const livesRef = useRef(profile.campaignHearts);
+  const livesRef = useRef(startingJourneyHearts(profile.campaignHearts));
   const [stageHintsUsed, setStageHintsUsed] = useState(0);
   const doneRef = useRef(false);
   const currentGroup = groups[groupIndex] || [];
@@ -436,6 +439,7 @@ function JourneyGameScreen({ config, profile, setProfile, onExit, onComplete }: 
   };
 
   useEffect(() => {
+    if (paused) return;
     const updateTimer = () => {
       const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
       setTimeLeft(remaining);
@@ -446,19 +450,17 @@ function JourneyGameScreen({ config, profile, setProfile, onExit, onComplete }: 
     return () => window.clearInterval(timer);
     // The fixed deadline deliberately survives backgrounding and screen locks.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deadline]);
+  }, [deadline, paused]);
 
   const chooseFlag = (country: Country) => {
     if (!selectedName || feedback || resolved.has(country.code)) return;
     const correct = selectedName === country.code;
-    const chosenCountry = stageCountries.find((item) => item.code === selectedName);
-    const chosenName = chosenCountry ? getCountryName(chosenCountry, language) : '';
     playFeedback(correct, profile.soundEnabled, profile.hapticsEnabled);
     selectedCodesRef.current.set(country.code, [
       ...(selectedCodesRef.current.get(country.code) || []),
       selectedName,
     ]);
-    setFeedback({ correct, name: chosenName });
+    setFeedback({ correct, flagCode: country.code });
 
     if (!correct) {
       const nextLives = Math.max(0, lives - 1);
@@ -469,7 +471,7 @@ function JourneyGameScreen({ config, profile, setProfile, onExit, onComplete }: 
       window.setTimeout(() => {
         setFeedback(null);
         if (nextLives === 0) finishJourney();
-      }, 520);
+      }, JOURNEY_FEEDBACK_MS);
       return;
     }
 
@@ -486,7 +488,7 @@ function JourneyGameScreen({ config, profile, setProfile, onExit, onComplete }: 
       if (!groupComplete) return;
       if (nextResolved.size === stageCountries.length) finishJourney();
       else setGroupIndex((current) => Math.min(current + 1, groups.length - 1));
-    }, 520);
+    }, JOURNEY_FEEDBACK_MS);
   };
 
   const revealHint = () => {
@@ -543,7 +545,7 @@ function JourneyGameScreen({ config, profile, setProfile, onExit, onComplete }: 
                 return (
                   <button
                     key={country.code}
-                    className={`${hintFor === country.code ? 'hinted' : ''} ${isResolved ? 'resolved' : ''}`}
+                    className={`${hintFor === country.code ? 'hinted' : ''} ${isResolved ? 'resolved' : ''} ${feedback?.flagCode === country.code ? (feedback.correct ? 'correct' : 'wrong') : ''}`}
                     onClick={() => chooseFlag(country)}
                     disabled={isResolved || !selectedName || Boolean(feedback)}
                     aria-label={isResolved ? t('journey.flagResolved', { country: getCountryName(country, language) }) : t('journey.selectFlag', { country: getCountryName(country, language) })}
@@ -554,7 +556,7 @@ function JourneyGameScreen({ config, profile, setProfile, onExit, onComplete }: 
                 );
               })}
         </div>
-        {feedback && <div className={`journey-feedback ${feedback.correct ? 'correct' : 'wrong'}`}>{feedback.correct ? <><Check /> {t('journey.correct')}</> : <><X /> {t('journey.notCountry', { country: feedback.name })}</>}</div>}
+        {feedback && <div className={`journey-feedback ${feedback.correct ? 'correct' : 'wrong'}`}>{feedback.correct ? <><Check /> {t('journey.correct')}</> : <><X /> {t('journey.incorrect')}</>}</div>}
       </section>
 
       <section className="journey-names" aria-label={t('journey.countryNames')}>
@@ -712,7 +714,7 @@ function GameScreen({ config, profile, setProfile, onExit, onComplete }: {
         </div>
       ) : (
         <section className={`feedback-card ${isCorrect ? 'feedback-card--correct' : 'feedback-card--wrong'}`}>
-          <div className="feedback-card__title"><span>{isCorrect ? <Check /> : <X />}</span><div><strong>{isCorrect ? t('game.excellent') : t('game.was', { country: getCountryName(question.answer, language) })}</strong><small>{getCapitalName(question.answer, language)} · {formatPopulation(question.answer.population, language)}{question.answer.population > 0 ? ` ${t('game.inhabitants')}` : ''}</small></div></div>
+          <div className="feedback-card__title"><span>{isCorrect ? <Check /> : <X />}</span><div><strong>{isCorrect ? t('game.excellent') : t('game.was', { country: getCountryName(question.answer, language) })}</strong><small>{question.kind === 'capital-to-flag' ? t('game.capitalOf', { capital: getCapitalName(question.answer, language), country: getCountryName(question.answer, language) }) : getCapitalName(question.answer, language)} · {formatPopulation(question.answer.population, language)}{question.answer.population > 0 ? ` ${t('game.inhabitants')}` : ''}</small></div></div>
           <button className="primary-button" onClick={next}>{index >= questions.length - 1 || lives === 0 ? t('game.showResult') : t('common.continue')} <ChevronRight /></button>
         </section>
       )}
@@ -1221,10 +1223,12 @@ export default function App() {
       {screen === 'privacy' && <PrivacyScreen onBack={() => setScreen('settings')} />}
       {screen === 'leaderboard' && <LeaderboardScreen profile={profile} onBack={() => setScreen('home')} onAccount={() => setScreen('account')} />}
       {screen === 'account' && <AccountScreen profile={profile} onBack={() => setScreen('settings')} onConnected={connectRanking} />}
-      {screen === 'game' && gameConfig && !result && (
-        gameConfig.mode === 'career'
-          ? <JourneyGameScreen config={gameConfig} profile={profile} setProfile={setProfile} onExit={() => { setGameConfig(null); setScreen('career'); }} onComplete={(reward, records, config) => { void completeCareer(reward, records, config); }} />
-          : <GameScreen config={gameConfig} profile={profile} setProfile={setProfile} onExit={() => { setGameConfig(null); setScreen('home'); }} onComplete={(reward, records, config) => setResult({ reward, records, config })} />
+      {screen === 'game' && gameConfig && (
+        <div className={result ? 'game-under-result' : undefined} aria-hidden={Boolean(result)}>
+          {gameConfig.mode === 'career'
+            ? <JourneyGameScreen config={gameConfig} profile={profile} setProfile={setProfile} paused={Boolean(result)} onExit={() => { setGameConfig(null); setScreen('career'); }} onComplete={(reward, records, config) => { void completeCareer(reward, records, config); }} />
+            : <GameScreen config={gameConfig} profile={profile} setProfile={setProfile} onExit={() => { setGameConfig(null); setScreen('home'); }} onComplete={(reward, records, config) => setResult({ reward, records, config })} />}
+        </div>
       )}
       {regularScreen && !['store', 'settings', 'origin', 'privacy', 'account'].includes(screen) && <BottomNav screen={screen} setScreen={setScreen} />}
       {result && <ResultsModal {...result} onClose={closeResults} onReplay={replay} />}
