@@ -15,6 +15,7 @@ import {
   Globe2,
   Heart,
   Home,
+  CircleHelp,
   Lightbulb,
   Lock,
   Map,
@@ -293,6 +294,7 @@ function CareerScreen({ profile, startGame, onChooseOrigin, onChooseRoute, onLea
 }) {
   const { t, language, locale } = useI18n();
   const [difficulty, setDifficulty] = useState<Difficulty>('normal');
+  const [showScoringHelp, setShowScoringHelp] = useState(false);
   const rule = difficultyRules[difficulty];
   const homeCountry = countries.find((country) => country.code === profile.homeCountryCode);
   const route = getJourneyRoute(profile);
@@ -314,7 +316,8 @@ function CareerScreen({ profile, startGame, onChooseOrigin, onChooseRoute, onLea
 
   return (
     <main className="screen career-screen">
-      <div className="journey-hero"><p className="eyebrow">{t('career.from', { country: getCountryName(homeCountry, language).toLocaleUpperCase(locale) })}</p><h1>{t('career.routeTitle')}</h1><p>{t('career.routeSubtitle')}</p><button className="text-button journey-ranking-link" onClick={onLeaderboard}><Trophy /> {t('career.ranking')}</button></div>
+      <div className="journey-hero"><p className="eyebrow">{t('career.from', { country: getCountryName(homeCountry, language).toLocaleUpperCase(locale) })}</p><h1>{t('career.routeTitle')}</h1><p>{t('career.routeSubtitle')}</p><div className="journey-hero-links"><button className="text-button journey-ranking-link" onClick={onLeaderboard}><Trophy /> {t('career.ranking')}</button><button className="text-button journey-ranking-link" onClick={() => setShowScoringHelp(true)}><CircleHelp /> {t('scoring.open')}</button></div></div>
+      {showScoringHelp && <ScoringHelpModal onClose={() => setShowScoringHelp(false)} />}
       <DifficultySelector value={difficulty} onChange={setDifficulty} />
       <div className="journey-path">
         {routeWithFinal.map((baseStageId, index) => {
@@ -737,6 +740,7 @@ function ResultsModal({ reward, records, config, rankingStatus, onClose, onRepla
   onReplay: () => void;
 }) {
   const { t } = useI18n();
+  const [showScoringHelp, setShowScoringHelp] = useState(false);
   const accuracy = Math.round((reward.correct / reward.total) * 100);
   const showCompetitiveScore = config.mode === 'career';
   const roundCleared = config.mode === 'career'
@@ -762,11 +766,17 @@ function ResultsModal({ reward, records, config, rankingStatus, onClose, onRepla
         </div>
         <div className="result-tiles">{records.map((answer, index) => <span key={index} className={answer.correct ? 'correct' : 'wrong'} />)}</div>
         {showCompetitiveScore && (
-          <div className="score-breakdown" aria-label={t('results.breakdown')}>
-            <span>{t('results.flags')} <strong>{reward.baseScore}</strong></span>
-            <span>{t('results.time')} <strong>+{reward.timeBonus}</strong></span>
-            {reward.cleanBonus > 0 && <span>{t('results.cleanRoute')} <strong>+{reward.cleanBonus}</strong></span>}
-            <span>{t('results.hintsErrors', { hints: reward.hintsUsed, errors: reward.mistakes })}</span>
+          <div className="score-breakdown">
+            <button type="button" className="score-breakdown__help" onClick={() => setShowScoringHelp(true)} aria-label={t('scoring.open')}>
+              <span>{t('results.breakdown')}</span>
+              <CircleHelp />
+            </button>
+            <div className="score-breakdown__rows" aria-label={t('results.breakdown')}>
+              <span>{t('results.flags')} <strong>{reward.baseScore}</strong></span>
+              <span>{t('results.time')} <strong>+{reward.timeBonus}</strong></span>
+              {reward.cleanBonus > 0 && <span>{t('results.cleanRoute')} <strong>+{reward.cleanBonus}</strong></span>}
+              <span>{t('results.hintsErrors', { hints: reward.hintsUsed, errors: reward.mistakes })}</span>
+            </div>
           </div>
         )}
         <div className="reward-row"><span><Zap /> +{reward.xp} XP</span><span><CircleDollarSign /> +{reward.coins}</span>{reward.newStageUnlocked && <span><Lock /> {t('results.newStage')}</span>}</div>
@@ -774,6 +784,7 @@ function ResultsModal({ reward, records, config, rankingStatus, onClose, onRepla
         <button className="primary-button" onClick={onClose}>{t('results.backMap')}</button>
         <div className="result-secondary"><button onClick={onReplay}><RotateCcw /> {t('results.replay')}</button><button onClick={share}><Share2 /> {t('results.share')}</button></div>
       </section>
+      {showScoringHelp && <ScoringHelpModal onClose={() => setShowScoringHelp(false)} />}
     </div>
   );
 }
@@ -785,6 +796,7 @@ function LeaderboardScreen({ profile, onBack, onAccount }: { profile: PlayerProf
   const [items, setItems] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showScoringHelp, setShowScoringHelp] = useState(false);
   const homeCountry = countries.find((country) => country.code === profile.homeCountryCode);
   const entryCountryName = (code: string | null) => {
     const country = countries.find((item) => item.code === code);
@@ -810,6 +822,7 @@ function LeaderboardScreen({ profile, onBack, onAccount }: { profile: PlayerProf
   return (
     <main className="screen leaderboard-screen">
       <SectionHeader title={t('leaderboard.title')} subtitle={t('leaderboard.subtitle')} onBack={onBack} />
+      <button type="button" className="text-button scoring-help-link" onClick={() => setShowScoringHelp(true)}><CircleHelp /> {t('scoring.open')}</button>
       <DifficultySelector value={difficulty} onChange={setDifficulty} />
       <div className="ranking-scopes">
         <button className={scope === 'world' ? 'active' : ''} onClick={() => setScope('world')}>{t('leaderboard.world')}</button>
@@ -829,6 +842,7 @@ function LeaderboardScreen({ profile, onBack, onAccount }: { profile: PlayerProf
           </article>
         ))}
       </section>
+      {showScoringHelp && <ScoringHelpModal onClose={() => setShowScoringHelp(false)} />}
     </main>
   );
 }
@@ -1052,6 +1066,25 @@ function PrivacyScreen({ onBack }: { onBack: () => void }) {
         <p>{t('privacy.age')}</p>
       </section>
     </main>
+  );
+}
+
+function ScoringHelpModal({ onClose }: { onClose: () => void }) {
+  const { t } = useI18n();
+  return (
+    <div className="modal-backdrop scoring-help-backdrop" onClick={onClose}>
+      <section className="app-dialog scoring-help-modal" role="dialog" aria-modal="true" aria-labelledby="scoring-help-title" onClick={(event) => event.stopPropagation()}>
+        <h2 id="scoring-help-title">{t('scoring.title')}</h2>
+        <p>{t('scoring.subtitle')}</p>
+        <ul className="scoring-help-list">
+          <li><strong>{t('scoring.flagsTitle')}</strong> {t('scoring.flags')}</li>
+          <li><strong>{t('scoring.timeTitle')}</strong> {t('scoring.time')}</li>
+          <li><strong>{t('scoring.cleanTitle')}</strong> {t('scoring.clean')}</li>
+          <li><strong>{t('scoring.passTitle')}</strong> {t('scoring.pass')}</li>
+        </ul>
+        <button className="primary-button" onClick={onClose}>{t('common.ok')}</button>
+      </section>
+    </div>
   );
 }
 

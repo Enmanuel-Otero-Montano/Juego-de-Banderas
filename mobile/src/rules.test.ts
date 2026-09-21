@@ -10,12 +10,19 @@ describe('puntuación explicable', () => {
   });
 
   it('mantiene el tiempo como bonus pequeño y visible', () => {
-    const score = calculateScore([
+    const answers = [
       { correct: true, usedHint: false, wrongAttempts: 0 },
       { correct: true, usedHint: false, wrongAttempts: 1 },
       { correct: true, usedHint: true, wrongAttempts: 0 },
-    ], 76);
-    expect(score).toMatchObject({ baseScore: 17, timeBonus: 5, cleanBonus: 0, score: 22, hintsUsed: 1, mistakes: 1 });
+    ];
+    expect(calculateScore(answers, 16).timeBonus).toBe(1);
+    expect(calculateScore(answers, 28).timeBonus).toBe(2);
+    expect(calculateScore(answers, 50).timeBonus).toBe(5);
+    expect(calculateScore(answers, 70).timeBonus).toBe(7);
+    expect(calculateScore(answers, 80).timeBonus).toBe(8);
+    expect(calculateScore(answers, 90).timeBonus).toBe(9);
+    expect(calculateScore(answers, 100).timeBonus).toBe(10);
+    expect(calculateScore(answers, 76)).toMatchObject({ baseScore: 17, timeBonus: 7, cleanBonus: 0, score: 24, hintsUsed: 1, mistakes: 1 });
   });
 
   it('otorga ruta limpia solo sin pistas ni errores', () => {
