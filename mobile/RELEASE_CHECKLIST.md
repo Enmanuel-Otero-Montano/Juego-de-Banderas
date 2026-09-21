@@ -50,6 +50,7 @@
 
 ### Formularios, pruebas y envío
 
+- [ ] Revisar la puntuación con `docs/REVISAR_PUNTUACION.md` (qué entra al ranking, wizard de derrota y consistencia del puntaje publicado).
 - [ ] Completar Seguridad de los datos usando `DATA_SAFETY.md`, declaraciones de anuncios/compras, acceso a la app, clasificación de contenido y público objetivo.
 - [ ] Revisar y subir la ficha de `PLAY_STORE_LISTING.md`, icono, gráfico de funciones y las capturas de `play-assets/screenshots/`.
 - [ ] Generar el bundle firmado con `npm run android:bundle` y conservar el `.aab` y el mapping de R8.

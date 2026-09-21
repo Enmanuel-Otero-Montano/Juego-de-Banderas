@@ -2,6 +2,7 @@ import type { PlayerProfile } from './types';
 
 const STORAGE_KEY = 'atlas-flags-profile-v1';
 export const PROFILE_SCHEMA_VERSION = 2;
+export const MAX_CAMPAIGN_HEARTS = 15;
 
 export const initialProfile: PlayerProfile = {
   schemaVersion: PROFILE_SCHEMA_VERSION,
@@ -22,7 +23,7 @@ export const initialProfile: PlayerProfile = {
   isPremium: false,
   soundEnabled: true,
   hapticsEnabled: true,
-  campaignHearts: 15,
+  campaignHearts: MAX_CAMPAIGN_HEARTS,
   displayName: null,
   rankedProfileReady: false,
 };
@@ -66,7 +67,7 @@ export const migrateProfile = (stored: unknown): PlayerProfile => {
     journeyRoute: numericArray(value.journeyRoute, 1, 11),
     masteredCountries: value.masteredCountries && typeof value.masteredCountries === 'object' ? value.masteredCountries : {},
     dailyResults: value.dailyResults && typeof value.dailyResults === 'object' ? value.dailyResults : {},
-    campaignHearts: Math.min(15, Math.max(0, finiteNumber(value.campaignHearts, initialProfile.campaignHearts))),
+    campaignHearts: Math.min(MAX_CAMPAIGN_HEARTS, Math.max(0, finiteNumber(value.campaignHearts, initialProfile.campaignHearts))),
   };
 };
 

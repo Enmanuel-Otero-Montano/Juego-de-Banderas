@@ -74,6 +74,14 @@ describe('progreso', () => {
     expect(result.reward.newStageUnlocked).toBe(true);
   });
 
+  it('restablece los corazones al fallar una etapa de viaje', () => {
+    const config: GameConfig = { ...dailyConfig, mode: 'career', stageId: 1, seed: undefined, questionCount: 10 };
+    const failed = records.map((record, index) => ({ ...record, correct: index < 2 }));
+    const result = completeSession({ ...initialProfile, campaignHearts: 0 }, config, failed, '2026-09-11');
+    expect(result.profile.campaignHearts).toBe(15);
+    expect(result.profile.unlockedStage).toBe(1);
+  });
+
   it('no permite repetir la recompensa diaria', () => {
     const first = completeSession({ ...initialProfile }, dailyConfig, records.slice(0, 7), '2026-09-11');
     const second = completeSession(first.profile, dailyConfig, records.slice(0, 7), '2026-09-11');
