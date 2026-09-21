@@ -1,6 +1,18 @@
+import { spawnSync } from 'node:child_process';
 import { mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { chromium } from 'playwright-core';
+
+function ensureRgbaPng(filePath) {
+  const result = spawnSync('python3', ['-c', `
+from PIL import Image
+im = Image.open(${JSON.stringify(filePath)}).convert("RGBA")
+im.save(${JSON.stringify(filePath)}, "PNG")
+`], { encoding: 'utf8' });
+  if (result.status !== 0) {
+    throw new Error(result.stderr?.trim() || 'No se pudo convertir el icono a PNG RGBA');
+  }
+}
 
 const chromePath = process.env.CHROME_PATH || '/usr/bin/google-chrome';
 const outputDir = path.resolve('play-assets');
@@ -24,7 +36,9 @@ try {
     <style>*{box-sizing:border-box}html,body{margin:0;width:512px;height:512px;overflow:hidden;background:transparent}img{width:512px;height:512px;display:block}</style>
     <img src="${icon}" alt="">
   `, { waitUntil: 'load' });
-  await iconPage.screenshot({ path: path.join(outputDir, 'icon-512.png'), omitBackground: true });
+  const iconPath = path.join(outputDir, 'icon-512.png');
+  await iconPage.screenshot({ path: iconPath, omitBackground: true });
+  ensureRgbaPng(iconPath);
 
   const featurePage = await browser.newPage({ viewport: { width: 1024, height: 500 }, deviceScaleFactor: 1 });
   await featurePage.setContent(`

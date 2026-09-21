@@ -96,7 +96,7 @@ La monetización evita vender ventaja competitiva. Los anuncios recompensados so
 
 ## Marca
 
-El icono de la aplicación se generó específicamente para esta versión con la herramienta integrada de generación de imágenes. Prompt final: icono cuadrado de una app educativa de geografía, globo estilizado con pequeña bandera, estilo premium de papel recortado, paleta verde bosque, crema, dorado y coral, sin texto y con zona segura para máscaras adaptativas.
+El icono de Play Store y Android parte del logo web (`assets/images/logo-app-banderas-1260x1260-fondo-gris.png`): globo de continentes de colores con ¿ y ?, sobre fondo verde oscuro saturado y soporte gris. La fuente es `mobile/assets/icon-only.png`; `npm run android:icons` y `npm run store-assets` regeneran mipmaps y `play-assets/icon-512.png`.
 ## Conexión de rankings
 
 El modo Viaje puede jugarse sin cuenta y conserva el progreso en el dispositivo.
