@@ -38,7 +38,7 @@ Por bandera resuelta:
 
 Extras:
 
-- Tiempo: como máximo **+5** (1 punto cada 15 s restantes).
+- Tiempo: como máximo **+10** (1 punto cada 10 s restantes).
 - Ruta limpia: **+5** si no hubo pistas ni errores.
 
 La dificultad cambia cuántas y cuáles banderas salen, no el valor de cada una.
@@ -47,6 +47,7 @@ La dificultad cambia cuántas y cuáles banderas salen, no el valor de cada una.
 
 - El wizard muestra **pts y desglose** solo en modo Viaje.
 - En diario, regiones y ronda rápida muestra **% y aciertos**, no puntos de ranking.
+- Cómo se puntúa: modal desde la clasificación, el mapa de Viaje y el desglose del wizard.
 - Si se pierde: texto **Intento no superado** y emblema de **brújula verde**.
 - Si se supera: **Ruta completada** y **copa dorada**.
 
