@@ -1,0 +1,139 @@
+apply plugin: 'com.android.application'
+
+def readSimpleEnv = { File source ->
+    def values = [:]
+    if (!source.exists()) return values
+    source.eachLine { rawLine ->
+        def line = rawLine.trim()
+        if (!line || line.startsWith('#') || !line.contains('=')) return
+        def separator = line.indexOf('=')
+        def key = line.substring(0, separator).trim()
+        def value = line.substring(separator + 1).trim().replaceAll(/^['"]|['"]$/, '')
+        values[key] = value
+    }
+    return values
+}
+
+def releaseEnv = readSimpleEnv(rootProject.file('../.env.production'))
+def releaseRequested = gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') }
+def testAdmobAppId = 'ca-app-pub-3940256099942544~3347511713'
+// La release consume exclusivamente el mismo valor que valida el pipeline.
+// No se permite una variable ambiente alternativa que pueda modificar el
+// manifest después de la validación.
+def releaseAdmobAppId = releaseEnv['VITE_ADMOB_APP_ID']
+def versionCodeValue = (releaseEnv['ANDROID_VERSION_CODE'] ?: '1').toInteger()
+def versionNameValue = releaseEnv['ANDROID_VERSION_NAME'] ?: '1.0.0'
+
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('keystore.properties')
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+}
+def signingReady = ['storeFile', 'storePassword', 'keyAlias', 'keyPassword'].every {
+    keystoreProperties.getProperty(it)
+}
+
+if (releaseRequested) {
+    if (!releaseAdmobAppId) {
+        throw new GradleException('Falta VITE_ADMOB_APP_ID en mobile/.env.production.')
+    }
+    if (!(releaseAdmobAppId ==~ /^ca-app-pub-\d{16}~\d{10}$/)) {
+        throw new GradleException('VITE_ADMOB_APP_ID tiene un formato inválido para una release.')
+    }
+    if (releaseAdmobAppId == testAdmobAppId) {
+        throw new GradleException('No se puede firmar una release con el ID de prueba de AdMob.')
+    }
+    if (System.getenv('ADMOB_APP_ID')) {
+        throw new GradleException('ADMOB_APP_ID no está permitido en releases; usa VITE_ADMOB_APP_ID validado en mobile/.env.production.')
+    }
+}
+if (releaseRequested && !signingReady) {
+    throw new GradleException('Falta android/keystore.properties completo para firmar la release.')
+}
+if (releaseRequested) {
+    def publicAssetsDir = file('src/main/assets/public')
+    def forbiddenAssetValues = ['http://127.0.0.1:8000', '3940256099942544']
+    def contaminatedAssets = publicAssetsDir.exists() && fileTree(publicAssetsDir).matching {
+        include '**/*.js', '**/*.json', '**/*.html'
+    }.files.any { asset ->
+        def contents = asset.getText('UTF-8')
+        forbiddenAssetValues.any { contents.contains(it) }
+    }
+    if (contaminatedAssets) {
+        throw new GradleException('Los assets Android contienen backend local o IDs de prueba. Ejecuta el flujo android:bundle con configuración de producción.')
+    }
+}
+
+android {
+    namespace = "com.enmanuelotero.atlasflags"
+    compileSdk = rootProject.ext.compileSdkVersion
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+    defaultConfig {
+        applicationId "com.enmanuelotero.atlasflags"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode versionCodeValue
+        versionName versionNameValue
+        manifestPlaceholders = [admobAppId: testAdmobAppId, usesCleartextTraffic: "true"]
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        release {
+            if (signingReady) {
+                storeFile file(keystoreProperties.getProperty('storeFile'))
+                storePassword keystoreProperties.getProperty('storePassword')
+                keyAlias keystoreProperties.getProperty('keyAlias')
+                keyPassword keystoreProperties.getProperty('keyPassword')
+            }
+        }
+    }
+    buildTypes {
+        debug {
+            manifestPlaceholders = [admobAppId: testAdmobAppId, usesCleartextTraffic: "true"]
+        }
+        release {
+            manifestPlaceholders = [admobAppId: releaseAdmobAppId ?: testAdmobAppId, usesCleartextTraffic: "false"]
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (signingReady) signingConfig signingConfigs.release
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

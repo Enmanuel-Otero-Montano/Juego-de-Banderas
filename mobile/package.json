@@ -1,0 +1,56 @@
+{
+  "name": "atlas-flags-mobile",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm test && npm run build && npm run store-assets:check",
+    "android:sync": "npm run build && cap sync android",
+    "android:debug": "npm run android:sync && cd android && ./gradlew assembleDebug",
+    "release:check": "node scripts/validate-release.mjs",
+    "android:bundle": "npm run release:check && npm run build -- --mode production && cap sync android && cd android && ./gradlew bundleRelease",
+    "android:open": "cap open android",
+    "screenshots": "node scripts/capture-play-screenshots.mjs",
+    "store-assets": "node scripts/generate-store-assets.mjs",
+    "store-assets:check": "node scripts/validate-store-assets.mjs",
+    "android:icons": "node scripts/generate-android-icons.mjs"
+  },
+  "dependencies": {
+    "@capacitor-community/admob": "^8.0.0",
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/haptics": "^8.0.2",
+    "@fontsource/dm-sans": "^5.3.0",
+    "@fontsource/manrope": "^5.3.0",
+    "@revenuecat/purchases-capacitor": "^12.2.0",
+    "country-json": "^2.3.0",
+    "flag-icons": "^7.5.0",
+    "lucide-react": "^0.544.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "world-countries": "^5.1.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.0.0",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.2",
+    "jsdom": "^26.1.0",
+    "playwright-core": "^1.63.0",
+    "typescript": "~5.9.2",
+    "vite": "^7.1.4",
+    "vitest": "^5.0.0"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
+  }
+}

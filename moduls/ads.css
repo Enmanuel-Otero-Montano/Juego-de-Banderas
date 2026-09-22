@@ -1,0 +1,27 @@
+/* AdSense Containers */
+.ad-container {
+    display: none; /* Controlled by JS via SHOW_ADS */
+    width: 100%;
+    min-height: 90px;
+    margin: 10px auto;
+    background-color: #f0f0f0; /* Visual placeholder color */
+    justify-content: center;
+    align-items: center;
+    border: 1px dashed #ccc;
+    text-align: center;
+}
+
+.ad-placeholder {
+    font-weight: bold;
+    color: #666;
+    display: block !important; /* Force show text if container is shown */
+}
+
+/* Specific Adjustments */
+.ad-slot-1 {
+    max-width: 728px; /* Standard leaderboard max width */
+}
+
+.ad-slot-2 {
+    margin-top: 20px;
+}

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Banderas, Países y Regiones</string>
+    <string name="title_activity_main">Banderas, Países y Regiones</string>
+    <string name="package_name">com.enmanuelotero.atlasflags</string>
+    <string name="custom_url_scheme">com.enmanuelotero.atlasflags</string>
+</resources>
