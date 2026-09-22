@@ -66,12 +66,23 @@ describe('progreso', () => {
     elapsedSeconds: 4,
   }));
 
-  it('desbloquea una etapa con al menos 70% de precisión', () => {
+  it('no desbloquea una etapa con respuestas pendientes', () => {
     const config: GameConfig = { ...dailyConfig, mode: 'career', stageId: 1, seed: undefined, questionCount: 10 };
     const result = completeSession({ ...initialProfile }, config, records, '2026-09-11');
+    expect(result.profile.unlockedStage).toBe(1);
+    expect(result.profile.completedStages).not.toContain(1);
+    expect(result.reward.newStageUnlocked).toBe(false);
+    expect(result.profile.journeyHistory[0]).toMatchObject({ accuracy: 80, passed: false, stageId: 1 });
+  });
+
+  it('desbloquea una etapa al resolver todas las banderas', () => {
+    const config: GameConfig = { ...dailyConfig, mode: 'career', stageId: 1, seed: undefined, questionCount: 10 };
+    const perfect = records.map((record) => ({ ...record, correct: true }));
+    const result = completeSession({ ...initialProfile }, config, perfect, '2026-09-11');
     expect(result.profile.unlockedStage).toBe(2);
     expect(result.profile.completedStages).toContain(1);
     expect(result.reward.newStageUnlocked).toBe(true);
+    expect(result.profile.journeyHistory[0]).toMatchObject({ accuracy: 100, passed: true, stageId: 1 });
   });
 
   it('restablece los corazones al fallar una etapa de viaje', () => {
@@ -91,7 +102,8 @@ describe('progreso', () => {
 
   it('abre la expedición global al superar la etapa 12', () => {
     const config: GameConfig = { ...dailyConfig, mode: 'career', stageId: 12, seed: undefined, questionCount: 10 };
-    const result = completeSession({ ...initialProfile, unlockedStage: 12 }, config, records, '2026-09-11');
+    const perfect = records.map((record) => ({ ...record, correct: true }));
+    const result = completeSession({ ...initialProfile, unlockedStage: 12 }, config, perfect, '2026-09-11');
     expect(result.profile.unlockedStage).toBe(13);
     expect(result.profile.completedStages).toContain(12);
     expect(result.reward.newStageUnlocked).toBe(true);

@@ -99,8 +99,8 @@ export const completeSession = (
 
   if (config.mode === 'career' && config.stageId === 13) {
     expeditionSeen = [...new Set([...expeditionSeen, ...answers.map((answer) => answer.countryCode)])];
-    if (accuracy >= 0.7 && !completedStages.includes(13)) completedStages.push(13);
-  } else if (config.mode === 'career' && config.stageId && accuracy >= 0.7) {
+    if (accuracy === 1 && !completedStages.includes(13)) completedStages.push(13);
+  } else if (config.mode === 'career' && config.stageId && accuracy === 1) {
     if (!completedStages.includes(config.stageId)) completedStages.push(config.stageId);
     if (config.stageId === unlockedStage && unlockedStage < 13) {
       unlockedStage += 1;
@@ -113,10 +113,27 @@ export const completeSession = (
 
   const score = calculateScore(answers, secondsRemaining);
   const campaignHearts = config.mode === 'career'
-    ? accuracy >= 0.7
+    ? accuracy === 1
       ? Math.min(MAX_CAMPAIGN_HEARTS, profile.campaignHearts + 1)
       : MAX_CAMPAIGN_HEARTS
     : profile.campaignHearts;
+  const journeyHistory = [...profile.journeyHistory];
+  if (config.mode === 'career') {
+    journeyHistory.push({
+      id: config.rankingAttemptId || `local-${Date.now()}-${profile.sessionsCompleted + 1}`,
+      attemptId: config.rankingAttemptId,
+      playedAt: new Date().toISOString(),
+      stageId: config.stageId || 13,
+      difficulty: config.difficulty || 'normal',
+      correct,
+      total: answers.length,
+      accuracy: Math.round(accuracy * 100),
+      score: score.score,
+      mistakes: answers.reduce((totalMistakes, answer) => totalMistakes + answer.wrongAttempts, 0),
+      hintsUsed: answers.filter((answer) => answer.usedHint).length,
+      passed: accuracy === 1,
+    });
+  }
 
   return {
     profile: {
@@ -133,6 +150,7 @@ export const completeSession = (
       expeditionSeen,
       masteredCountries,
       dailyResults,
+      journeyHistory: journeyHistory.slice(-100),
       campaignHearts,
     },
     reward: {

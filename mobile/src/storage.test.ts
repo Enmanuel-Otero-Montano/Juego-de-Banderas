@@ -10,6 +10,10 @@ describe('migración del perfil local', () => {
       journeyRoute: [3, 3, 8, 12],
       expeditionSeen: ['ad', 'ad', 'sm'],
       campaignHearts: -4,
+      journeyHistory: [
+        { id: 'run-1', playedAt: '2026-09-22T10:00:00Z', stageId: 1, difficulty: 'normal', correct: 7, total: 10, score: 70 },
+        { broken: true },
+      ],
     });
 
     expect(migrated.schemaVersion).toBe(PROFILE_SCHEMA_VERSION);
@@ -19,6 +23,8 @@ describe('migración del perfil local', () => {
     expect(migrated.journeyRoute).toEqual([3, 8]);
     expect(migrated.expeditionSeen).toEqual(['ad', 'sm']);
     expect(migrated.campaignHearts).toBe(0);
+    expect(migrated.journeyHistory).toHaveLength(1);
+    expect(migrated.journeyHistory[0]).toMatchObject({ accuracy: 70, passed: false });
   });
 
   it('recupera un perfil seguro cuando el valor no es válido', () => {

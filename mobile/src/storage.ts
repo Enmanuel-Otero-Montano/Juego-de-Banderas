@@ -1,7 +1,7 @@
-import type { PlayerProfile } from './types';
+import type { Difficulty, JourneyHistoryEntry, PlayerProfile } from './types';
 
 const STORAGE_KEY = 'atlas-flags-profile-v1';
-export const PROFILE_SCHEMA_VERSION = 2;
+export const PROFILE_SCHEMA_VERSION = 3;
 export const MAX_CAMPAIGN_HEARTS = 15;
 
 export const initialProfile: PlayerProfile = {
@@ -20,6 +20,7 @@ export const initialProfile: PlayerProfile = {
   journeyRoute: [],
   masteredCountries: {},
   dailyResults: {},
+  journeyHistory: [],
   isPremium: false,
   soundEnabled: true,
   hapticsEnabled: true,
@@ -35,6 +36,7 @@ const freshInitialProfile = (): PlayerProfile => ({
   journeyRoute: [],
   masteredCountries: {},
   dailyResults: {},
+  journeyHistory: [],
 });
 
 const finiteNumber = (value: unknown, fallback: number): number =>
@@ -50,6 +52,31 @@ export const migrateProfile = (stored: unknown): PlayerProfile => {
       : [];
   const stringArray = (input: unknown): string[] =>
     Array.isArray(input) ? [...new Set(input.filter((item): item is string => typeof item === 'string'))] : [];
+  const journeyHistory = Array.isArray(value.journeyHistory)
+    ? value.journeyHistory.flatMap((item): JourneyHistoryEntry[] => {
+        if (!item || typeof item !== 'object') return [];
+        const entry = item as Partial<JourneyHistoryEntry>;
+        const difficulty: Difficulty = entry.difficulty === 'easy' || entry.difficulty === 'hard' ? entry.difficulty : 'normal';
+        const total = Math.max(1, finiteNumber(entry.total, 10));
+        const correct = Math.min(total, Math.max(0, finiteNumber(entry.correct, 0)));
+        if (typeof entry.playedAt !== 'string' || !Number.isInteger(entry.stageId)) return [];
+        return [{
+          id: typeof entry.id === 'string' ? entry.id : `migrated-${entry.playedAt}-${entry.stageId}`,
+          attemptId: typeof entry.attemptId === 'string' ? entry.attemptId : undefined,
+          serverRunId: Number.isInteger(entry.serverRunId) ? entry.serverRunId : undefined,
+          playedAt: entry.playedAt,
+          stageId: entry.stageId!,
+          difficulty,
+          correct,
+          total,
+          accuracy: Math.round((correct / total) * 100),
+          score: Math.max(0, finiteNumber(entry.score, 0)),
+          mistakes: Math.max(0, finiteNumber(entry.mistakes, 0)),
+          hintsUsed: Math.max(0, finiteNumber(entry.hintsUsed, 0)),
+          passed: correct === total,
+        }];
+      }).slice(-100)
+    : [];
 
   return {
     ...freshInitialProfile(),
@@ -67,6 +94,7 @@ export const migrateProfile = (stored: unknown): PlayerProfile => {
     journeyRoute: numericArray(value.journeyRoute, 1, 11),
     masteredCountries: value.masteredCountries && typeof value.masteredCountries === 'object' ? value.masteredCountries : {},
     dailyResults: value.dailyResults && typeof value.dailyResults === 'object' ? value.dailyResults : {},
+    journeyHistory,
     campaignHearts: Math.min(MAX_CAMPAIGN_HEARTS, Math.max(0, finiteNumber(value.campaignHearts, initialProfile.campaignHearts))),
   };
 };

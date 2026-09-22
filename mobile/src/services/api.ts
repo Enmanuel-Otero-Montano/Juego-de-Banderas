@@ -34,6 +34,41 @@ export interface LeaderboardResponse {
   content_version: number;
 }
 
+export interface CareerHistoryEntry {
+  stage_run_id: number;
+  attempt_id: string | null;
+  stage_id: string;
+  route_position: number | null;
+  difficulty: Difficulty;
+  correct_answers: number;
+  flags_total: number;
+  score: number;
+  mistakes: number;
+  hints_used: number;
+  time_seconds: number;
+  passed: boolean;
+  played_at: string;
+}
+
+export interface CareerHistoryResponse {
+  items: CareerHistoryEntry[];
+  total: number;
+  season_id: string;
+}
+
+export interface CareerStageResponse {
+  stage_run_id: number;
+  ranked: boolean;
+  correct_answers: number;
+  score: number;
+  base_score: number;
+  time_bonus: number;
+  clean_bonus: number;
+  hints_used: number;
+  mistakes: number;
+  stage_best_updated: boolean;
+}
+
 export class ApiError extends Error {
   constructor(message: string, readonly status?: number) {
     super(message);
@@ -164,7 +199,7 @@ export const submitCareerStage = async (
   session: RankingSession,
   config: GameConfig,
   answers: AnswerRecord[],
-): Promise<{ ranked: boolean }> => {
+): Promise<CareerStageResponse> => {
   if (!config.stageId || config.stageId > 12 || !config.contentStageId || !config.difficulty || !config.rankingAttemptId) {
     throw new ApiError('Esta partida no tiene un intento clasificatorio emitido por el servidor.');
   }
@@ -192,6 +227,15 @@ export const submitCareerStage = async (
       })),
     }),
   });
+};
+
+export const getCareerHistory = async (
+  session: RankingSession,
+  difficulty: Difficulty,
+  limit = 50,
+): Promise<CareerHistoryResponse> => {
+  const params = new URLSearchParams({ difficulty, limit: String(limit) });
+  return request(`/career/me/history?${params.toString()}`, { headers: authorization(session) });
 };
 
 export const getLeaderboard = async (input: { difficulty: Difficulty; country?: string; region?: RegionKey }): Promise<LeaderboardResponse> => {

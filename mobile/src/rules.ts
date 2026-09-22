@@ -65,7 +65,8 @@ export const calculateScore = (answers: ScoredAnswer[], secondsRemaining = 0): S
   const baseScore = answers.reduce((total, answer) => total + scoreAnswer(answer), 0);
   const hintsUsed = answers.filter((answer) => answer.usedHint).length;
   const mistakes = answers.reduce((total, answer) => total + answer.wrongAttempts, 0);
-  const timeBonus = Math.min(10, Math.floor(Math.max(0, secondsRemaining) / 10));
-  const cleanBonus = hintsUsed === 0 && mistakes === 0 ? 5 : 0;
+  const completed = answers.length > 0 && answers.every((answer) => answer.correct);
+  const timeBonus = completed ? Math.min(10, Math.floor(Math.max(0, secondsRemaining) / 10)) : 0;
+  const cleanBonus = completed && hintsUsed === 0 && mistakes === 0 ? 5 : 0;
   return { baseScore, timeBonus, cleanBonus, score: baseScore + timeBonus + cleanBonus, hintsUsed, mistakes };
 };

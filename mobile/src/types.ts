@@ -48,6 +48,22 @@ export interface AnswerRecord {
   selectedCodes?: string[];
 }
 
+export interface JourneyHistoryEntry {
+  id: string;
+  attemptId?: string;
+  serverRunId?: number;
+  playedAt: string;
+  stageId: number;
+  difficulty: Difficulty;
+  correct: number;
+  total: number;
+  accuracy: number;
+  score: number;
+  mistakes: number;
+  hintsUsed: number;
+  passed: boolean;
+}
+
 export interface PlayerProfile {
   schemaVersion: number;
   xp: number;
@@ -64,6 +80,7 @@ export interface PlayerProfile {
   journeyRoute: number[];
   masteredCountries: Record<string, number>;
   dailyResults: Record<string, { correct: number; total: number }>;
+  journeyHistory: JourneyHistoryEntry[];
   isPremium: boolean;
   soundEnabled: boolean;
   hapticsEnabled: boolean;

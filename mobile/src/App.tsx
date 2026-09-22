@@ -48,6 +48,7 @@ import {
   beginCareerAttempt,
   clearRankingSession,
   deleteRankingAccount,
+  getCareerHistory,
   getLeaderboard,
   loadRankingSession,
   loginRankingAccount,
@@ -63,6 +64,7 @@ import type {
   Country,
   Difficulty,
   GameConfig,
+  JourneyHistoryEntry,
   PlayerProfile,
   Question,
   RegionKey,
@@ -75,7 +77,7 @@ import { App as CapacitorApp } from '@capacitor/app';
 import brandMark from '../assets/icon-only.png';
 
 type Screen = 'home' | 'regions' | 'career' | 'origin' | 'onboarding' | 'progress' | 'store' | 'settings' | 'privacy' | 'leaderboard' | 'account' | 'game';
-type RankingStatus = 'publishing' | 'published' | 'not-qualified' | 'offline' | 'error';
+type RankingStatus = 'publishing' | 'personal-best' | 'recorded' | 'incomplete' | 'offline' | 'error';
 type GameResult = { reward: SessionReward; records: AnswerRecord[]; config: GameConfig; rankingStatus?: RankingStatus };
 
 const regions: RegionKey[] = ['Americas', 'Europe', 'Asia', 'Africa', 'Oceania'];
@@ -744,8 +746,9 @@ function ResultsModal({ reward, records, config, rankingStatus, onClose, onRepla
   const accuracy = Math.round((reward.correct / reward.total) * 100);
   const showCompetitiveScore = config.mode === 'career';
   const roundCleared = config.mode === 'career'
-    ? accuracy >= 70
+    ? reward.correct === reward.total
     : records.length >= config.questionCount;
+  const cleanJourney = roundCleared && reward.hintsUsed === 0 && reward.mistakes === 0;
   const share = async () => {
     const tiles = records.map((answer) => (answer.correct ? '🟩' : '🟥')).join('');
     const text = t('share.text', { app: t('app.name'), date: today, tiles, correct: reward.correct, total: reward.total });
@@ -757,7 +760,7 @@ function ResultsModal({ reward, records, config, rankingStatus, onClose, onRepla
       <section className="results-modal" role="dialog" aria-modal="true" aria-label={t('results.dialog')}>
         <div className={`result-emblem ${roundCleared ? '' : 'result-emblem--retry'}`}>{roundCleared ? <Trophy /> : <Compass />}</div>
         <p className="eyebrow">{roundCleared ? t('results.completed') : t('results.ended')}</p>
-        <h2>{accuracy === 100 ? t('results.perfect') : accuracy >= 70 ? t('results.great') : t('results.learning')}</h2>
+        <h2>{cleanJourney ? t('results.perfect') : roundCleared ? t('results.great') : t('results.learning')}</h2>
         <p className="result-subtitle">{config.title}</p>
         <div className="result-score">
           {showCompetitiveScore
@@ -780,7 +783,7 @@ function ResultsModal({ reward, records, config, rankingStatus, onClose, onRepla
           </div>
         )}
         <div className="reward-row"><span><Zap /> +{reward.xp} XP</span><span><CircleDollarSign /> +{reward.coins}</span>{reward.newStageUnlocked && <span><Lock /> {t('results.newStage')}</span>}</div>
-        {config.mode === 'career' && rankingStatus && <p className={`ranking-result ranking-result--${rankingStatus}`}>{rankingStatus === 'publishing' ? t('results.publishing') : rankingStatus === 'published' ? t('results.published') : rankingStatus === 'not-qualified' ? t('results.notQualified') : rankingStatus === 'offline' ? t('results.offline') : t('results.publishError')}</p>}
+        {config.mode === 'career' && rankingStatus && <p className={`ranking-result ranking-result--${rankingStatus}`}>{rankingStatus === 'publishing' ? t('results.publishing') : rankingStatus === 'personal-best' ? t('results.personalBest') : rankingStatus === 'recorded' ? t('results.recorded') : rankingStatus === 'incomplete' ? t('results.incomplete') : rankingStatus === 'offline' ? t('results.offline') : t('results.publishError')}</p>}
         <button className="primary-button" onClick={onClose}>{t('results.backMap')}</button>
         <div className="result-secondary"><button onClick={onReplay}><RotateCcw /> {t('results.replay')}</button><button onClick={share}><Share2 /> {t('results.share')}</button></div>
       </section>
@@ -917,7 +920,124 @@ function AccountScreen({ profile, onBack, onConnected }: { profile: PlayerProfil
   );
 }
 
-function ProgressScreen({ profile }: { profile: PlayerProfile }) {
+function JourneyEvolution({ profile, session }: { profile: PlayerProfile; session: RankingSession | null }) {
+  const { t, locale } = useI18n();
+  const [difficulty, setDifficulty] = useState<Difficulty>('normal');
+  const [metric, setMetric] = useState<'score' | 'accuracy'>('score');
+  const [serverHistory, setServerHistory] = useState<JourneyHistoryEntry[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    if (!session) {
+      setServerHistory([]);
+      return () => { active = false; };
+    }
+    getCareerHistory(session, difficulty, 100).then((response) => {
+      if (!active) return;
+      setServerHistory(response.items.map((entry) => ({
+        id: `server-${entry.stage_run_id}`,
+        attemptId: entry.attempt_id || undefined,
+        serverRunId: entry.stage_run_id,
+        playedAt: entry.played_at,
+        stageId: entry.route_position || Number(entry.stage_id),
+        difficulty: entry.difficulty,
+        correct: entry.correct_answers,
+        total: entry.flags_total,
+        accuracy: Math.round((entry.correct_answers / entry.flags_total) * 100),
+        score: entry.score,
+        mistakes: entry.mistakes,
+        hintsUsed: entry.hints_used,
+        passed: entry.passed,
+      })));
+    }).catch(() => { if (active) setServerHistory([]); });
+    return () => { active = false; };
+  }, [difficulty, session]);
+
+  const entries = useMemo(() => {
+    const merged = new globalThis.Map<string, JourneyHistoryEntry>();
+    profile.journeyHistory.filter((entry) => entry.difficulty === difficulty).forEach((entry) => {
+      merged.set(entry.attemptId ? `attempt-${entry.attemptId}` : entry.id, entry);
+    });
+    serverHistory.filter((entry) => entry.difficulty === difficulty).forEach((entry) => {
+      merged.set(entry.attemptId ? `attempt-${entry.attemptId}` : entry.id, entry);
+    });
+    return [...merged.values()]
+      .sort((a, b) => new Date(a.playedAt).getTime() - new Date(b.playedAt).getTime());
+  }, [difficulty, profile.journeyHistory, serverHistory]);
+
+  const displayedEntries = entries.slice(-30);
+  const personalBestIds = new Set<string>();
+  let bestPassedScore = -1;
+  entries.forEach((entry) => {
+    if (entry.passed && entry.score > bestPassedScore) {
+      personalBestIds.add(entry.id);
+      bestPassedScore = entry.score;
+    }
+  });
+
+  const maxScore = { easy: 95, normal: 115, hard: 135 }[difficulty];
+  const maxValue = metric === 'score' ? maxScore : 100;
+  const chartWidth = 320;
+  const chartHeight = 170;
+  const left = 34;
+  const right = 12;
+  const top = 12;
+  const bottom = 28;
+  const plotWidth = chartWidth - left - right;
+  const plotHeight = chartHeight - top - bottom;
+  const points = displayedEntries.map((entry, index) => {
+    const value = metric === 'score' ? entry.score : entry.accuracy;
+    return {
+      entry,
+      isBest: personalBestIds.has(entry.id),
+      x: left + (displayedEntries.length <= 1 ? plotWidth / 2 : (index / (displayedEntries.length - 1)) * plotWidth),
+      y: top + plotHeight - (Math.min(maxValue, value) / maxValue) * plotHeight,
+    };
+  });
+  const selected = displayedEntries.find((entry) => entry.id === selectedId) || displayedEntries.at(-1);
+
+  return (
+    <section className="content-card evolution-card">
+      <div className="section-title-row"><div><p className="eyebrow">{t('progress.evolutionEyebrow')}</p><h2>{t('progress.evolution')}</h2></div><span>{t(metric === 'score' ? 'progress.score' : 'progress.accuracy')}</span></div>
+      <DifficultySelector value={difficulty} onChange={(next) => { setDifficulty(next); setSelectedId(null); }} />
+      <div className="metric-selector">
+        <button className={metric === 'score' ? 'active' : ''} onClick={() => setMetric('score')}>{t('progress.score')}</button>
+        <button className={metric === 'accuracy' ? 'active' : ''} onClick={() => setMetric('accuracy')}>{t('progress.accuracy')}</button>
+      </div>
+      {displayedEntries.length ? (
+        <>
+          <svg className="evolution-chart" viewBox={`0 0 ${chartWidth} ${chartHeight}`} role="img" aria-label={t('progress.chartLabel')}>
+            {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
+              const y = top + plotHeight - ratio * plotHeight;
+              return <g key={ratio}><line x1={left} x2={chartWidth - right} y1={y} y2={y} /><text x={left - 6} y={y + 3}>{Math.round(maxValue * ratio)}</text></g>;
+            })}
+            {points.length > 1 && <polyline points={points.map((point) => `${point.x},${point.y}`).join(' ')} />}
+            {points.map(({ entry, x, y, isBest }) => (
+              <circle
+                key={entry.id}
+                cx={x}
+                cy={y}
+                r={selected?.id === entry.id ? 6 : 4.5}
+                className={!entry.passed ? 'failed' : isBest ? 'best' : 'passed'}
+                tabIndex={0}
+                role="button"
+                aria-label={t('progress.chartPoint', { stage: entry.stageId, score: entry.score, accuracy: entry.accuracy })}
+                onClick={() => setSelectedId(entry.id)}
+                onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSelectedId(entry.id); }}
+              />
+            ))}
+            <text className="chart-axis-label" x={chartWidth / 2} y={chartHeight - 5}>{t('progress.recentGames')}</text>
+          </svg>
+          {selected && <div className="evolution-detail"><strong>{t('progress.stageDetail', { stage: selected.stageId })}</strong><span>{selected.score} {t('common.points')} · {selected.accuracy}%</span><small>{t('progress.attemptDetail', { hints: selected.hintsUsed, errors: selected.mistakes, date: new Date(selected.playedAt).toLocaleDateString(locale) })}</small></div>}
+          <div className="chart-legend"><span className="failed">{t('progress.incomplete')}</span><span className="passed">{t('progress.completed')}</span><span className="best">{t('progress.personalBest')}</span></div>
+        </>
+      ) : <p className="empty-state">{t('progress.noJourneyHistory')}</p>}
+    </section>
+  );
+}
+
+function ProgressScreen({ profile, session }: { profile: PlayerProfile; session: RankingSession | null }) {
   const { t, language } = useI18n();
   const accuracy = profile.totalAnswers ? Math.round((profile.correctAnswers / profile.totalAnswers) * 100) : 0;
   const mastered = Object.entries(profile.masteredCountries).filter(([, value]) => value >= 3);
@@ -936,6 +1056,7 @@ function ProgressScreen({ profile }: { profile: PlayerProfile }) {
         <div><FlagIcon /><strong>{mastered.length}</strong><span>{t('progress.mastered')}</span></div>
         <div><Trophy /><strong>{profile.completedStages.length}</strong><span>{t('progress.stages')}</span></div>
       </div>
+      <JourneyEvolution profile={profile} session={session} />
       <section className="content-card">
         <div className="section-title-row"><div><p className="eyebrow">{t('progress.collection')}</p><h2>{t('progress.masteredFlags')}</h2></div><span>{mastered.length}/195</span></div>
         {recent.length ? <div className="mastered-flags">{recent.map((country) => <div key={country.code}><Flag code={country.code} name={getCountryName(country, language)} /><small>{getCountryName(country, language)}</small></div>)}</div> : <p className="empty-state">{t('progress.empty')}</p>}
@@ -1294,14 +1415,27 @@ export default function App() {
     });
   };
   const completeCareer = async (reward: SessionReward, records: AnswerRecord[], config: GameConfig) => {
+    if (config.stageId === 13) {
+      setResult({ reward, records, config });
+      return;
+    }
     if (!rankingSession) {
-      setResult({ reward, records, config, rankingStatus: 'offline' });
+      setResult({ reward, records, config, rankingStatus: reward.correct === reward.total ? 'offline' : 'incomplete' });
       return;
     }
     setResult({ reward, records, config, rankingStatus: 'publishing' });
     try {
       const response = await submitCareerStage(rankingSession, config, records);
-      setResult({ reward, records, config, rankingStatus: response.ranked ? 'published' : 'not-qualified' });
+      const authoritativeReward = {
+        ...reward,
+        score: response.score,
+        baseScore: response.base_score,
+        timeBonus: response.time_bonus,
+        cleanBonus: response.clean_bonus,
+        hintsUsed: response.hints_used,
+        mistakes: response.mistakes,
+      };
+      setResult({ reward: authoritativeReward, records, config, rankingStatus: response.ranked ? (response.stage_best_updated ? 'personal-best' : 'recorded') : 'incomplete' });
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         clearRankingSession();
@@ -1356,7 +1490,7 @@ export default function App() {
       {screen === 'regions' && <RegionsScreen onBack={() => setScreen('home')} startGame={startGame} />}
       {screen === 'career' && <CareerScreen profile={profile} startGame={startGame} onChooseOrigin={() => openOriginPicker('career')} onChooseRoute={chooseRoute} onLeaderboard={() => setScreen('leaderboard')} />}
       {screen === 'origin' && <OriginPickerScreen currentCode={profile.homeCountryCode} onBack={() => setScreen(originReturn)} onSelect={chooseOrigin} />}
-      {screen === 'progress' && <ProgressScreen profile={profile} />}
+      {screen === 'progress' && <ProgressScreen profile={profile} session={rankingSession} />}
       {screen === 'store' && <StoreScreen profile={profile} setProfile={setProfile} onBack={() => setScreen('home')} />}
       {screen === 'settings' && <SettingsScreen profile={profile} session={rankingSession} adPrivacyOptionsRequired={adPrivacyOptionsRequired} setProfile={setProfile} onBack={() => setScreen('home')} onPrivacy={() => setScreen('privacy')} onAdPrivacy={() => { void openAdPrivacy(); }} onOrigin={() => openOriginPicker('settings')} onAccount={() => setScreen('account')} onAliasChange={changeAlias} onSignOut={signOut} onDeleteAccount={() => { void deleteAccount(); }} />}
       {screen === 'privacy' && <PrivacyScreen onBack={() => setScreen('settings')} />}

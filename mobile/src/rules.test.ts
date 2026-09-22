@@ -30,4 +30,12 @@ describe('puntuación explicable', () => {
     expect(score.cleanBonus).toBe(5);
     expect(score.score).toBe(15);
   });
+
+  it('no otorga bonos de tiempo ni ruta limpia a una etapa incompleta', () => {
+    const score = calculateScore([
+      { correct: true, usedHint: false, wrongAttempts: 0 },
+      { correct: false, usedHint: false, wrongAttempts: 0 },
+    ], 80);
+    expect(score).toMatchObject({ baseScore: 10, timeBonus: 0, cleanBonus: 0, score: 10 });
+  });
 });
