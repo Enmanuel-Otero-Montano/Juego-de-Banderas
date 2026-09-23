@@ -786,6 +786,7 @@ function ResultsModal({ reward, records, config, rankingStatus, today, onClose, 
 }) {
   const { t } = useI18n();
   const [showScoringHelp, setShowScoringHelp] = useState(false);
+  const [shareError, setShareError] = useState(false);
   const accuracy = Math.round((reward.correct / reward.total) * 100);
   const showCompetitiveScore = config.mode === 'career';
   const roundCleared = config.mode === 'career'
@@ -795,8 +796,15 @@ function ResultsModal({ reward, records, config, rankingStatus, today, onClose, 
   const share = async () => {
     const tiles = records.map((answer) => (answer.correct ? '🟩' : '🟥')).join('');
     const text = t('share.text', { app: t('app.name'), date: today, tiles, correct: reward.correct, total: reward.total });
-    if (navigator.share) await navigator.share({ title: t('app.name'), text }).catch(() => undefined);
-    else await navigator.clipboard.writeText(text);
+    try {
+      if (navigator.share) await navigator.share({ title: t('app.name'), text });
+      else if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
+      else throw new Error('Clipboard unavailable');
+      setShareError(false);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      setShareError(true);
+    }
   };
   return (
     <div className="modal-backdrop">
@@ -827,6 +835,7 @@ function ResultsModal({ reward, records, config, rankingStatus, today, onClose, 
         )}
         <div className="reward-row"><span><Zap /> +{reward.xp} XP</span><span><CircleDollarSign /> +{reward.coins}</span>{reward.newStageUnlocked && <span><Lock /> {t('results.newStage')}</span>}</div>
         {config.mode === 'career' && rankingStatus && <p className={`ranking-result ranking-result--${rankingStatus}`}>{rankingStatus === 'publishing' ? t('results.publishing') : rankingStatus === 'personal-best' ? t('results.personalBest') : rankingStatus === 'recorded' ? t('results.recorded') : rankingStatus === 'incomplete' ? t('results.incomplete') : rankingStatus === 'offline' ? t('results.offline') : rankingStatus === 'unranked' ? t('results.unranked') : t('results.publishError')}</p>}
+        {shareError && <p className="ranking-result ranking-result--error" role="status">{t('share.error')}</p>}
         <button className="primary-button" onClick={onClose}>{t('results.backMap')}</button>
         <div className="result-secondary"><button onClick={onReplay}><RotateCcw /> {t('results.replay')}</button><button onClick={share}><Share2 /> {t('results.share')}</button></div>
       </section>
@@ -1329,7 +1338,10 @@ export default function App() {
   const [appDialog, setAppDialog] = useState<AppDialogConfig | null>(null);
   const startingGameRef = useRef(false);
 
-  const setProfile = (next: PlayerProfile) => { setProfileState(next); saveProfile(next); };
+  const setProfile = (next: PlayerProfile) => {
+    setProfileState(next);
+    if (!saveProfile(next)) notice(t('storage.errorTitle'), t('storage.error'));
+  };
 
   const syncRanking = async (session: RankingSession, nextProfile: PlayerProfile) => {
     const country = countries.find((item) => item.code === nextProfile.homeCountryCode);

@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { migrateProfile, PROFILE_SCHEMA_VERSION } from './storage';
+import { describe, expect, it, vi } from 'vitest';
+import { initialProfile, migrateProfile, PROFILE_SCHEMA_VERSION, saveProfile } from './storage';
 
 describe('migración del perfil local', () => {
   it('conserva un perfil v1 y normaliza colecciones y rangos', () => {
@@ -32,5 +32,13 @@ describe('migración del perfil local', () => {
     expect(migrated.schemaVersion).toBe(PROFILE_SCHEMA_VERSION);
     expect(migrated.unlockedStage).toBe(1);
     expect(migrated.completedStages).toEqual([]);
+  });
+
+  it('informa si el almacenamiento local rechaza el guardado', () => {
+    vi.stubGlobal('localStorage', {
+      setItem: () => { throw new Error('Quota exceeded'); },
+    });
+    expect(saveProfile(initialProfile)).toBe(false);
+    vi.unstubAllGlobals();
   });
 });

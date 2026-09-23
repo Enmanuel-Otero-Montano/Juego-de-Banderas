@@ -108,6 +108,11 @@ export const loadProfile = (): PlayerProfile => {
   }
 };
 
-export const saveProfile = (profile: PlayerProfile): void => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...profile, schemaVersion: PROFILE_SCHEMA_VERSION }));
+export const saveProfile = (profile: PlayerProfile): boolean => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...profile, schemaVersion: PROFILE_SCHEMA_VERSION }));
+    return true;
+  } catch {
+    return false;
+  }
 };
