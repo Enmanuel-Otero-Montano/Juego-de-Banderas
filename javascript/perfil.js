@@ -1,4 +1,3 @@
-import { BASE_API_URL } from '../moduls/api.js';
 import { authenticatedFetch } from '../moduls/request.js';
 
 
@@ -28,16 +27,11 @@ const getCountries = async () => {
 
 
 const getUserData = async () => {
-  const id = localStorage.getItem('user_id');
-  const endpoint = `${BASE_API_URL}/user-profile/${id}`;
-
-  if (!id) {
-    console.warn('No hay user_id en storage, redirigiendo a login…');
-    return; // o window.location.href = './login.html';
-  }
-
   try {
-    const response = await authenticatedFetch(endpoint, {
+    // La identidad proviene exclusivamente del token. Nunca usar user_id del
+    // storage para seleccionar un perfil: ese valor es controlable por quien
+    // usa el navegador.
+    const response = await authenticatedFetch('/users/me', {
       method: 'GET'
     });
 
@@ -111,6 +105,5 @@ changeDataProfileFormSubmit?.addEventListener('submit', async (e) => {
     console.error('Error al modificar el perfil:', err.message);
   }
 });
-
 
 
