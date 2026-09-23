@@ -72,12 +72,17 @@ export const getCountryByCode = (code: string | null | undefined): Country | und
 const displayNames = new Map<LocaleCode, Intl.DisplayNames>();
 
 export const getCountryName = (country: Country, language: LocaleCode): string => {
-  let names = displayNames.get(language);
-  if (!names) {
-    names = new Intl.DisplayNames([localeTags[language]], { type: 'region' });
-    displayNames.set(language, names);
+  if (typeof Intl.DisplayNames !== 'function') return country.name;
+  try {
+    let names = displayNames.get(language);
+    if (!names) {
+      names = new Intl.DisplayNames([localeTags[language]], { type: 'region' });
+      displayNames.set(language, names);
+    }
+    return names.of(country.code.toUpperCase()) || country.name;
+  } catch {
+    return country.name;
   }
-  return names.of(country.code.toUpperCase()) || country.name;
 };
 
 const localizedCapitals: Record<'es' | 'pt', Record<string, string>> = {

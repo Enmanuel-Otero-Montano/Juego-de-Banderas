@@ -9,6 +9,12 @@ export const isoDate = (date = new Date()): string => {
   return `${year}-${month}-${day}`;
 };
 
+export const millisecondsUntilNextLocalDay = (date = new Date()): number => {
+  const nextDay = new Date(date);
+  nextDay.setHours(24, 0, 0, 0);
+  return Math.max(1_000, nextDay.getTime() - date.getTime());
+};
+
 export const hashSeed = (value: string): number => {
   let hash = 2166136261;
   for (let index = 0; index < value.length; index += 1) {

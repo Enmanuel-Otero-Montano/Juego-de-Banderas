@@ -38,7 +38,7 @@ import {
 import { Flag } from './components/Flag';
 import { countries, formatPopulation, getCapitalName, getCountryByCode, getCountryName, getRegionCountries } from './data/countries';
 import { getExpeditionPool, getHomeStageId, getJourneyExpeditionCountries, getJourneyRoute, getJourneyStagePool, getJourneyStageText, getNextRouteChoices, journeyStages } from './data/journey';
-import { buildQuestions, completeSession, hiddenOptionCodes, isoDate, shuffle } from './game';
+import { buildQuestions, completeSession, hiddenOptionCodes, isoDate, millisecondsUntilNextLocalDay, shuffle } from './game';
 import { languageOptions, useI18n } from './i18n';
 import { leaderboardContextTitle, leaderboardEntryShowsCountry, type LeaderboardScope } from './leaderboard';
 import { monetization } from './services/monetization';
@@ -83,7 +83,6 @@ type RankingStatus = 'publishing' | 'personal-best' | 'recorded' | 'incomplete' 
 type GameResult = { reward: SessionReward; records: AnswerRecord[]; config: GameConfig; rankingStatus?: RankingStatus };
 
 const regions: RegionKey[] = ['Americas', 'Europe', 'Asia', 'Africa', 'Oceania'];
-const today = isoDate();
 const JOURNEY_FEEDBACK_MS = 750;
 const startingJourneyHearts = (hearts: number) => (hearts > 0 ? hearts : initialProfile.campaignHearts);
 
@@ -150,8 +149,9 @@ function SectionHeader({ title, subtitle, onBack }: { title: string; subtitle?: 
   );
 }
 
-function HomeScreen({ profile, startGame, setScreen }: {
+function HomeScreen({ profile, today, startGame, setScreen }: {
   profile: PlayerProfile;
+  today: string;
   startGame: (config: GameConfig) => void;
   setScreen: (screen: Screen) => void;
 }) {
@@ -390,10 +390,11 @@ function CareerScreen({ profile, startGame, onChooseOrigin, onChooseRoute, onLea
   );
 }
 
-function JourneyGameScreen({ config, profile, rankingSession, setProfile, paused, onExit, onComplete }: {
+function JourneyGameScreen({ config, profile, rankingSession, today, setProfile, paused, onExit, onComplete }: {
   config: GameConfig;
   profile: PlayerProfile;
   rankingSession: RankingSession | null;
+  today: string;
   setProfile: (profile: PlayerProfile) => void;
   paused?: boolean;
   onExit: () => void;
@@ -632,9 +633,10 @@ function QuestionPrompt({ question }: { question: Question }) {
   return <><p className="question-label">{t('game.findFlag')}</p><h2 className="question-word">{getCountryName(question.answer, language)}</h2></>;
 }
 
-function GameScreen({ config, profile, setProfile, onExit, onComplete }: {
+function GameScreen({ config, profile, today, setProfile, onExit, onComplete }: {
   config: GameConfig;
   profile: PlayerProfile;
+  today: string;
   setProfile: (profile: PlayerProfile) => void;
   onExit: () => void;
   onComplete: (reward: SessionReward, records: AnswerRecord[], config: GameConfig) => void;
@@ -651,6 +653,17 @@ function GameScreen({ config, profile, setProfile, onExit, onComplete }: {
   const premiumHintKey = `atlas-premium-hints-${today}`;
   const [premiumHintsUsed, setPremiumHintsUsed] = useState(() => Number(localStorage.getItem(premiumHintKey) || 0));
   const question = questions[index];
+  if (!question) {
+    return (
+      <main className="game-screen">
+        <section className="empty-state" role="alert">
+          <h1>{t('game.unavailable')}</h1>
+          <p>{t('game.unavailableDetail')}</p>
+          <button className="primary-button" onClick={onExit}>{t('game.returnHome')}</button>
+        </section>
+      </main>
+    );
+  }
   const isCorrect = selected === question.answer.code;
   const freePremiumHints = profile.isPremium ? Math.max(0, 3 - premiumHintsUsed) : 0;
 
@@ -760,11 +773,12 @@ function GameScreen({ config, profile, setProfile, onExit, onComplete }: {
   );
 }
 
-function ResultsModal({ reward, records, config, rankingStatus, onClose, onReplay }: {
+function ResultsModal({ reward, records, config, rankingStatus, today, onClose, onReplay }: {
   reward: SessionReward;
   records: AnswerRecord[];
   config: GameConfig;
   rankingStatus?: RankingStatus;
+  today: string;
   onClose: () => void;
   onReplay: () => void;
 }) {
@@ -1292,6 +1306,7 @@ function AppDialog({ dialog, onClose }: { dialog: AppDialogConfig; onClose: () =
 export default function App() {
   const { t } = useI18n();
   const [profile, setProfileState] = useState(loadProfile);
+  const [today, setToday] = useState(isoDate);
   const [rankingSession, setRankingSession] = useState<RankingSession | null>(loadRankingSession);
   const [screen, setScreen] = useState<Screen>(() => loadProfile().homeCountryCode ? 'home' : 'onboarding');
   const [gameConfig, setGameConfig] = useState<GameConfig | null>(null);
@@ -1335,6 +1350,31 @@ export default function App() {
     });
     // Native services initialize once at app start.
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    let midnightTimer: ReturnType<typeof setTimeout> | undefined;
+    const refreshDay = () => setToday(isoDate());
+    const scheduleMidnightRefresh = () => {
+      midnightTimer = setTimeout(() => {
+        refreshDay();
+        scheduleMidnightRefresh();
+      }, millisecondsUntilNextLocalDay());
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') refreshDay();
+    };
+
+    scheduleMidnightRefresh();
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    const appStateListener = Capacitor.isNativePlatform()
+      ? CapacitorApp.addListener('appStateChange', ({ isActive }) => { if (isActive) refreshDay(); })
+      : undefined;
+    return () => {
+      if (midnightTimer) clearTimeout(midnightTimer);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      appStateListener?.then((handle) => handle.remove());
+    };
   }, []);
 
   useEffect(() => {
@@ -1532,7 +1572,7 @@ export default function App() {
     <div className="app-shell">
       {regularScreen && <TopBar profile={profile} onStore={() => setScreen('store')} onSettings={() => setScreen('settings')} onLeaderboard={() => setScreen('leaderboard')} />}
       {screen === 'onboarding' && <OriginPickerScreen currentCode={null} required onSelect={chooseOrigin} />}
-      {screen === 'home' && <HomeScreen profile={profile} startGame={startGame} setScreen={setScreen} />}
+      {screen === 'home' && <HomeScreen profile={profile} today={today} startGame={startGame} setScreen={setScreen} />}
       {screen === 'regions' && <RegionsScreen onBack={() => setScreen('home')} startGame={startGame} />}
       {screen === 'career' && <CareerScreen profile={profile} startGame={startGame} onChooseOrigin={() => openOriginPicker('career')} onChooseRoute={chooseRoute} onLeaderboard={() => setScreen('leaderboard')} />}
       {screen === 'origin' && <OriginPickerScreen currentCode={profile.homeCountryCode} onBack={() => setScreen(originReturn)} onSelect={chooseOrigin} />}
@@ -1545,12 +1585,12 @@ export default function App() {
       {screen === 'game' && gameConfig && (
         <div className={result ? 'game-under-result' : undefined} aria-hidden={Boolean(result)}>
           {gameConfig.mode === 'career'
-            ? <JourneyGameScreen config={gameConfig} profile={profile} rankingSession={rankingSession} setProfile={setProfile} paused={Boolean(result)} onExit={() => { setGameConfig(null); setScreen('career'); }} onComplete={(reward, records, config) => { void completeCareer(reward, records, config); }} />
-            : <GameScreen config={gameConfig} profile={profile} setProfile={setProfile} onExit={() => { setGameConfig(null); setScreen('home'); }} onComplete={(reward, records, config) => setResult({ reward, records, config })} />}
+            ? <JourneyGameScreen config={gameConfig} profile={profile} rankingSession={rankingSession} today={today} setProfile={setProfile} paused={Boolean(result)} onExit={() => { setGameConfig(null); setScreen('career'); }} onComplete={(reward, records, config) => { void completeCareer(reward, records, config); }} />
+            : <GameScreen config={gameConfig} profile={profile} today={today} setProfile={setProfile} onExit={() => { setGameConfig(null); setScreen('home'); }} onComplete={(reward, records, config) => setResult({ reward, records, config })} />}
         </div>
       )}
       {regularScreen && !['store', 'settings', 'origin', 'privacy', 'account'].includes(screen) && <BottomNav screen={screen} setScreen={setScreen} />}
-      {result && <ResultsModal {...result} onClose={closeResults} onReplay={replay} />}
+      {result && <ResultsModal {...result} today={today} onClose={closeResults} onReplay={replay} />}
       {showWelcome && <WelcomeModal onClose={() => { localStorage.setItem('atlas-flags-welcomed', '1'); setShowWelcome(false); }} />}
       {appDialog && <AppDialog dialog={appDialog} onClose={() => setAppDialog(null)} />}
     </div>

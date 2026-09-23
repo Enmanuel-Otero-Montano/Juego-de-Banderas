@@ -10,12 +10,15 @@ import '@fontsource/manrope/800.css';
 import 'flag-icons/css/flag-icons.min.css';
 import './styles.css';
 import App from './App';
+import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { I18nProvider } from './i18n';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <I18nProvider>
-      <App />
+      <AppErrorBoundary>
+        <App />
+      </AppErrorBoundary>
     </I18nProvider>
   </StrictMode>,
 );

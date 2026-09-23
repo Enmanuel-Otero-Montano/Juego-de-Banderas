@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { countries, getCapitalName, getCountryName } from './data/countries';
 import { getHomeStageId, getJourneyExpeditionCountries, getJourneyStagePool, getJourneyStageText, getNextRouteChoices, journeyStages } from './data/journey';
-import { buildQuestions, completeSession } from './game';
+import { buildQuestions, completeSession, millisecondsUntilNextLocalDay } from './game';
 import { initialProfile } from './storage';
 import type { AnswerRecord, GameConfig } from './types';
 
@@ -53,6 +53,13 @@ describe('generador de preguntas', () => {
       expect(new Set(question.options.map((country) => country.code)).size).toBe(4);
       expect(question.options.some((country) => country.code === question.answer.code)).toBe(true);
     }
+  });
+});
+
+describe('cambio de día', () => {
+  it('programa el refresco del desafío diario para la próxima medianoche local', () => {
+    expect(millisecondsUntilNextLocalDay(new Date(2026, 8, 23, 23, 59, 30))).toBe(30_000);
+    expect(millisecondsUntilNextLocalDay(new Date(2026, 8, 23, 0, 0, 0))).toBe(86_400_000);
   });
 });
 
