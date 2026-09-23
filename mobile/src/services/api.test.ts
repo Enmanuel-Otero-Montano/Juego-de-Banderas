@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { deleteRankingAccount, resendVerificationEmail } from './api';
+import { deleteRankingAccount, resendVerificationEmail, updateRankingProfile } from './api';
 
 describe('cliente de cuentas', () => {
   beforeEach(() => {
@@ -32,6 +32,24 @@ describe('cliente de cuentas', () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: '"atlas@example.com"',
+      }),
+    );
+  });
+
+  it('envía sólo el país y deja que el servidor derive la región', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(Response.json({ ranked_profile_ready: true }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await updateRankingProfile(
+      { accessToken: 'token-de-prueba', username: 'atlas' },
+      { displayName: 'Capitana Atlas', country: 'UY' },
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://127.0.0.1:8000/career/profile',
+      expect.objectContaining({
+        method: 'PUT',
+        body: JSON.stringify({ display_name: 'Capitana Atlas', country: 'UY' }),
       }),
     );
   });

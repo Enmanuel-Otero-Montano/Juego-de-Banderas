@@ -164,11 +164,11 @@ const authorization = (session: RankingSession): HeadersInit => ({
 
 export const updateRankingProfile = async (
   session: RankingSession,
-  input: { displayName: string | null; country: string; region: RegionKey },
+  input: { displayName: string | null; country: string },
 ): Promise<{ ranked_profile_ready: boolean }> => request('/career/profile', {
   method: 'PUT',
   headers: authorization(session),
-  body: JSON.stringify({ display_name: input.displayName || '', country: input.country, region: input.region }),
+  body: JSON.stringify({ display_name: input.displayName || '', country: input.country }),
 });
 
 export const beginCareerAttempt = async (

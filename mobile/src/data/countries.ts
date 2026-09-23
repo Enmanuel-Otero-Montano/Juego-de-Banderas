@@ -66,6 +66,9 @@ export const regionMeta: Record<RegionKey, { emoji: string; accent: string; desc
 
 export const getRegionCountries = (region: RegionKey) => countries.filter((country) => country.region === region);
 
+export const getCountryByCode = (code: string | null | undefined): Country | undefined =>
+  code ? countries.find((country) => country.code === code.toLowerCase()) : undefined;
+
 const displayNames = new Map<LocaleCode, Intl.DisplayNames>();
 
 export const getCountryName = (country: Country, language: LocaleCode): string => {

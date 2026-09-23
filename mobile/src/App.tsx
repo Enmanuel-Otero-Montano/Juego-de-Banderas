@@ -36,10 +36,11 @@ import {
   Zap,
 } from 'lucide-react';
 import { Flag } from './components/Flag';
-import { countries, formatPopulation, getCapitalName, getCountryName, getRegionCountries } from './data/countries';
+import { countries, formatPopulation, getCapitalName, getCountryByCode, getCountryName, getRegionCountries } from './data/countries';
 import { getExpeditionPool, getHomeStageId, getJourneyExpeditionCountries, getJourneyRoute, getJourneyStagePool, getJourneyStageText, getNextRouteChoices, journeyStages } from './data/journey';
 import { buildQuestions, completeSession, hiddenOptionCodes, isoDate, shuffle } from './game';
 import { languageOptions, useI18n } from './i18n';
+import { leaderboardContextTitle, leaderboardEntryShowsCountry, type LeaderboardScope } from './leaderboard';
 import { monetization } from './services/monetization';
 import { chooseDifficultyCountries, difficultyRules } from './rules';
 import { initialProfile, loadProfile, saveProfile } from './storage';
@@ -795,16 +796,21 @@ function ResultsModal({ reward, records, config, rankingStatus, onClose, onRepla
 function LeaderboardScreen({ profile, onBack, onAccount }: { profile: PlayerProfile; onBack: () => void; onAccount: () => void }) {
   const { t, language } = useI18n();
   const [difficulty, setDifficulty] = useState<Difficulty>('normal');
-  const [scope, setScope] = useState<'world' | 'country' | 'region'>('world');
+  const [scope, setScope] = useState<LeaderboardScope>('world');
   const [items, setItems] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showScoringHelp, setShowScoringHelp] = useState(false);
   const homeCountry = countries.find((country) => country.code === profile.homeCountryCode);
   const entryCountryName = (code: string | null) => {
-    const country = countries.find((item) => item.code === code);
+    const country = getCountryByCode(code);
     return country ? getCountryName(country, language) : code || t('leaderboard.noCountry');
   };
+  const contextTitle = leaderboardContextTitle(scope, {
+    world: t('leaderboard.world'),
+    region: homeCountry ? t(`region.${homeCountry.region}` as `region.${typeof homeCountry.region}`) : undefined,
+    country: homeCountry ? getCountryName(homeCountry, language) : undefined,
+  });
 
   useEffect(() => {
     let active = true;
@@ -833,6 +839,7 @@ function LeaderboardScreen({ profile, onBack, onAccount }: { profile: PlayerProf
         <button className={scope === 'country' ? 'active' : ''} onClick={() => setScope('country')} disabled={!homeCountry}>{t('leaderboard.myCountry')}</button>
       </div>
       {!profile.rankedProfileReady && <button className="ranking-join" onClick={onAccount}><Trophy /><span><strong>{t('leaderboard.join')}</strong><small>{t('leaderboard.joinDetail')}</small></span><ChevronRight /></button>}
+      <h2 className="leaderboard-context-title">{contextTitle}</h2>
       <section className="leaderboard-list" aria-live="polite">
         {loading && <p className="empty-state">{t('leaderboard.loading')}</p>}
         {!loading && error && <p className="empty-state">{error}</p>}
@@ -840,7 +847,7 @@ function LeaderboardScreen({ profile, onBack, onAccount }: { profile: PlayerProf
         {items.map((entry) => (
           <article key={entry.user_id} className="leaderboard-entry">
             <strong className="leaderboard-entry__rank">#{entry.rank}</strong>
-            <div><strong>{entry.display_name || entry.username}</strong><small>{t('leaderboard.entry', { country: entryCountryName(entry.country), stages: entry.stages_completed, hints: entry.total_hints_used })}</small></div>
+            <div><strong>{entry.display_name || entry.username}</strong><small>{t(leaderboardEntryShowsCountry(scope) ? 'leaderboard.entry' : 'leaderboard.entryLocal', { country: entryCountryName(entry.country), stages: entry.stages_completed, hints: entry.total_hints_used })}</small></div>
             <span><strong>{entry.total_score}</strong><small>{t('common.points')}</small></span>
           </article>
         ))}
@@ -1278,7 +1285,6 @@ export default function App() {
       const response = await updateRankingProfile(session, {
         displayName: nextProfile.displayName,
         country: country.code,
-        region: country.region,
       });
       setProfile({ ...nextProfile, rankedProfileReady: response.ranked_profile_ready });
     } catch (error) {
@@ -1366,7 +1372,6 @@ export default function App() {
         const response = await updateRankingProfile(rankingSession, {
           displayName: nextProfile.displayName,
           country: country.code,
-          region: country.region,
         });
         nextProfile.rankedProfileReady = response.ranked_profile_ready;
       } catch (error) {
