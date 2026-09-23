@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Silueta de globo: Android aplica el color del tema al icono monocromático. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M54,18A36,36 0,1 0,54,90A36,36 0,1 0,54,18M54,24C61,31 65,42 65,54C65,66 61,77 54,84C47,77 43,66 43,54C43,42 47,31 54,24M25,50L83,50L83,58L25,58M31,35L77,35L77,42L31,42M31,66L77,66L77,73L31,73" />
+</vector>
