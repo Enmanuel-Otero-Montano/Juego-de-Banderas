@@ -88,6 +88,7 @@ const openHome = async () => {
   }, profile);
   await page.reload({ waitUntil: 'networkidle' });
   await page.getByRole('heading', { name: '¿A dónde viajamos hoy?' }).waitFor();
+  await page.evaluate(() => window.scrollTo(0, 0));
 };
 
 const capture = async (name) => {

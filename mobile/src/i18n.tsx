@@ -4,7 +4,7 @@ import type { LocaleCode } from './types';
 const STORAGE_KEY = 'atlas-flags-language-v1';
 
 const es = {
-  'app.name': 'Atlas de Banderas',
+  'app.name': 'Banderas, Países y Regiones',
   'app.description': 'Aprende las banderas, capitales y regiones del mundo jugando.',
   'common.back': 'Volver',
   'common.flags': 'banderas',
@@ -29,7 +29,7 @@ const es = {
   'home.dailySubtitle': 'La misma ruta para todo el mundo',
   'home.completed': 'COMPLETADO',
   'home.newToday': 'NUEVO HOY',
-  'home.aroundWorld': 'La vuelta al mundo',
+  'home.aroundWorld': 'Vuelta al mundo',
   'home.dailyDetail': '7 banderas · combinación única',
   'home.practiceAgain': 'Volver a practicar',
   'home.playNow': 'Jugar ahora',
@@ -293,7 +293,7 @@ type Dictionary = Record<MessageKey, string>;
 
 const en: Dictionary = {
   ...es,
-  'app.name': 'Flag Atlas',
+  'app.name': 'Banderas, Países y Regiones',
   'app.description': 'Learn the flags, capitals, and regions of the world through play.',
   'common.back': 'Back', 'common.flags': 'flags', 'common.stage': 'Stage', 'common.loading': 'Loading…', 'common.continue': 'Continue', 'common.cancel': 'Cancel', 'common.save': 'Save', 'common.ok': 'Got it', 'common.points': 'pts', 'flag.aria': 'Flag of {country}',
   'top.store': 'Open store', 'top.rankings': 'View leaderboards', 'top.settings': 'Settings',
@@ -321,7 +321,7 @@ const en: Dictionary = {
 
 const pt: Dictionary = {
   ...es,
-  'app.name': 'Atlas de Bandeiras',
+  'app.name': 'Banderas, Países y Regiones',
   'app.description': 'Aprenda as bandeiras, capitais e regiões do mundo jogando.',
   'common.back': 'Voltar', 'common.flags': 'bandeiras', 'common.stage': 'Etapa', 'common.loading': 'Carregando…', 'common.continue': 'Continuar', 'common.cancel': 'Cancelar', 'common.save': 'Salvar', 'common.ok': 'Entendi', 'common.points': 'pts', 'flag.aria': 'Bandeira de {country}',
   'top.store': 'Abrir loja', 'top.rankings': 'Ver classificações', 'top.settings': 'Configurações',

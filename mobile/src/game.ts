@@ -166,5 +166,5 @@ export const completeSession = (
 
 export const createShareText = (correct: number, total: number, date: string, answers: AnswerRecord[]): string => {
   const tiles = answers.map((answer) => (answer.correct ? '🟩' : '🟥')).join('');
-  return `Atlas de Banderas · ${date}\n${tiles}\n${correct}/${total} banderas · ¿Puedes superarme?`;
+  return `Banderas, Países y Regiones · ${date}\n${tiles}\n${correct}/${total} banderas · ¿Puedes superarme?`;
 };

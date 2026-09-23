@@ -51,11 +51,11 @@ try {
       body:before{width:420px;height:420px;left:-135px;top:142px}body:after{width:250px;height:250px;right:-70px;top:-95px}
       .icon{position:relative;width:360px;height:360px;object-fit:contain;filter:drop-shadow(0 24px 34px #001d1766)}
       .copy{position:relative;margin-left:58px;max-width:500px}.eyebrow{font:800 16px Manrope,sans-serif;letter-spacing:.19em;color:#f4c84d;margin:0 0 13px}
-      h1{font:800 58px/1.02 Manrope,sans-serif;letter-spacing:-.04em;margin:0 0 17px}p{font:500 25px/1.3 DMSans,sans-serif;color:#edf8f3;margin:0 0 28px}
+      h1{font:800 47px/1.02 Manrope,sans-serif;letter-spacing:-.04em;margin:0 0 17px}p{font:500 25px/1.3 DMSans,sans-serif;color:#edf8f3;margin:0 0 28px}
       .facts{display:flex;gap:10px;flex-wrap:wrap}.facts span{font:500 15px DMSans,sans-serif;padding:10px 14px;border:1px solid #ffffff35;border-radius:999px;background:#ffffff13;color:#fff}
     </style>
     <img class="icon" src="${icon}" alt="">
-    <section class="copy"><div class="eyebrow">TU PASAPORTE AL MUNDO</div><h1>Atlas de<br>Banderas</h1><p>Aprendé el mundo,<br>bandera a bandera.</p><div class="facts"><span>195 países</span><span>12 etapas</span><span>Juego sin conexión</span></div></section>
+    <section class="copy"><div class="eyebrow">TU PASAPORTE AL MUNDO</div><h1>Banderas, Países<br>y Regiones</h1><p>Aprendé el mundo,<br>bandera a bandera.</p><div class="facts"><span>195 países</span><span>12 etapas</span><span>Juego sin conexión</span></div></section>
   `, { waitUntil: 'load' });
   await featurePage.screenshot({ path: path.join(outputDir, 'feature-graphic-1024x500.png') });
   console.log(`Icono y gráfico de funciones creados en ${outputDir}`);

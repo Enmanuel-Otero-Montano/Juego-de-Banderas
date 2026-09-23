@@ -125,13 +125,13 @@ h1, h2, h3, strong { font-family: 'Manrope', 'DM Sans', sans-serif; }
 .daily-card::before { width: 210px; height: 210px; right: -62px; top: -80px; }
 .daily-card::after { width: 120px; height: 120px; right: -10px; top: -30px; }
 .daily-card--done { background: linear-gradient(135deg, #40524d, #687b74); }
-.daily-card__copy { position: relative; z-index: 2; }
+.daily-card__copy { position: relative; z-index: 2; max-width: calc(100% - 108px); }
 .daily-card__tag { display: inline-flex; align-items: center; gap: 5px; padding: 5px 8px; color: #173f35; background: #c8f2cf; border-radius: 999px; font: 800 9px 'Manrope'; letter-spacing: .08em; }
 .daily-card h2 { margin-top: 19px; font-size: 23px; letter-spacing: -.03em; }
 .daily-card p { margin-top: 3px; color: rgba(255,255,255,.7); font-size: 13px; }
 .daily-card__action { display: flex; align-items: center; gap: 4px; margin-top: 18px; font-weight: 700; font-size: 13px; }
-.daily-card__flag { position: absolute; z-index: 2; top: 56px; right: -10px; display: grid; place-items: center; width: 150px; height: 96px; transform: rotate(5deg); }
-.mystery-flag { width: 112px; height: 76px; border-radius: 8px; background: linear-gradient(to bottom, #f5d367 0 33.333%, #f7f3df 33.333% 66.666%, #df7046 66.666%); box-shadow: 0 14px 25px rgba(0,0,0,.25); }
+.daily-card__flag { position: absolute; z-index: 2; top: 58px; right: -4px; display: grid; place-items: center; width: 118px; height: 84px; transform: rotate(5deg); }
+.mystery-flag { width: 96px; height: 64px; border-radius: 8px; background: linear-gradient(to bottom, #f5d367 0 33.333%, #f7f3df 33.333% 66.666%, #df7046 66.666%); box-shadow: 0 14px 25px rgba(0,0,0,.25); }
 .daily-card__flag > span:last-child { position: absolute; display: grid; place-items: center; width: 38px; height: 38px; color: var(--ink); background: #f2c653; border: 4px solid rgba(255,255,255,.9); border-radius: 50%; font: 800 18px 'Manrope'; box-shadow: 0 6px 12px rgba(0,0,0,.2); }
 
 .section-title-row { display: flex; align-items: flex-end; justify-content: space-between; margin: 28px 2px 13px; }
