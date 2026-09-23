@@ -9,6 +9,12 @@ type RawCountry = (typeof rawCountries)[number];
 const populationByName = new Map(
   (populationRows as Array<{ country: string; population: number }>).map((row) => [row.country, row.population]),
 );
+// country-json usa nombres históricos para estas nueve entradas; este mapa
+// explícito conserva el cruce por ISO sin una petición de red en tiempo real.
+const populationByCode: Record<string, number> = {
+  cd: 84068091, cg: 5244363, cz: 10629928, fj: 883483, fm: 112640,
+  st: 211028, tl: 1267972, tr: 82319724, va: 825,
+};
 const modernSpanishNames: Record<string, string> = {
   sz: 'Esuatini',
   tr: 'Turquía',
@@ -43,7 +49,7 @@ export const countries: Country[] = rawCountries
     capital: country.capital?.[0] || '—',
     region: country.region as RegionKey,
     subregion: country.subregion || country.region,
-    population: populationByName.get(country.name.common) || 0,
+    population: populationByCode[country.cca2.toLowerCase()] || populationByName.get(country.name.common) || 0,
     recognition: recognitionFor(country.cca2.toLowerCase()),
   }))
   .sort((a, b) => a.name.localeCompare(b.name, 'es'));

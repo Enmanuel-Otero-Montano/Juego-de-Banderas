@@ -14,4 +14,10 @@ describe('nombres de países', () => {
       if (descriptor) Object.defineProperty(Intl, 'DisplayNames', descriptor);
     }
   });
+
+  it('mantiene población para los países con nombres distintos entre catálogos', () => {
+    for (const code of ['cd', 'cg', 'cz', 'fj', 'fm', 'st', 'tl', 'tr', 'va']) {
+      expect(countries.find((country) => country.code === code)?.population).toBeGreaterThan(0);
+    }
+  });
 });
