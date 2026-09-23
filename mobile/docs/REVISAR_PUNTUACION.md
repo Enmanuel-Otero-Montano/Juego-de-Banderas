@@ -10,7 +10,7 @@ Solo el **modo Viaje**, etapas **1 a 12**.
 Condiciones:
 
 - Sesión iniciada (cuenta de clasificación).
-- Al menos **70 %** de aciertos en la etapa.
+- **100 %** de aciertos en la etapa: todas las banderas deben quedar asociadas.
 - El servidor **recalcula** el puntaje; no usa el número del cliente.
 - Se guarda la **mejor marca** de cada etapa.
 - El total de la tabla es la **suma** de esas mejores marcas.
@@ -53,8 +53,8 @@ La dificultad cambia cuántas y cuáles banderas salen, no el valor de cada una.
 
 ## Checklist de revisión
 
-- [ ] Jugar una etapa de Viaje logueado, superarla (≥ 70 %) y ver si el puntaje del wizard coincide con lo publicado.
-- [ ] Perder una etapa de Viaje (vidas en 0 o menos del 70 %) y confirmar que no entra a la tabla.
+- [ ] Jugar una etapa de Viaje logueado, superarla (100 %) y ver si el puntaje del wizard coincide con lo publicado.
+- [ ] Perder una etapa de Viaje (vidas en 0 o alguna bandera sin asociar) y confirmar que no entra a la tabla.
 - [ ] Completar diario, regiones y ronda rápida: el wizard no debe mostrar pts de ranking.
 - [ ] Probar Fácil / Normal / Difícil: cada uno suma en su propia tabla.
 - [ ] Confirmar que reintentar una etapa ya superada solo actualiza la marca si el nuevo puntaje es mejor.
