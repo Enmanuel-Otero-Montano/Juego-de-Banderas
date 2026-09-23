@@ -1241,7 +1241,7 @@ function PrivacyScreen({ onBack }: { onBack: () => void }) {
         <h2>{t('privacy.purchasesTitle')}</h2>
         <p>{t('privacy.purchases')}</p>
         <h2>{t('privacy.controlTitle')}</h2>
-        <p>{t('privacy.control')} <a href="mailto:contacto@banderas-paises-regiones.com">contacto@banderas-paises-regiones.com</a>.</p>
+        <p>{t('privacy.control')} <a href="mailto:gamoying@gmail.com">gamoying@gmail.com</a>.</p>
         <p>{t('privacy.age')}</p>
       </section>
     </main>
