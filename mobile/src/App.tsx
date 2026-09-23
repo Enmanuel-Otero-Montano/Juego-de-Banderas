@@ -37,7 +37,7 @@ import {
 } from 'lucide-react';
 import { Flag } from './components/Flag';
 import { countries, formatPopulation, getCapitalName, getCountryByCode, getCountryName, getRegionCountries } from './data/countries';
-import { getExpeditionPool, getHomeStageId, getJourneyExpeditionCountries, getJourneyRoute, getJourneyStagePool, getJourneyStageText, getNextRouteChoices, journeyStages } from './data/journey';
+import { getExpeditionPool, getHomeStageId, getJourneyExpeditionCountries, getJourneyRoute, getJourneyStage, getJourneyStagePool, getJourneyStageText, getNextRouteChoices, journeyStages } from './data/journey';
 import { buildQuestions, completeSession, hiddenOptionCodes, isoDate, millisecondsUntilNextLocalDay, shuffle } from './game';
 import { languageOptions, useI18n } from './i18n';
 import { leaderboardContextTitle, leaderboardEntryShowsCountry, type LeaderboardScope } from './leaderboard';
@@ -326,7 +326,8 @@ function CareerScreen({ profile, startGame, onChooseOrigin, onChooseRoute, onLea
       <DifficultySelector value={difficulty} onChange={setDifficulty} />
       <div className="journey-path">
         {routeWithFinal.map((baseStageId, index) => {
-          const stage = journeyStages[baseStageId - 1];
+          const stage = getJourneyStage(baseStageId);
+          if (!stage) return null;
           const stageText = getJourneyStageText(stage, language);
           const stageNumber = index + 1;
           const locked = stageNumber > profile.unlockedStage;

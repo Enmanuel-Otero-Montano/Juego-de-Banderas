@@ -62,8 +62,15 @@ const translatedStages: Record<LocaleCode, JourneyStageText[]> = {
   ],
 };
 
+export const getJourneyStage = (stageId: number): JourneyStage | undefined =>
+  Number.isInteger(stageId) ? journeyStages.find((stage) => stage.id === stageId) : undefined;
+
 export const getJourneyStageText = (stage: JourneyStage, language: LocaleCode): JourneyStageText =>
-  translatedStages[language][stage.id - 1];
+  translatedStages[language]?.[stage.id - 1] ?? {
+    title: stage.title,
+    label: stage.label,
+    focus: stage.focus,
+  };
 
 const regionalStageIds = journeyStages.filter((stage) => stage.id < 12).map((stage) => stage.id);
 
@@ -96,14 +103,17 @@ const getSwap = (profile: PlayerProfile) => {
   const home = countries.find((country) => country.code === profile.homeCountryCode);
   if (!home) return null;
   const homeStageId = getHomeStageId(home);
+  const homeStage = getJourneyStage(homeStageId);
   const originalStage = journeyStages.find((stage) => stage.codes.includes(home.code));
-  if (originalStage?.id === homeStageId) return null;
-  const displacedCode = journeyStages[homeStageId - 1].codes.at(-1)!;
+  const displacedCode = homeStage?.codes.at(-1);
+  if (originalStage?.id === homeStageId || !displacedCode) return null;
   return { homeCode: home.code, homeStageId, originalStageId: originalStage?.id, displacedCode };
 };
 
 export const getJourneyStagePool = (stageId: number, profile: PlayerProfile): Country[] => {
-  const codes = [...journeyStages[stageId - 1].codes];
+  const stage = getJourneyStage(stageId);
+  if (!stage) return [];
+  const codes = [...stage.codes];
   const swap = getSwap(profile);
   if (swap && stageId === swap.homeStageId) codes[codes.indexOf(swap.displacedCode)] = swap.homeCode;
   if (swap?.originalStageId === stageId) codes[codes.indexOf(swap.homeCode)] = swap.displacedCode;
@@ -131,14 +141,16 @@ export const getNextRouteChoices = (profile: PlayerProfile): JourneyStage[] => {
   if (remaining.length < 2) return remaining;
   const pairIndex = Math.floor((route.length - 1) / 2);
   const targetDifficulty = ([1, 1, 2, 2, 3] as const)[Math.min(pairIndex, 4)];
-  const lastContinent = journeyStages[route.at(-1)! - 1].continent;
+  const lastStage = getJourneyStage(route.at(-1)!);
+  if (!lastStage) return [];
+  const lastContinent = lastStage.continent;
   const destinationsAwayFromLast = remaining.filter((stage) => stage.continent !== lastContinent);
   const candidates = destinationsAwayFromLast.length >= 2 ? destinationsAwayFromLast : remaining;
   const hasIntercontinentalPair = candidates.some((stage, index) => candidates.slice(index + 1).some((other) => other.continent !== stage.continent));
   const visits = new Map<string, number>();
   route.forEach((id) => {
-    const continent = journeyStages[id - 1].continent;
-    visits.set(continent, (visits.get(continent) || 0) + 1);
+    const stage = getJourneyStage(id);
+    if (stage) visits.set(stage.continent, (visits.get(stage.continent) || 0) + 1);
   });
 
   let best: [JourneyStage, JourneyStage] = [candidates[0], candidates[1]];

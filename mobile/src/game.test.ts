@@ -39,6 +39,15 @@ describe('catálogo de países', () => {
     expect(getJourneyStageText(journeyStages[0], 'en').title).toBe('Heading south');
     expect(getJourneyStageText(journeyStages[0], 'pt').title).toBe('Rumo ao sul');
   });
+
+  it('usa salidas seguras ante una etapa o traducción inválida', () => {
+    expect(getJourneyStagePool(99, initialProfile)).toEqual([]);
+    expect(getJourneyStageText({ ...journeyStages[0], id: 99 }, 'en')).toEqual({
+      title: 'Rumbo al sur',
+      label: 'América del Sur',
+      focus: 'Primeros pasos',
+    });
+  });
 });
 
 describe('generador de preguntas', () => {
