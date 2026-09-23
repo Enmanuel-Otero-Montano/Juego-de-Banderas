@@ -1343,28 +1343,31 @@ export default function App() {
     if (!saveProfile(next)) notice(t('storage.errorTitle'), t('storage.error'));
   };
 
-  const syncRanking = async (session: RankingSession, nextProfile: PlayerProfile) => {
+  const syncRanking = async (session: RankingSession, nextProfile: PlayerProfile): Promise<boolean> => {
     const country = countries.find((item) => item.code === nextProfile.homeCountryCode);
-    if (!country) return;
+    if (!country) return false;
     try {
       const response = await updateRankingProfile(session, {
         displayName: nextProfile.displayName,
         country: country.code,
       });
       setProfile({ ...nextProfile, rankedProfileReady: response.ranked_profile_ready });
+      return true;
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         clearRankingSession();
         setRankingSession(null);
       }
+      return false;
     }
   };
 
   const connectRanking = (session: RankingSession, alias: string) => {
     const nextProfile = { ...profile, displayName: alias || profile.displayName };
-    setProfile(nextProfile);
     setRankingSession(session);
-    void syncRanking(session, nextProfile);
+    void syncRanking(session, nextProfile).then((synced) => {
+      if (!synced) notice(t('account.title'), t('account.operationError'));
+    });
   };
 
   useEffect(() => {
@@ -1556,8 +1559,13 @@ export default function App() {
   };
   const changeAlias = (alias: string | null) => {
     const nextProfile = { ...profile, displayName: alias };
-    setProfile(nextProfile);
-    if (rankingSession) void syncRanking(rankingSession, nextProfile);
+    if (!rankingSession) {
+      setProfile(nextProfile);
+      return;
+    }
+    void syncRanking(rankingSession, nextProfile).then((synced) => {
+      if (!synced) notice(t('account.title'), t('account.operationError'));
+    });
   };
   const signOut = () => {
     clearRankingSession();
