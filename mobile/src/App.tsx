@@ -1170,6 +1170,7 @@ function StoreScreen({ profile, setProfile, onBack }: { profile: PlayerProfile; 
         <div className="pro-price">{aPackage?.product.priceString || t('store.playPrice')}<small>{t('store.noRenewal')}</small></div>
         <button className="primary-button primary-button--gold" onClick={buy} disabled={busy || profile.isPremium}>{profile.isPremium ? t('store.active') : busy ? t('store.processing') : t('store.get')}</button>
         <button className="text-button" onClick={restore} disabled={busy}>{t('store.restore')}</button>
+        <p className="store-note">{t('store.restoreDetail')}</p>
         {status && <p className="store-status">{status}</p>}
       </section>
       <section className="content-card"><div className="store-coins"><CircleDollarSign /><div><strong>{t('store.coins', { count: profile.coins })}</strong><small>{t('store.coinsDetail')}</small></div></div><p className="store-note">{t('store.rewarded')}</p></section>

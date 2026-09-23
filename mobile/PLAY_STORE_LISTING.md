@@ -44,7 +44,7 @@ Learn flags, countries and capitals through geography challenges.
 
 How many flags of the world can you recognize?
 
-Banderas, Países y Regiones is a geography game for learning world flags, countries and capitals while you play. Match each country with its flag, build your travel passport and progress at your own pace.
+Flags, Countries & Regions is a geography game for learning world flags, countries and capitals while you play. Match each country with its flag, build your travel passport and progress at your own pace.
 
 • Learn all 195 country flags, countries and capitals.
 • A daily challenge with the same combination for everyone.
@@ -74,7 +74,7 @@ Aprenda bandeiras, países e capitais em desafios de geografia.
 
 Quantas bandeiras do mundo você consegue reconhecer?
 
-Banderas, Países y Regiones é um jogo de geografia para aprender bandeiras, países e capitais enquanto você joga. Relacione cada país à sua bandeira, complete seu passaporte de viagem e avance no seu ritmo.
+Bandeiras, Países e Regiões é um jogo de geografia para aprender bandeiras, países e capitais enquanto você joga. Relacione cada país à sua bandeira, complete seu passaporte de viagem e avance no seu ritmo.
 
 • Aprenda as 195 bandeiras do mundo, países e capitais.
 • Desafio diário com a mesma combinação para todas as pessoas.
