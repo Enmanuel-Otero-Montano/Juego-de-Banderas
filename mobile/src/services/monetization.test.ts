@@ -12,6 +12,8 @@ const ads = vi.hoisted(() => ({
   initialize: vi.fn(),
   requestConsentInfo: vi.fn(),
   showConsentForm: vi.fn(),
+  prepareInterstitial: vi.fn(),
+  showInterstitial: vi.fn(),
 }));
 
 vi.mock('@capacitor/core', () => ({ Capacitor: { isNativePlatform: () => nativePlatform.value } }));
@@ -35,6 +37,9 @@ describe('gracia del entitlement Pro', () => {
     purchases.getCustomerInfo.mockReset();
     ads.initialize.mockReset();
     ads.requestConsentInfo.mockReset();
+    ads.showConsentForm.mockReset();
+    ads.prepareInterstitial.mockReset();
+    ads.showInterstitial.mockReset();
     ads.requestConsentInfo.mockResolvedValue({ canRequestAds: true, privacyOptionsRequirementStatus: 'NOT_REQUIRED' });
   });
 
@@ -64,6 +69,20 @@ describe('gracia del entitlement Pro', () => {
     await expect(monetization.initialize()).resolves.toBe(false);
     expect(localStorage.getItem(cacheKey)).toBeNull();
     expect(ads.initialize).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('regla de intersticiales', () => {
+  it('sólo permite cerrar una sesión gratuita múltiplo de tres', async () => {
+    const { shouldShowInterstitial } = await import('./monetization');
+
+    expect(shouldShowInterstitial(0, false)).toBe(false);
+    expect(shouldShowInterstitial(1, false)).toBe(false);
+    expect(shouldShowInterstitial(2, false)).toBe(false);
+    expect(shouldShowInterstitial(3, false)).toBe(true);
+    expect(shouldShowInterstitial(4, false)).toBe(false);
+    expect(shouldShowInterstitial(6, false)).toBe(true);
+    expect(shouldShowInterstitial(3, true)).toBe(false);
   });
 });
 

@@ -13,6 +13,10 @@ let adsReady = false;
 let purchasesReady = false;
 let privacyOptionsRequired = false;
 
+/** Los anuncios se ofrecen únicamente al cerrar cada tercera sesión completada. */
+export const shouldShowInterstitial = (sessionsCompleted: number, isPremium: boolean): boolean =>
+  Number.isInteger(sessionsCompleted) && sessionsCompleted > 0 && sessionsCompleted % 3 === 0 && !isPremium;
+
 const rememberVerifiedPremium = () => {
   try {
     localStorage.setItem(PREMIUM_CACHE_KEY, JSON.stringify({ verifiedAt: Date.now() }));
@@ -117,7 +121,7 @@ export const monetization = {
   },
 
   async maybeShowInterstitial(sessionsCompleted: number, isPremium: boolean): Promise<void> {
-    if (!Capacitor.isNativePlatform() || !adsReady || isPremium || sessionsCompleted % 3 !== 0) return;
+    if (!Capacitor.isNativePlatform() || !adsReady || !shouldShowInterstitial(sessionsCompleted, isPremium)) return;
     try {
       await AdMob.prepareInterstitial({
         adId: import.meta.env.VITE_ADMOB_INTERSTITIAL_ID || TEST_INTERSTITIAL_ANDROID,
