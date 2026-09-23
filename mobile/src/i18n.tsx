@@ -4,7 +4,7 @@ import type { LocaleCode } from './types';
 const STORAGE_KEY = 'atlas-flags-language-v1';
 
 const es = {
-  'app.name': 'Banderas, Países y Regiones',
+  'app.name': 'Flags, Countries & Regions',
   'app.description': 'Aprende las banderas, capitales y regiones del mundo jugando.',
   'common.back': 'Volver',
   'common.flags': 'banderas',
@@ -293,7 +293,7 @@ type Dictionary = Record<MessageKey, string>;
 
 const en: Dictionary = {
   ...es,
-  'app.name': 'Banderas, Países y Regiones',
+  'app.name': 'Bandeiras, Países e Regiões',
   'app.description': 'Learn the flags, capitals, and regions of the world through play.',
   'common.back': 'Back', 'common.flags': 'flags', 'common.stage': 'Stage', 'common.loading': 'Loading…', 'common.continue': 'Continue', 'common.cancel': 'Cancel', 'common.save': 'Save', 'common.ok': 'Got it', 'common.points': 'pts', 'flag.aria': 'Flag of {country}',
   'top.store': 'Open store', 'top.rankings': 'View leaderboards', 'top.settings': 'Settings',

@@ -19,7 +19,11 @@
     "android:bundle": "npm run release:check && npm run build -- --mode production && cap sync android && cd android && ./gradlew bundleRelease",
     "android:open": "cap open android",
     "screenshots": "node scripts/capture-play-screenshots.mjs",
+    "screenshots:en": "PLAY_ASSET_LOCALE=en node scripts/capture-play-screenshots.mjs",
+    "screenshots:pt": "PLAY_ASSET_LOCALE=pt node scripts/capture-play-screenshots.mjs",
     "store-assets": "node scripts/generate-store-assets.mjs",
+    "store-assets:en": "PLAY_ASSET_LOCALE=en node scripts/generate-store-assets.mjs",
+    "store-assets:pt": "PLAY_ASSET_LOCALE=pt node scripts/generate-store-assets.mjs",
     "store-assets:check": "node scripts/validate-store-assets.mjs",
     "android:icons": "node scripts/generate-android-icons.mjs"
   },

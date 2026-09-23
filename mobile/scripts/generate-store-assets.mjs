@@ -15,7 +15,33 @@ im.save(${JSON.stringify(filePath)}, "PNG")
 }
 
 const chromePath = process.env.CHROME_PATH || '/usr/bin/google-chrome';
-const outputDir = path.resolve('play-assets');
+const assetLocale = process.env.PLAY_ASSET_LOCALE || 'es';
+const locales = {
+  es: {
+    outputDir: 'play-assets',
+    eyebrow: 'TU PASAPORTE AL MUNDO',
+    title: 'Banderas, Países<br>y Regiones',
+    subtitle: 'Aprendé el mundo,<br>bandera a bandera.',
+    facts: ['195 países', '12 etapas', 'Juego sin conexión'],
+  },
+  en: {
+    outputDir: 'play-assets/localized/en-US',
+    eyebrow: 'YOUR PASSPORT TO THE WORLD',
+    title: 'Flags, Countries<br><span>&amp;</span><span style="margin-left:.18em">Regions</span>',
+    subtitle: 'Learn the world,<br>one flag at a time.',
+    facts: ['195 countries', '12 stages', 'Play offline'],
+  },
+  pt: {
+    outputDir: 'play-assets/localized/pt-BR',
+    eyebrow: 'SEU PASSAPORTE PARA O MUNDO',
+    title: 'Bandeiras, Países<br>e Regiões',
+    subtitle: 'Aprenda o mundo,<br>bandeira por bandeira.',
+    facts: ['195 países', '12 etapas', 'Jogue offline'],
+  },
+};
+const copy = locales[assetLocale];
+if (!copy) throw new Error(`PLAY_ASSET_LOCALE inválido: ${assetLocale}`);
+const outputDir = path.resolve(copy.outputDir);
 await mkdir(outputDir, { recursive: true });
 
 const dataUrl = async (file, mime) => {
@@ -31,14 +57,16 @@ const [icon, manrope, dmSans] = await Promise.all([
 
 const browser = await chromium.launch({ executablePath: chromePath, headless: true });
 try {
-  const iconPage = await browser.newPage({ viewport: { width: 512, height: 512 }, deviceScaleFactor: 1 });
-  await iconPage.setContent(`
-    <style>*{box-sizing:border-box}html,body{margin:0;width:512px;height:512px;overflow:hidden;background:transparent}img{width:512px;height:512px;display:block}</style>
-    <img src="${icon}" alt="">
-  `, { waitUntil: 'load' });
-  const iconPath = path.join(outputDir, 'icon-512.png');
-  await iconPage.screenshot({ path: iconPath, omitBackground: true });
-  ensureRgbaPng(iconPath);
+  if (assetLocale === 'es') {
+    const iconPage = await browser.newPage({ viewport: { width: 512, height: 512 }, deviceScaleFactor: 1 });
+    await iconPage.setContent(`
+      <style>*{box-sizing:border-box}html,body{margin:0;width:512px;height:512px;overflow:hidden;background:transparent}img{width:512px;height:512px;display:block}</style>
+      <img src="${icon}" alt="">
+    `, { waitUntil: 'load' });
+    const iconPath = path.join(outputDir, 'icon-512.png');
+    await iconPage.screenshot({ path: iconPath, omitBackground: true });
+    ensureRgbaPng(iconPath);
+  }
 
   const featurePage = await browser.newPage({ viewport: { width: 1024, height: 500 }, deviceScaleFactor: 1 });
   await featurePage.setContent(`
@@ -55,10 +83,10 @@ try {
       .facts{display:flex;gap:10px;flex-wrap:wrap}.facts span{font:500 15px DMSans,sans-serif;padding:10px 14px;border:1px solid #ffffff35;border-radius:999px;background:#ffffff13;color:#fff}
     </style>
     <img class="icon" src="${icon}" alt="">
-    <section class="copy"><div class="eyebrow">TU PASAPORTE AL MUNDO</div><h1>Banderas, Países<br>y Regiones</h1><p>Aprendé el mundo,<br>bandera a bandera.</p><div class="facts"><span>195 países</span><span>12 etapas</span><span>Juego sin conexión</span></div></section>
+    <section class="copy"><div class="eyebrow">${copy.eyebrow}</div><h1>${copy.title}</h1><p>${copy.subtitle}</p><div class="facts">${copy.facts.map((fact) => `<span>${fact}</span>`).join('')}</div></section>
   `, { waitUntil: 'load' });
   await featurePage.screenshot({ path: path.join(outputDir, 'feature-graphic-1024x500.png') });
-  console.log(`Icono y gráfico de funciones creados en ${outputDir}`);
+  console.log(`${assetLocale === 'es' ? 'Icono y gráfico' : 'Gráfico'} de funciones creado en ${outputDir}`);
 } finally {
   await browser.close();
 }

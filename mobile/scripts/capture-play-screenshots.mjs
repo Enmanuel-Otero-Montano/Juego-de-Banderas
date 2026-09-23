@@ -5,7 +5,27 @@ import { chromium } from 'playwright-core';
 
 const baseUrl = process.env.SCREENSHOT_BASE_URL || 'http://127.0.0.1:5173';
 const chromePath = process.env.CHROME_PATH || '/usr/bin/google-chrome';
-const outputDir = path.resolve('play-assets/screenshots');
+const assetLocale = process.env.PLAY_ASSET_LOCALE || 'es';
+const locales = {
+  es: {
+    browserLocale: 'es-UY', language: 'es', outputDir: 'play-assets/screenshots', displayName: 'ExploradorUY',
+    home: '¿A dónde viajamos hoy?', playNow: 'Jugar ahora', journey: 'Modo viaje', route: 'Tu ruta por el mundo',
+    regions: 'Por regiones', regionsTitle: 'Explorar por región', progress: 'Progreso', store: 'Abrir tienda', storeTitle: 'Pasaporte Pro',
+  },
+  en: {
+    browserLocale: 'en-US', language: 'en', outputDir: 'play-assets/localized/en-US/screenshots', displayName: 'ExplorerUS',
+    home: 'Where should we travel today?', playNow: 'Play now', journey: 'Journey mode', route: 'Your route around the world',
+    regions: 'By region', regionsTitle: 'Explore by region', progress: 'Progress', store: 'Open store', storeTitle: 'Pro Passport',
+  },
+  pt: {
+    browserLocale: 'pt-BR', language: 'pt', outputDir: 'play-assets/localized/pt-BR/screenshots', displayName: 'ExploradorBR',
+    home: 'Para onde vamos viajar hoje?', playNow: 'Jogar agora', journey: 'Modo viagem', route: 'Sua rota pelo mundo',
+    regions: 'Por regiões', regionsTitle: 'Explorar por região', progress: 'Progresso', store: 'Abrir loja', storeTitle: 'Passaporte Pro',
+  },
+};
+const copy = locales[assetLocale];
+if (!copy) throw new Error(`PLAY_ASSET_LOCALE inválido: ${assetLocale}`);
+const outputDir = path.resolve(copy.outputDir);
 
 await mkdir(outputDir, { recursive: true });
 
@@ -52,7 +72,7 @@ const context = await browser.newContext({
   // Google Play recommends portrait screenshots at 9:16 and at least 1080 px.
   viewport: { width: 360, height: 640 },
   deviceScaleFactor: 3,
-  locale: 'es-UY',
+  locale: copy.browserLocale,
   colorScheme: 'light',
 });
 const page = await context.newPage();
@@ -76,18 +96,19 @@ const profile = {
   soundEnabled: true,
   hapticsEnabled: true,
   campaignHearts: 13,
-  displayName: 'ExploradorUY',
+  displayName: copy.displayName,
   rankedProfileReady: false,
 };
 
 const openHome = async () => {
   await page.goto(baseUrl, { waitUntil: 'networkidle' });
-  await page.evaluate((value) => {
+  await page.evaluate(({ value, language }) => {
     localStorage.setItem('atlas-flags-welcomed', '1');
+    localStorage.setItem('atlas-flags-language-v1', language);
     localStorage.setItem('atlas-flags-profile-v1', JSON.stringify(value));
-  }, profile);
+  }, { value: profile, language: copy.language });
   await page.reload({ waitUntil: 'networkidle' });
-  await page.getByRole('heading', { name: '¿A dónde viajamos hoy?' }).waitFor();
+  await page.getByRole('heading', { name: copy.home }).waitFor();
   await page.evaluate(() => window.scrollTo(0, 0));
 };
 
@@ -99,28 +120,28 @@ try {
   await openHome();
   await capture('01-inicio.png');
 
-  await page.getByText('Jugar ahora', { exact: true }).click();
+  await page.getByText(copy.playNow, { exact: true }).click();
   await page.locator('.game-screen').waitFor();
   await capture('02-desafio-diario.png');
 
   await openHome();
-  await page.getByText('Modo viaje', { exact: true }).click();
-  await page.getByRole('heading', { name: 'Tu ruta por el mundo' }).waitFor();
+  await page.getByText(copy.journey, { exact: true }).click();
+  await page.getByRole('heading', { name: copy.route }).waitFor();
   await capture('03-modo-viaje.png');
 
   await openHome();
-  await page.getByText('Por regiones', { exact: true }).click();
-  await page.getByRole('heading', { name: 'Explorar por región' }).waitFor();
+  await page.getByText(copy.regions, { exact: true }).click();
+  await page.getByRole('heading', { name: copy.regionsTitle }).waitFor();
   await capture('04-regiones.png');
 
   await openHome();
-  await page.getByRole('button', { name: 'Progreso' }).click();
-  await page.getByRole('heading', { name: /Tu pasaporte|ExploradorUY/ }).waitFor();
+  await page.getByRole('button', { name: copy.progress }).click();
+  await page.getByRole('heading', { name: copy.displayName }).waitFor();
   await capture('05-progreso.png');
 
   await openHome();
-  await page.getByRole('button', { name: 'Abrir tienda' }).click();
-  await page.getByRole('heading', { name: 'Pasaporte Pro' }).waitFor();
+  await page.getByRole('button', { name: copy.store }).click();
+  await page.getByRole('heading', { name: copy.storeTitle }).waitFor();
   await capture('06-atlas-pro.png');
 
   console.log(`Capturas creadas en ${outputDir}`);

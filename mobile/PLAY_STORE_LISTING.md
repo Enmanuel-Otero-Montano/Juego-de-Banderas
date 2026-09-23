@@ -30,11 +30,11 @@ No necesitas registrarte para jugar. Si quieres publicar tus resultados del modo
 
 La versión gratuita contiene anuncios. Pasaporte Pro elimina los anuncios e incluye ventajas de comodidad sin aumentar la puntuación ni dar ventajas competitivas.
 
-## Localización en inglés
+## Localización en inglés (Estados Unidos)
 
 ### Nombre
 
-Banderas, Países y Regiones
+Flags, Countries & Regions
 
 ### Descripción breve
 
@@ -64,7 +64,7 @@ The free version contains ads. Passport Pro removes ads and adds convenience fea
 
 ### Nome
 
-Banderas, Países y Regiones
+Bandeiras, Países e Regiões
 
 ### Descrição curta
 
@@ -94,9 +94,28 @@ A versão gratuita contém anúncios. O Passaporte Pro remove anúncios e oferec
 
 1. Usar español como idioma predeterminado y añadir las localizaciones en inglés y portugués de esta ficha.
 2. Subir las capturas en este orden: Inicio, Desafío diario, Modo Viaje, Regiones, Progreso y Pasaporte Pro. Las tres primeras explican el valor del juego antes de hablar de monetización.
-3. Usar el icono y gráfico de funciones de `play-assets/`. El gráfico debe coincidir con el nombre público y no prometer funciones no disponibles.
+3. Usar el icono de `play-assets/` y el gráfico/capturas que correspondan al idioma de cada ficha. El gráfico debe coincidir con el nombre público y no prometer funciones no disponibles.
 4. Elegir categoría **Educación** y solo etiquetas disponibles que describan la versión publicada: Geografía, Trivia y Juegos educativos.
 5. No repetir palabras clave ni pedir reseñas desde la ficha. Tras el lanzamiento, medir impresiones, conversión de ficha a instalación, retención y reseñas desde Play Console antes de hacer experimentos.
+
+## Recursos localizados
+
+| Ficha de Play | Nombre visible | Gráfico y capturas |
+| --- | --- | --- |
+| Español | Banderas, Países y Regiones | `play-assets/` |
+| Inglés (EE. UU.) | Flags, Countries & Regions | `play-assets/localized/en-US/` |
+| Portugués (Brasil) | Bandeiras, Países e Regiões | `play-assets/localized/pt-BR/` |
+
+Para regenerarlos tras cambiar la interfaz:
+
+```bash
+npm run store-assets
+npm run screenshots
+npm run store-assets:en
+npm run screenshots:en
+npm run store-assets:pt
+npm run screenshots:pt
+```
 
 ## Categoría y audiencia propuestas
 
