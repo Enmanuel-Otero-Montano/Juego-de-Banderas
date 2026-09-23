@@ -1,4 +1,4 @@
-import type { AnswerRecord, Difficulty, GameConfig, RegionKey } from '../types';
+import type { Difficulty, GameConfig, RegionKey } from '../types';
 import { rankingContract } from '../ranking';
 
 const SESSION_KEY = 'atlas-flags-ranking-session-v1';
@@ -67,6 +67,11 @@ export interface CareerStageResponse {
   hints_used: number;
   mistakes: number;
   stage_best_updated: boolean;
+}
+
+export interface RankedAttemptPlan {
+  attemptId: string;
+  countryCodes: string[];
 }
 
 export class ApiError extends Error {
@@ -174,58 +179,54 @@ export const updateRankingProfile = async (
 export const beginCareerAttempt = async (
   session: RankingSession,
   config: GameConfig,
-): Promise<string> => {
+): Promise<RankedAttemptPlan> => {
   if (!config.stageId || !config.contentStageId || !config.difficulty) {
     throw new ApiError('La etapa no tiene un contrato de clasificación válido.');
   }
-  const response = await request<{ attempt_id: string }>('/career/attempts', {
+  const response = await request<{ attempt_id: string; country_codes: string[] }>('/career/attempts', {
     method: 'POST',
     headers: authorization(session),
     body: JSON.stringify({
       route_position: config.stageId,
       content_stage_id: config.contentStageId,
       difficulty: config.difficulty,
-      country_codes: config.pool.slice(0, config.questionCount).map((country) => country.code),
       season_id: rankingContract.seasonId,
       ruleset_version: rankingContract.rulesetVersion,
       content_version: rankingContract.contentVersion,
       app_version: rankingContract.appVersion,
     }),
   });
-  return response.attempt_id;
+  return { attemptId: response.attempt_id, countryCodes: response.country_codes };
+};
+
+export const recordCareerSelection = async (
+  session: RankingSession,
+  attemptId: string,
+  event: { eventId: string; sequence: number; countryCode: string; selectedCode: string },
+): Promise<void> => {
+  await request(`/career/attempts/${attemptId}/events`, {
+    method: 'POST',
+    headers: authorization(session),
+    body: JSON.stringify({
+      event_id: event.eventId,
+      sequence: event.sequence,
+      country_code: event.countryCode,
+      selected_code: event.selectedCode,
+    }),
+  });
 };
 
 export const submitCareerStage = async (
   session: RankingSession,
   config: GameConfig,
-  answers: AnswerRecord[],
 ): Promise<CareerStageResponse> => {
   if (!config.stageId || config.stageId > 12 || !config.contentStageId || !config.difficulty || !config.rankingAttemptId) {
     throw new ApiError('Esta partida no tiene un intento clasificatorio emitido por el servidor.');
   }
-  const timeSeconds = Math.max(0, ...answers.map((answer) => answer.elapsedSeconds));
-  return request(`/career/stages/${config.contentStageId}/complete`, {
+  return request(`/career/attempts/${config.rankingAttemptId}/complete`, {
     method: 'POST',
     headers: authorization(session),
-    body: JSON.stringify({
-      attempt_id: config.rankingAttemptId,
-      stage_id: String(config.contentStageId),
-      route_position: config.stageId,
-      season_id: rankingContract.seasonId,
-      ruleset_version: rankingContract.rulesetVersion,
-      content_version: rankingContract.contentVersion,
-      game_mode: 'career',
-      difficulty: config.difficulty,
-      time_seconds: timeSeconds,
-      score: 0,
-      answers: answers.map((answer) => ({
-        country_code: answer.countryCode,
-        selected_codes: answer.selectedCodes || [],
-        correct: answer.correct,
-        used_hint: answer.usedHint,
-        wrong_attempts: answer.wrongAttempts,
-      })),
-    }),
+    body: JSON.stringify({}),
   });
 };
 

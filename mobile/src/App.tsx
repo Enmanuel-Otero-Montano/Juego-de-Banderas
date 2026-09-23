@@ -53,6 +53,7 @@ import {
   getLeaderboard,
   loadRankingSession,
   loginRankingAccount,
+  recordCareerSelection,
   registerRankingAccount,
   resendVerificationEmail,
   submitCareerStage,
@@ -78,7 +79,7 @@ import { App as CapacitorApp } from '@capacitor/app';
 import brandMark from '../assets/icon-only.png';
 
 type Screen = 'home' | 'regions' | 'career' | 'origin' | 'onboarding' | 'progress' | 'store' | 'settings' | 'privacy' | 'leaderboard' | 'account' | 'game';
-type RankingStatus = 'publishing' | 'personal-best' | 'recorded' | 'incomplete' | 'offline' | 'error';
+type RankingStatus = 'publishing' | 'personal-best' | 'recorded' | 'incomplete' | 'offline' | 'unranked' | 'error';
 type GameResult = { reward: SessionReward; records: AnswerRecord[]; config: GameConfig; rankingStatus?: RankingStatus };
 
 const regions: RegionKey[] = ['Americas', 'Europe', 'Asia', 'Africa', 'Oceania'];
@@ -389,9 +390,10 @@ function CareerScreen({ profile, startGame, onChooseOrigin, onChooseRoute, onLea
   );
 }
 
-function JourneyGameScreen({ config, profile, setProfile, paused, onExit, onComplete }: {
+function JourneyGameScreen({ config, profile, rankingSession, setProfile, paused, onExit, onComplete }: {
   config: GameConfig;
   profile: PlayerProfile;
+  rankingSession: RankingSession | null;
   setProfile: (profile: PlayerProfile) => void;
   paused?: boolean;
   onExit: () => void;
@@ -430,11 +432,31 @@ function JourneyGameScreen({ config, profile, setProfile, paused, onExit, onComp
   const livesRef = useRef(startingJourneyHearts(profile.campaignHearts));
   const [stageHintsUsed, setStageHintsUsed] = useState(0);
   const doneRef = useRef(false);
+  const rankedSequenceRef = useRef(0);
+  const rankedQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const rankingSyncFailedRef = useRef(Boolean(config.rankingDegraded));
   const currentGroup = groups[groupIndex] || [];
+  const isRanked = Boolean(config.rankingAttemptId && rankingSession && !config.rankingDegraded);
 
-  const finishJourney = () => {
+  const queueRankedSelection = (countryCode: string, selectedCode: string) => {
+    if (!isRanked || !rankingSession || !config.rankingAttemptId || rankingSyncFailedRef.current) return;
+    const sequence = rankedSequenceRef.current + 1;
+    rankedSequenceRef.current = sequence;
+    const eventId = `ranked-${sequence}-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
+    rankedQueueRef.current = rankedQueueRef.current
+      .then(() => recordCareerSelection(rankingSession, config.rankingAttemptId!, {
+        eventId,
+        sequence,
+        countryCode,
+        selectedCode,
+      }))
+      .catch(() => { rankingSyncFailedRef.current = true; });
+  };
+
+  const finishJourney = async () => {
     if (doneRef.current) return;
     doneRef.current = true;
+    await rankedQueueRef.current;
     const records: AnswerRecord[] = stageCountries.map((country) => ({
       questionId: `${config.stageId}-${country.code}`,
       countryCode: country.code,
@@ -445,9 +467,12 @@ function JourneyGameScreen({ config, profile, setProfile, paused, onExit, onComp
       selectedCodes: selectedCodesRef.current.get(country.code) || [],
     }));
     const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
-    const result = completeSession({ ...profile, campaignHearts: livesRef.current }, config, records, isoDate(), remaining);
+    const finishedConfig = rankingSyncFailedRef.current
+      ? { ...config, rankingAttemptId: undefined, rankingDegraded: true }
+      : config;
+    const result = completeSession({ ...profile, campaignHearts: livesRef.current }, finishedConfig, records, isoDate(), remaining);
     setProfile(result.profile);
-    onComplete(result.reward, records, config);
+    onComplete(result.reward, records, finishedConfig);
   };
 
   useEffect(() => {
@@ -455,7 +480,7 @@ function JourneyGameScreen({ config, profile, setProfile, paused, onExit, onComp
     const updateTimer = () => {
       const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
       setTimeLeft(remaining);
-      if (remaining === 0) finishJourney();
+      if (remaining === 0) void finishJourney();
     };
     updateTimer();
     const timer = window.setInterval(updateTimer, 250);
@@ -472,6 +497,7 @@ function JourneyGameScreen({ config, profile, setProfile, paused, onExit, onComp
       ...(selectedCodesRef.current.get(country.code) || []),
       selectedName,
     ]);
+    queueRankedSelection(country.code, selectedName);
     setFeedback({ correct, flagCode: country.code });
 
     if (!correct) {
@@ -482,7 +508,7 @@ function JourneyGameScreen({ config, profile, setProfile, paused, onExit, onComp
       setSelectedName(null);
       window.setTimeout(() => {
         setFeedback(null);
-        if (nextLives === 0) finishJourney();
+        if (nextLives === 0) void finishJourney();
       }, JOURNEY_FEEDBACK_MS);
       return;
     }
@@ -498,7 +524,7 @@ function JourneyGameScreen({ config, profile, setProfile, paused, onExit, onComp
       setFeedback(null);
       const groupComplete = currentGroup.every((flag) => nextResolved.has(flag.code));
       if (!groupComplete) return;
-      if (nextResolved.size === stageCountries.length) finishJourney();
+      if (nextResolved.size === stageCountries.length) void finishJourney();
       else setGroupIndex((current) => Math.min(current + 1, groups.length - 1));
     }, JOURNEY_FEEDBACK_MS);
   };
@@ -586,10 +612,10 @@ function JourneyGameScreen({ config, profile, setProfile, paused, onExit, onComp
 
       <div className="journey-footer">
         <span>{t('journey.associated', { resolved: resolved.size, total: stageCountries.length, lives })}</span>
-        <div className="hint-actions">
+        {!isRanked && <div className="hint-actions">
           <button onClick={useJourneyHint} disabled={Boolean(hintFor) || (stageHintsUsed >= 2 && freePremiumHints === 0 && profile.coins < 30)}><Lightbulb /> {stageHintsUsed < 2 ? t('journey.hintCount', { count: 2 - stageHintsUsed }) : freePremiumHints > 0 ? t('journey.proCount', { count: freePremiumHints }) : <>{t('journey.hint')} <span>30 <CircleDollarSign /></span></>}</button>
           <button onClick={useRewardedJourneyHint} disabled={Boolean(hintFor) || adLoading}><Gift /> {adLoading ? t('common.loading') : t('journey.watchAd')}</button>
-        </div>
+        </div>}
       </div>
     </main>
   );
@@ -784,7 +810,7 @@ function ResultsModal({ reward, records, config, rankingStatus, onClose, onRepla
           </div>
         )}
         <div className="reward-row"><span><Zap /> +{reward.xp} XP</span><span><CircleDollarSign /> +{reward.coins}</span>{reward.newStageUnlocked && <span><Lock /> {t('results.newStage')}</span>}</div>
-        {config.mode === 'career' && rankingStatus && <p className={`ranking-result ranking-result--${rankingStatus}`}>{rankingStatus === 'publishing' ? t('results.publishing') : rankingStatus === 'personal-best' ? t('results.personalBest') : rankingStatus === 'recorded' ? t('results.recorded') : rankingStatus === 'incomplete' ? t('results.incomplete') : rankingStatus === 'offline' ? t('results.offline') : t('results.publishError')}</p>}
+        {config.mode === 'career' && rankingStatus && <p className={`ranking-result ranking-result--${rankingStatus}`}>{rankingStatus === 'publishing' ? t('results.publishing') : rankingStatus === 'personal-best' ? t('results.personalBest') : rankingStatus === 'recorded' ? t('results.recorded') : rankingStatus === 'incomplete' ? t('results.incomplete') : rankingStatus === 'offline' ? t('results.offline') : rankingStatus === 'unranked' ? t('results.unranked') : t('results.publishError')}</p>}
         <button className="primary-button" onClick={onClose}>{t('results.backMap')}</button>
         <div className="result-secondary"><button onClick={onReplay}><RotateCcw /> {t('results.replay')}</button><button onClick={share}><Share2 /> {t('results.share')}</button></div>
       </section>
@@ -1339,16 +1365,31 @@ export default function App() {
     if (startingGameRef.current) return;
     startingGameRef.current = true;
     void (async () => {
-      let nextConfig: GameConfig = { ...config, rankingAttemptId: undefined };
+      let nextConfig: GameConfig = {
+        ...config,
+        rankingAttemptId: undefined,
+        rankedCountryCodes: undefined,
+        rankingDegraded: undefined,
+      };
       if (rankingSession && config.mode === 'career' && config.stageId && config.stageId <= 12) {
         try {
-          const rankingAttemptId = await beginCareerAttempt(rankingSession, nextConfig);
-          nextConfig = { ...nextConfig, rankingAttemptId };
+          const plan = await beginCareerAttempt(rankingSession, nextConfig);
+          const byCode = new globalThis.Map(countries.map((country) => [country.code, country]));
+          const rankedPool = plan.countryCodes.map((code) => byCode.get(code)).filter((country): country is Country => Boolean(country));
+          if (rankedPool.length !== nextConfig.questionCount) throw new ApiError('El servidor devolvió una etapa clasificatoria inválida.');
+          nextConfig = {
+            ...nextConfig,
+            pool: rankedPool,
+            rankingAttemptId: plan.attemptId,
+            rankedCountryCodes: plan.countryCodes,
+          };
         } catch (error) {
           if (error instanceof ApiError && error.status === 401) {
             clearRankingSession();
             setRankingSession(null);
           }
+          nextConfig = { ...nextConfig, rankingDegraded: true };
+          notice(t('leaderboard.title'), 'No se pudo conectar con la clasificación. Esta partida continuará como progreso local.');
         }
       }
       setGameConfig(nextConfig);
@@ -1424,13 +1465,13 @@ export default function App() {
       setResult({ reward, records, config });
       return;
     }
-    if (!rankingSession) {
-      setResult({ reward, records, config, rankingStatus: reward.correct === reward.total ? 'offline' : 'incomplete' });
+    if (!rankingSession || !config.rankingAttemptId || config.rankingDegraded) {
+      setResult({ reward, records, config, rankingStatus: reward.correct === reward.total ? (config.rankingDegraded ? 'unranked' : 'offline') : 'incomplete' });
       return;
     }
     setResult({ reward, records, config, rankingStatus: 'publishing' });
     try {
-      const response = await submitCareerStage(rankingSession, config, records);
+      const response = await submitCareerStage(rankingSession, config);
       const authoritativeReward = {
         ...reward,
         score: response.score,
@@ -1504,7 +1545,7 @@ export default function App() {
       {screen === 'game' && gameConfig && (
         <div className={result ? 'game-under-result' : undefined} aria-hidden={Boolean(result)}>
           {gameConfig.mode === 'career'
-            ? <JourneyGameScreen config={gameConfig} profile={profile} setProfile={setProfile} paused={Boolean(result)} onExit={() => { setGameConfig(null); setScreen('career'); }} onComplete={(reward, records, config) => { void completeCareer(reward, records, config); }} />
+            ? <JourneyGameScreen config={gameConfig} profile={profile} rankingSession={rankingSession} setProfile={setProfile} paused={Boolean(result)} onExit={() => { setGameConfig(null); setScreen('career'); }} onComplete={(reward, records, config) => { void completeCareer(reward, records, config); }} />
             : <GameScreen config={gameConfig} profile={profile} setProfile={setProfile} onExit={() => { setGameConfig(null); setScreen('home'); }} onComplete={(reward, records, config) => setResult({ reward, records, config })} />}
         </div>
       )}

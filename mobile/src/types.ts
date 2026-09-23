@@ -35,6 +35,10 @@ export interface GameConfig {
   /** Identidad estable del bloque; stageId es sólo la posición en la ruta. */
   contentStageId?: number;
   rankingAttemptId?: string;
+  /** Plan de países emitido por el servidor para una partida clasificatoria. */
+  rankedCountryCodes?: string[];
+  /** La partida siguió localmente porque no pudo sincronizarse con ranking. */
+  rankingDegraded?: boolean;
 }
 
 export interface AnswerRecord {
