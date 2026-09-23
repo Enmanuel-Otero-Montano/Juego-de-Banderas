@@ -1355,7 +1355,7 @@ export default function App() {
   };
 
   useEffect(() => {
-    monetization.initialize(profile.isPremium).then((premium) => {
+    monetization.initialize().then((premium) => {
       if (premium !== profile.isPremium) setProfile({ ...profile, isPremium: premium });
       setAdPrivacyOptionsRequired(monetization.requiresPrivacyOptions());
     });
