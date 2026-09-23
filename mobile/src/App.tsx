@@ -55,6 +55,7 @@ import {
   loginRankingAccount,
   recordCareerSelection,
   registerRankingAccount,
+  requestPasswordReset,
   resendVerificationEmail,
   submitCareerStage,
   updateRankingProfile,
@@ -899,7 +900,7 @@ function LeaderboardScreen({ profile, onBack, onAccount }: { profile: PlayerProf
 
 function AccountScreen({ profile, onBack, onConnected }: { profile: PlayerProfile; onBack: () => void; onConnected: (session: RankingSession, alias: string) => void }) {
   const { t } = useI18n();
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState<'login' | 'register' | 'recovery'>('login');
   const [alias, setAlias] = useState(profile.displayName || '');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -910,14 +911,18 @@ function AccountScreen({ profile, onBack, onConnected }: { profile: PlayerProfil
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     const trimmedAlias = alias.trim();
-    if (!trimmedAlias || !password || (mode === 'register' && !email)) {
-      setStatus(t(mode === 'register' ? 'account.missing' : 'account.missingLogin'));
+    if ((mode !== 'recovery' && (!trimmedAlias || !password)) || ((mode === 'register' || mode === 'recovery') && !email)) {
+      setStatus(t(mode === 'recovery' ? 'account.missingRecovery' : mode === 'register' ? 'account.missing' : 'account.missingLogin'));
       return;
     }
     setBusy(true);
     setStatus('');
     try {
-      if (mode === 'register') {
+      if (mode === 'recovery') {
+        await requestPasswordReset(email.trim());
+        setStatus(t('account.resetSent'));
+        setMode('login');
+      } else if (mode === 'register') {
         const normalizedEmail = email.trim();
         await registerRankingAccount({ username: trimmedAlias, email: normalizedEmail, password });
         setVerificationEmail(normalizedEmail);
@@ -928,8 +933,13 @@ function AccountScreen({ profile, onBack, onConnected }: { profile: PlayerProfil
         onConnected(session, trimmedAlias);
         onBack();
       }
-    } catch {
-      setStatus(t('account.operationError'));
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 403 && error.email) {
+        setVerificationEmail(error.email);
+        setStatus(t('account.unverified'));
+      } else {
+        setStatus(t('account.operationError'));
+      }
     } finally {
       setBusy(false);
     }
@@ -952,13 +962,14 @@ function AccountScreen({ profile, onBack, onConnected }: { profile: PlayerProfil
     <main className="screen account-screen">
       <SectionHeader title={t('account.title')} subtitle={t('account.subtitle')} onBack={onBack} />
       <form className="account-form" onSubmit={submit}>
-        <label>{t('account.publicAlias')}<input value={alias} onChange={(event) => setAlias(event.target.value)} maxLength={24} placeholder={t('account.aliasExample')} autoComplete="username" /></label>
-        {mode === 'register' && <label>{t('account.email')}<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" placeholder="you@example.com" autoComplete="email" /></label>}
-        <label>{t('account.password')}<input value={password} onChange={(event) => setPassword(event.target.value)} type="password" minLength={8} placeholder={t('account.passwordHint')} autoComplete={mode === 'register' ? 'new-password' : 'current-password'} /></label>
-        <button className="primary-button" disabled={busy}>{busy ? t('account.connecting') : mode === 'register' ? t('account.create') : t('account.login')}</button>
+        {mode !== 'recovery' && <label>{t('account.publicAlias')}<input value={alias} onChange={(event) => setAlias(event.target.value)} maxLength={24} placeholder={t('account.aliasExample')} autoComplete="username" /></label>}
+        {(mode === 'register' || mode === 'recovery') && <label>{t('account.email')}<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" placeholder="you@example.com" autoComplete="email" /></label>}
+        {mode !== 'recovery' && <label>{t('account.password')}<input value={password} onChange={(event) => setPassword(event.target.value)} type="password" minLength={8} placeholder={t('account.passwordHint')} autoComplete={mode === 'register' ? 'new-password' : 'current-password'} /></label>}
+        <button className="primary-button" disabled={busy}>{busy ? t('account.connecting') : mode === 'register' ? t('account.create') : mode === 'recovery' ? t('account.reset') : t('account.login')}</button>
         <button type="button" className="text-button account-switch" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setStatus(''); }}>
           {mode === 'login' ? t('account.switchToCreate') : t('account.switchToLogin')}
         </button>
+        {mode === 'login' && <button type="button" className="text-button" disabled={busy} onClick={() => { setMode('recovery'); setStatus(''); }}>{t('account.forgot')}</button>}
         {mode === 'login' && verificationEmail && <button type="button" className="text-button" disabled={busy} onClick={() => { void resendVerification(); }}>{t('account.resend')}</button>}
         {status && <p className="account-status">{status}</p>}
       </form>

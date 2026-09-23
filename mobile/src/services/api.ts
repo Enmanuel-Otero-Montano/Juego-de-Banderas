@@ -75,22 +75,22 @@ export interface RankedAttemptPlan {
 }
 
 export class ApiError extends Error {
-  constructor(message: string, readonly status?: number) {
+  constructor(message: string, readonly status?: number, readonly email?: string) {
     super(message);
     this.name = 'ApiError';
   }
 }
 
-const messageFor = async (response: Response): Promise<string> => {
+const errorFor = async (response: Response): Promise<ApiError> => {
   try {
     const payload = await response.json();
     const detail = payload.detail || payload.message;
-    if (typeof detail === 'string') return detail;
-    if (detail?.message) return detail.message;
+    if (typeof detail === 'string') return new ApiError(detail, response.status);
+    if (detail?.message) return new ApiError(detail.message, response.status, typeof detail.email === 'string' ? detail.email : undefined);
   } catch {
     // The server may return an empty or non-JSON response.
   }
-  return 'No se pudo conectar con el servidor.';
+  return new ApiError('No se pudo conectar con el servidor.', response.status);
 };
 
 const request = async <T>(path: string, init: RequestInit = {}): Promise<T> => {
@@ -101,7 +101,7 @@ const request = async <T>(path: string, init: RequestInit = {}): Promise<T> => {
       ...init,
       signal: init.signal || controller.signal,
     });
-    if (!response.ok) throw new ApiError(await messageFor(response), response.status);
+    if (!response.ok) throw await errorFor(response);
     if (response.status === 204) return undefined as T;
     return response.json() as Promise<T>;
   } catch (error) {
@@ -148,6 +148,14 @@ export const registerRankingAccount = async (input: { username: string; email: s
 
 export const resendVerificationEmail = async (email: string): Promise<void> => {
   await request('/resend-verification-email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(email),
+  });
+};
+
+export const requestPasswordReset = async (email: string): Promise<void> => {
+  await request('/password-reset/request', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(email),

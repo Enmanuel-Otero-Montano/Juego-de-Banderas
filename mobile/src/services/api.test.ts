@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { deleteRankingAccount, resendVerificationEmail, updateRankingProfile } from './api';
+import { deleteRankingAccount, requestPasswordReset, resendVerificationEmail, updateRankingProfile } from './api';
 
 describe('cliente de cuentas', () => {
   beforeEach(() => {
@@ -28,6 +28,21 @@ describe('cliente de cuentas', () => {
     await resendVerificationEmail('atlas@example.com');
     expect(fetchMock).toHaveBeenCalledWith(
       'http://127.0.0.1:8000/resend-verification-email',
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '"atlas@example.com"',
+      }),
+    );
+  });
+
+  it('solicita la recuperación de contraseña como JSON', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(Response.json({ msg: 'ok' }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await requestPasswordReset('atlas@example.com');
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://127.0.0.1:8000/password-reset/request',
       expect.objectContaining({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
