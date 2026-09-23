@@ -7,21 +7,20 @@ export interface DifficultyRule {
   questionCount: number;
   groupSizes: number[];
   durationSeconds: number;
-  rankedLives: number;
 }
 
 export const difficultyRules: Record<Difficulty, DifficultyRule> = {
   easy: {
     id: 'easy', label: 'Fácil', description: '8 banderas familiares', questionCount: 8,
-    groupSizes: [1, 1, 2, 2, 2], durationSeconds: 100, rankedLives: 6,
+    groupSizes: [1, 1, 2, 2, 2], durationSeconds: 100,
   },
   normal: {
     id: 'normal', label: 'Normal', description: '10 banderas equilibradas', questionCount: 10,
-    groupSizes: [1, 1, 2, 2, 2, 2], durationSeconds: 95, rankedLives: 5,
+    groupSizes: [1, 1, 2, 2, 2, 2], durationSeconds: 95,
   },
   hard: {
     id: 'hard', label: 'Difícil', description: '12 banderas con reto extra', questionCount: 12,
-    groupSizes: [1, 1, 2, 2, 2, 2, 2], durationSeconds: 90, rankedLives: 4,
+    groupSizes: [1, 1, 2, 2, 2, 2, 2], durationSeconds: 90,
   },
 };
 
