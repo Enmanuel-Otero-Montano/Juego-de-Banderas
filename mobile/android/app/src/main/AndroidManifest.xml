@@ -20,10 +20,12 @@
              componentes Amazon que aporta RevenueCat de forma transitiva. -->
         <receiver
             android:name="com.amazon.device.iap.ResponseReceiver"
-            tools:node="remove" />
+            tools:node="remove"
+            tools:ignore="MissingClass" />
         <activity
             android:name="com.revenuecat.purchases.amazon.purchasing.ProxyAmazonBillingActivity"
-            tools:node="remove" />
+            tools:node="remove"
+            tools:ignore="MissingClass" />
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
             android:name=".MainActivity"
