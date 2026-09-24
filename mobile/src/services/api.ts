@@ -1,7 +1,7 @@
 import type { Difficulty, GameConfig, RegionKey } from '../types';
 import { rankingContract } from '../ranking';
+import { readSecureSession, removeSecureSession, writeSecureSession } from './secureSession';
 
-const SESSION_KEY = 'atlas-flags-ranking-session-v1';
 const RANKING_OUTBOX_KEY = 'atlas-flags-ranking-outbox-v1';
 const RANKING_ATTEMPT_TTL_MS = 180_000;
 const REQUEST_TIMEOUT_MS = 15_000;
@@ -11,6 +11,7 @@ export const apiBaseUrl = (configuredBaseUrl || 'http://127.0.0.1:8000').replace
 
 export interface RankingSession {
   accessToken: string;
+  refreshToken: string;
   username: string;
 }
 
@@ -104,9 +105,6 @@ const errorFor = async (response: Response): Promise<ApiError> => {
   return new ApiError('No se pudo conectar con el servidor.', response.status);
 };
 
-const hasBearerAuthorization = (headers: HeadersInit | undefined): boolean =>
-  new Headers(headers).get('Authorization')?.startsWith('Bearer ') === true;
-
 const request = async <T>(path: string, init: RequestInit = {}): Promise<T> => {
   const controller = new AbortController();
   const timeout = globalThis.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -115,13 +113,7 @@ const request = async <T>(path: string, init: RequestInit = {}): Promise<T> => {
       ...init,
       signal: init.signal || controller.signal,
     });
-    if (!response.ok) {
-      const error = await errorFor(response);
-      if (error.status === 401 && hasBearerAuthorization(init.headers) && typeof globalThis.dispatchEvent === 'function') {
-        globalThis.dispatchEvent(new Event(RANKING_SESSION_EXPIRED_EVENT));
-      }
-      throw error;
-    }
+    if (!response.ok) throw await errorFor(response);
     if (response.status === 204) return undefined as T;
     return response.json() as Promise<T>;
   } catch (error) {
@@ -134,20 +126,56 @@ const request = async <T>(path: string, init: RequestInit = {}): Promise<T> => {
   }
 };
 
-export const loadRankingSession = (): RankingSession | null => {
+export const loadRankingSession = async (): Promise<RankingSession | null> => {
   try {
-    const saved = localStorage.getItem(SESSION_KEY);
-    return saved ? JSON.parse(saved) as RankingSession : null;
+    const saved = await readSecureSession();
+    const session = saved ? JSON.parse(saved) as Partial<RankingSession> : null;
+    return typeof session?.accessToken === 'string' && typeof session.refreshToken === 'string' && typeof session.username === 'string'
+      ? session as RankingSession
+      : null;
   } catch {
     return null;
   }
 };
 
-export const saveRankingSession = (session: RankingSession): void => {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+export const saveRankingSession = async (session: RankingSession): Promise<void> => {
+  await writeSecureSession(JSON.stringify(session));
 };
 
-export const clearRankingSession = (): void => localStorage.removeItem(SESSION_KEY);
+export const clearRankingSession = async (): Promise<void> => removeSecureSession();
+
+let refreshInFlight: Promise<void> | null = null;
+
+const refreshRankingSession = async (session: RankingSession): Promise<void> => {
+  if (!refreshInFlight) {
+    refreshInFlight = (async () => {
+      const response = await request<{ access_token: string; refresh_token: string }>('/token/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: session.refreshToken }),
+      });
+      session.accessToken = response.access_token;
+      session.refreshToken = response.refresh_token;
+      await saveRankingSession(session);
+    })().finally(() => { refreshInFlight = null; });
+  }
+  await refreshInFlight;
+};
+
+const authenticatedRequest = async <T>(session: RankingSession, path: string, init: RequestInit = {}): Promise<T> => {
+  try {
+    return await request<T>(path, { ...init, headers: authorization(session) });
+  } catch (error) {
+    if (!(error instanceof ApiError) || error.status !== 401) throw error;
+    try {
+      await refreshRankingSession(session);
+      return await request<T>(path, { ...init, headers: authorization(session) });
+    } catch (refreshError) {
+      if (typeof globalThis.dispatchEvent === 'function') globalThis.dispatchEvent(new Event(RANKING_SESSION_EXPIRED_EVENT));
+      throw refreshError;
+    }
+  }
+};
 
 const loadRankingOutbox = (): PendingRankingAttempt[] => {
   try {
@@ -199,7 +227,7 @@ export const flushPendingRanking = async (session: RankingSession, onlyAttemptId
         item.events = item.events.filter((candidate) => candidate.eventId !== event.eventId);
       }
       if (item.complete) {
-        await request(`/career/attempts/${item.attemptId}/complete`, { method: 'POST', headers: authorization(session), body: JSON.stringify({}) });
+        await authenticatedRequest(session, `/career/attempts/${item.attemptId}/complete`, { method: 'POST', body: JSON.stringify({}) });
         completed = true;
       } else retained.push(item);
     } catch (error) {
@@ -221,9 +249,8 @@ export const completePendingRankingAttempt = async (session: RankingSession, att
 };
 
 export const deleteRankingAccount = async (session: RankingSession): Promise<void> => {
-  await request('/users/me', {
+  await authenticatedRequest(session, '/users/me', {
     method: 'DELETE',
-    headers: authorization(session),
   });
 };
 
@@ -255,9 +282,9 @@ export const requestPasswordReset = async (email: string): Promise<void> => {
 
 export const loginRankingAccount = async (username: string, password: string): Promise<RankingSession> => {
   const form = new URLSearchParams({ username, password });
-  const response = await request<{ access_token: string }>('/token', { method: 'POST', body: form });
-  const session = { accessToken: response.access_token, username };
-  saveRankingSession(session);
+  const response = await request<{ access_token: string; refresh_token: string }>('/token', { method: 'POST', body: form });
+  const session = { accessToken: response.access_token, refreshToken: response.refresh_token, username };
+  await saveRankingSession(session);
   return session;
 };
 
@@ -269,9 +296,8 @@ const authorization = (session: RankingSession): HeadersInit => ({
 export const updateRankingProfile = async (
   session: RankingSession,
   input: { displayName: string | null; country: string },
-): Promise<{ ranked_profile_ready: boolean }> => request('/career/profile', {
+): Promise<{ ranked_profile_ready: boolean }> => authenticatedRequest(session, '/career/profile', {
   method: 'PUT',
-  headers: authorization(session),
   body: JSON.stringify({ display_name: input.displayName || '', country: input.country }),
 });
 
@@ -282,9 +308,8 @@ export const beginCareerAttempt = async (
   if (!config.stageId || !config.contentStageId || !config.difficulty) {
     throw new ApiError('La etapa no tiene un contrato de clasificación válido.');
   }
-  const response = await request<{ attempt_id: string; country_codes: string[] }>('/career/attempts', {
+  const response = await authenticatedRequest<{ attempt_id: string; country_codes: string[] }>(session, '/career/attempts', {
     method: 'POST',
-    headers: authorization(session),
     body: JSON.stringify({
       route_position: config.stageId,
       content_stage_id: config.contentStageId,
@@ -303,9 +328,8 @@ export const recordCareerSelection = async (
   attemptId: string,
   event: { eventId: string; sequence: number; countryCode: string; selectedCode: string },
 ): Promise<void> => {
-  await request(`/career/attempts/${attemptId}/events`, {
+  await authenticatedRequest(session, `/career/attempts/${attemptId}/events`, {
     method: 'POST',
-    headers: authorization(session),
     body: JSON.stringify({
       event_id: event.eventId,
       sequence: event.sequence,
@@ -322,9 +346,8 @@ export const submitCareerStage = async (
   if (!config.stageId || config.stageId > 12 || !config.contentStageId || !config.difficulty || !config.rankingAttemptId) {
     throw new ApiError('Esta partida no tiene un intento clasificatorio emitido por el servidor.');
   }
-  return request(`/career/attempts/${config.rankingAttemptId}/complete`, {
+  return authenticatedRequest(session, `/career/attempts/${config.rankingAttemptId}/complete`, {
     method: 'POST',
-    headers: authorization(session),
     body: JSON.stringify({}),
   });
 };
@@ -335,7 +358,7 @@ export const getCareerHistory = async (
   limit = 50,
 ): Promise<CareerHistoryResponse> => {
   const params = new URLSearchParams({ difficulty, limit: String(limit) });
-  return request(`/career/me/history?${params.toString()}`, { headers: authorization(session) });
+  return authenticatedRequest(session, `/career/me/history?${params.toString()}`);
 };
 
 export const getLeaderboard = async (input: { difficulty: Difficulty; country?: string; region?: RegionKey }): Promise<LeaderboardResponse> => {

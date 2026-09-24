@@ -89,7 +89,7 @@ describe('App', () => {
     apiMocks.flushPendingRanking.mockReset();
     apiMocks.flushPendingRanking.mockResolvedValue(false);
     apiMocks.loadRankingSession.mockReset();
-    apiMocks.loadRankingSession.mockReturnValue(null);
+    apiMocks.loadRankingSession.mockResolvedValue(null);
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -131,7 +131,7 @@ describe('App', () => {
   });
 
   it('informs the player when an authenticated ranking session expires', async () => {
-    apiMocks.loadRankingSession.mockReturnValue({ accessToken: 'expired-token', username: 'atlas' });
+    apiMocks.loadRankingSession.mockResolvedValue({ accessToken: 'expired-token', refreshToken: 'refresh-token', username: 'atlas' });
     await act(async () => {
       root.render(<I18nProvider><App /></I18nProvider>);
     });

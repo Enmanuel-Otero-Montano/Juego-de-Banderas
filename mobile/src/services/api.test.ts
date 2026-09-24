@@ -22,7 +22,7 @@ describe('cliente de cuentas', () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
     vi.stubGlobal('fetch', fetchMock);
 
-    await expect(deleteRankingAccount({ accessToken: 'token-de-prueba', username: 'atlas' })).resolves.toBeUndefined();
+    await expect(deleteRankingAccount({ accessToken: 'token-de-prueba', refreshToken: 'refresh-de-prueba', username: 'atlas' })).resolves.toBeUndefined();
     expect(fetchMock).toHaveBeenCalledWith(
       'http://127.0.0.1:8000/users/me',
       expect.objectContaining({
@@ -37,9 +37,27 @@ describe('cliente de cuentas', () => {
     vi.stubGlobal('dispatchEvent', dispatchEvent);
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ message: 'Token expired' }, { status: 401 })));
 
-    await expect(deleteRankingAccount({ accessToken: 'token-vencido', username: 'atlas' })).rejects.toMatchObject({ status: 401 });
+    await expect(deleteRankingAccount({ accessToken: 'token-vencido', refreshToken: 'refresh-vencido', username: 'atlas' })).rejects.toMatchObject({ status: 401 });
 
     expect(dispatchEvent).toHaveBeenCalledWith(expect.objectContaining({ type: RANKING_SESSION_EXPIRED_EVENT }));
+  });
+
+  it('renueva y reintenta una solicitud autenticada sin perder la sesión', async () => {
+    const session = { accessToken: 'access-vencido', refreshToken: 'refresh-original', username: 'atlas' };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(Response.json({ message: 'Token expired' }, { status: 401 }))
+      .mockResolvedValueOnce(Response.json({ access_token: 'access-nuevo', refresh_token: 'refresh-nuevo' }))
+      .mockResolvedValueOnce(Response.json({ ranked_profile_ready: true }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(updateRankingProfile(session, { displayName: 'Atlas', country: 'UY' })).resolves.toEqual({ ranked_profile_ready: true });
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      'http://127.0.0.1:8000/career/profile',
+      'http://127.0.0.1:8000/token/refresh',
+      'http://127.0.0.1:8000/career/profile',
+    ]);
+    expect(session).toMatchObject({ accessToken: 'access-nuevo', refreshToken: 'refresh-nuevo' });
   });
 
   it('envía el correo de revalidación como JSON', async () => {
@@ -77,7 +95,7 @@ describe('cliente de cuentas', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     await updateRankingProfile(
-      { accessToken: 'token-de-prueba', username: 'atlas' },
+      { accessToken: 'token-de-prueba', refreshToken: 'refresh-de-prueba', username: 'atlas' },
       { displayName: 'Capitana Atlas', country: 'UY' },
     );
 
@@ -98,7 +116,7 @@ describe('cliente de cuentas', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     try {
-      const pending = deleteRankingAccount({ accessToken: 'token-de-prueba', username: 'atlas' });
+      const pending = deleteRankingAccount({ accessToken: 'token-de-prueba', refreshToken: 'refresh-de-prueba', username: 'atlas' });
       const rejected = expect(pending).rejects.toThrow('El servidor tardó demasiado en responder');
       await vi.advanceTimersByTimeAsync(15_000);
       await rejected;
@@ -110,7 +128,7 @@ describe('cliente de cuentas', () => {
   });
 
   it('persiste un evento fallido y lo publica antes de completar el intento', async () => {
-    const session = { accessToken: 'token-de-prueba', username: 'atlas' };
+    const session = { accessToken: 'token-de-prueba', refreshToken: 'refresh-de-prueba', username: 'atlas' };
     startPendingRankingAttempt(session, 'attempt-1');
     vi.stubGlobal('fetch', vi.fn().mockRejectedValueOnce(new Error('offline')));
 

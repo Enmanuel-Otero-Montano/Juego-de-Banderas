@@ -1332,7 +1332,7 @@ export default function App() {
   const { t } = useI18n();
   const [profile, setProfileState] = useState(loadProfile);
   const [today, setToday] = useState(isoDate);
-  const [rankingSession, setRankingSession] = useState<RankingSession | null>(loadRankingSession);
+  const [rankingSession, setRankingSession] = useState<RankingSession | null>(null);
   const [screen, setScreen] = useState<Screen>(() => loadProfile().homeCountryCode ? 'home' : 'onboarding');
   const [gameConfig, setGameConfig] = useState<GameConfig | null>(null);
   const [result, setResult] = useState<GameResult | null>(null);
@@ -1373,6 +1373,14 @@ export default function App() {
       if (!synced) notice(t('account.title'), t('account.operationError'));
     });
   };
+
+  useEffect(() => {
+    let cancelled = false;
+    void loadRankingSession().then((session) => {
+      if (!cancelled) setRankingSession(session);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     monetization.initialize().then((premium) => {
