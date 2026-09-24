@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { completePendingRankingAttempt, deleteRankingAccount, queueCareerSelection, requestPasswordReset, resendVerificationEmail, startPendingRankingAttempt, updateRankingProfile } from './api';
+import { completePendingRankingAttempt, deleteRankingAccount, queueCareerSelection, RANKING_SESSION_EXPIRED_EVENT, requestPasswordReset, resendVerificationEmail, startPendingRankingAttempt, updateRankingProfile } from './api';
 
 class MemoryStorage implements Storage {
   private values = new Map<string, string>();
@@ -30,6 +30,16 @@ describe('cliente de cuentas', () => {
         headers: expect.objectContaining({ Authorization: 'Bearer token-de-prueba' }),
       }),
     );
+  });
+
+  it('notifica una sesión vencida sólo cuando falla una solicitud autenticada', async () => {
+    const dispatchEvent = vi.fn();
+    vi.stubGlobal('dispatchEvent', dispatchEvent);
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ message: 'Token expired' }, { status: 401 })));
+
+    await expect(deleteRankingAccount({ accessToken: 'token-vencido', username: 'atlas' })).rejects.toMatchObject({ status: 401 });
+
+    expect(dispatchEvent).toHaveBeenCalledWith(expect.objectContaining({ type: RANKING_SESSION_EXPIRED_EVENT }));
   });
 
   it('envía el correo de revalidación como JSON', async () => {

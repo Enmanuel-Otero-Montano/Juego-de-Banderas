@@ -5,6 +5,7 @@ const SESSION_KEY = 'atlas-flags-ranking-session-v1';
 const RANKING_OUTBOX_KEY = 'atlas-flags-ranking-outbox-v1';
 const RANKING_ATTEMPT_TTL_MS = 180_000;
 const REQUEST_TIMEOUT_MS = 15_000;
+export const RANKING_SESSION_EXPIRED_EVENT = 'atlas-flags-ranking-session-expired';
 const configuredBaseUrl = import.meta.env.VITE_API_URL as string | undefined;
 export const apiBaseUrl = (configuredBaseUrl || 'http://127.0.0.1:8000').replace(/\/$/, '');
 
@@ -103,6 +104,9 @@ const errorFor = async (response: Response): Promise<ApiError> => {
   return new ApiError('No se pudo conectar con el servidor.', response.status);
 };
 
+const hasBearerAuthorization = (headers: HeadersInit | undefined): boolean =>
+  new Headers(headers).get('Authorization')?.startsWith('Bearer ') === true;
+
 const request = async <T>(path: string, init: RequestInit = {}): Promise<T> => {
   const controller = new AbortController();
   const timeout = globalThis.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -111,7 +115,13 @@ const request = async <T>(path: string, init: RequestInit = {}): Promise<T> => {
       ...init,
       signal: init.signal || controller.signal,
     });
-    if (!response.ok) throw await errorFor(response);
+    if (!response.ok) {
+      const error = await errorFor(response);
+      if (error.status === 401 && hasBearerAuthorization(init.headers) && typeof globalThis.dispatchEvent === 'function') {
+        globalThis.dispatchEvent(new Event(RANKING_SESSION_EXPIRED_EVENT));
+      }
+      throw error;
+    }
     if (response.status === 204) return undefined as T;
     return response.json() as Promise<T>;
   } catch (error) {

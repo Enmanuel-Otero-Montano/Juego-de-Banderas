@@ -56,6 +56,7 @@ import {
   loadRankingSession,
   loginRankingAccount,
   queueCareerSelection,
+  RANKING_SESSION_EXPIRED_EVENT,
   registerRankingAccount,
   requestPasswordReset,
   resendVerificationEmail,
@@ -1381,6 +1382,21 @@ export default function App() {
     // Native services initialize once at app start.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const expireSession = () => {
+      if (!rankingSession) return;
+      clearRankingSession();
+      setRankingSession(null);
+      setAppDialog({
+        title: t('account.title'),
+        message: t('account.sessionExpired'),
+        confirmLabel: t('common.ok'),
+      });
+    };
+    globalThis.addEventListener(RANKING_SESSION_EXPIRED_EVENT, expireSession);
+    return () => globalThis.removeEventListener(RANKING_SESSION_EXPIRED_EVENT, expireSession);
+  }, [rankingSession, t]);
 
   useEffect(() => {
     if (!rankingSession) return;

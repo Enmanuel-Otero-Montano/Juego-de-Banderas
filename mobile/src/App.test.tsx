@@ -6,7 +6,12 @@ import App from './App';
 import { I18nProvider } from './i18n';
 import { initialProfile } from './storage';
 
-const apiMocks = vi.hoisted(() => ({ requestPasswordReset: vi.fn() }));
+const apiMocks = vi.hoisted(() => ({
+  clearRankingSession: vi.fn(),
+  flushPendingRanking: vi.fn(),
+  loadRankingSession: vi.fn(),
+  requestPasswordReset: vi.fn(),
+}));
 
 vi.mock('@capacitor/core', () => ({
   Capacitor: { isNativePlatform: () => false },
@@ -45,15 +50,16 @@ vi.mock('./services/api', () => {
   return {
     ApiError,
     beginCareerAttempt: vi.fn(),
-    clearRankingSession: vi.fn(),
+    clearRankingSession: apiMocks.clearRankingSession,
     completePendingRankingAttempt: vi.fn(),
     deleteRankingAccount: vi.fn(),
-    flushPendingRanking: vi.fn(),
+    flushPendingRanking: apiMocks.flushPendingRanking,
     getCareerHistory: vi.fn(),
     getLeaderboard: vi.fn(),
-    loadRankingSession: vi.fn().mockReturnValue(null),
+    loadRankingSession: apiMocks.loadRankingSession,
     loginRankingAccount: vi.fn(),
     queueCareerSelection: vi.fn(),
+    RANKING_SESSION_EXPIRED_EVENT: 'atlas-flags-ranking-session-expired',
     registerRankingAccount: vi.fn(),
     requestPasswordReset: apiMocks.requestPasswordReset,
     resendVerificationEmail: vi.fn(),
@@ -79,6 +85,11 @@ describe('App', () => {
     localStorage.setItem('atlas-flags-profile-v1', JSON.stringify({ ...initialProfile, homeCountryCode: 'uy' }));
     apiMocks.requestPasswordReset.mockReset();
     apiMocks.requestPasswordReset.mockResolvedValue(undefined);
+    apiMocks.clearRankingSession.mockReset();
+    apiMocks.flushPendingRanking.mockReset();
+    apiMocks.flushPendingRanking.mockResolvedValue(false);
+    apiMocks.loadRankingSession.mockReset();
+    apiMocks.loadRankingSession.mockReturnValue(null);
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -117,5 +128,19 @@ describe('App', () => {
 
     expect(apiMocks.requestPasswordReset).toHaveBeenCalledWith('explorador@example.com');
     expect(container.textContent).toContain('Si existe una cuenta con ese correo, enviamos un enlace para restablecer la contraseña.');
+  });
+
+  it('informs the player when an authenticated ranking session expires', async () => {
+    apiMocks.loadRankingSession.mockReturnValue({ accessToken: 'expired-token', username: 'atlas' });
+    await act(async () => {
+      root.render(<I18nProvider><App /></I18nProvider>);
+    });
+
+    await act(async () => {
+      globalThis.dispatchEvent(new Event('atlas-flags-ranking-session-expired'));
+    });
+
+    expect(apiMocks.clearRankingSession).toHaveBeenCalledTimes(1);
+    expect(container.textContent).toContain('Tu sesión de clasificación venció. Inicia sesión de nuevo para publicar resultados.');
   });
 });
