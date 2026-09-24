@@ -285,7 +285,7 @@ h1, h2, h3, strong { font-family: 'Manrope', 'DM Sans', sans-serif; }
 .question-label { margin-bottom: 20px; color: var(--muted); font: 800 10px 'Manrope'; letter-spacing: .11em; }
 .question-word { max-width: 90%; font-size: clamp(28px, 8vw, 40px); line-height: 1.1; letter-spacing: -.04em; }
 .question-flag { display: grid; place-items: center; width: min(82%, 330px); min-height: 166px; padding: 22px; border: 1px solid #e1e6e1; border-radius: 24px; background: white; box-shadow: var(--shadow); }
-.flag { display: inline-block; flex-shrink: 0; overflow: hidden; border-radius: 4px; background-size: cover; box-shadow: 0 4px 10px rgba(20, 39, 34, .18); }
+.flag { display: inline-block; flex-shrink: 0; overflow: hidden; border-radius: 4px; object-fit: cover; box-shadow: 0 4px 10px rgba(20, 39, 34, .18); }
 .flag--small { width: 34px; height: 24px; }
 .flag--medium { width: 74px; height: 50px; border-radius: 6px; }
 .flag--large { width: 112px; height: 76px; border-radius: 8px; }
