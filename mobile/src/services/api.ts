@@ -2,6 +2,8 @@ import type { Difficulty, GameConfig, RegionKey } from '../types';
 import { rankingContract } from '../ranking';
 
 const SESSION_KEY = 'atlas-flags-ranking-session-v1';
+const RANKING_OUTBOX_KEY = 'atlas-flags-ranking-outbox-v1';
+const RANKING_ATTEMPT_TTL_MS = 180_000;
 const REQUEST_TIMEOUT_MS = 15_000;
 const configuredBaseUrl = import.meta.env.VITE_API_URL as string | undefined;
 export const apiBaseUrl = (configuredBaseUrl || 'http://127.0.0.1:8000').replace(/\/$/, '');
@@ -74,6 +76,14 @@ export interface RankedAttemptPlan {
   countryCodes: string[];
 }
 
+interface PendingRankingAttempt {
+  attemptId: string;
+  username: string;
+  createdAt: number;
+  complete: boolean;
+  events: Array<{ eventId: string; sequence: number; countryCode: string; selectedCode: string }>;
+}
+
 export class ApiError extends Error {
   constructor(message: string, readonly status?: number, readonly email?: string) {
     super(message);
@@ -128,6 +138,77 @@ export const saveRankingSession = (session: RankingSession): void => {
 };
 
 export const clearRankingSession = (): void => localStorage.removeItem(SESSION_KEY);
+
+const loadRankingOutbox = (): PendingRankingAttempt[] => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(RANKING_OUTBOX_KEY) || '[]');
+    return Array.isArray(saved) ? saved.filter((item): item is PendingRankingAttempt =>
+      item && typeof item.attemptId === 'string' && typeof item.username === 'string'
+      && typeof item.createdAt === 'number' && Array.isArray(item.events) && typeof item.complete === 'boolean') : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveRankingOutbox = (items: PendingRankingAttempt[]): void => {
+  try { localStorage.setItem(RANKING_OUTBOX_KEY, JSON.stringify(items)); } catch { /* Reintentar en esta sesión sigue siendo posible. */ }
+};
+
+const isExpiredAttempt = (item: PendingRankingAttempt) => Date.now() - item.createdAt >= RANKING_ATTEMPT_TTL_MS;
+
+export const startPendingRankingAttempt = (session: RankingSession, attemptId: string): void => {
+  const items = loadRankingOutbox().filter((item) => item.attemptId !== attemptId && !isExpiredAttempt(item));
+  items.push({ attemptId, username: session.username, createdAt: Date.now(), complete: false, events: [] });
+  saveRankingOutbox(items);
+};
+
+export const queueCareerSelection = async (
+  session: RankingSession,
+  attemptId: string,
+  event: { eventId: string; sequence: number; countryCode: string; selectedCode: string },
+): Promise<boolean> => {
+  const items = loadRankingOutbox();
+  const item = items.find((candidate) => candidate.attemptId === attemptId && candidate.username === session.username);
+  if (!item || isExpiredAttempt(item)) return false;
+  if (!item.events.some((candidate) => candidate.eventId === event.eventId)) item.events.push(event);
+  saveRankingOutbox(items);
+  return flushPendingRanking(session, attemptId);
+};
+
+/** Reproduce eventos idempotentes, en orden, y completa sólo si todos llegaron. */
+export const flushPendingRanking = async (session: RankingSession, onlyAttemptId?: string): Promise<boolean> => {
+  const items = loadRankingOutbox();
+  let completed = false;
+  const retained: PendingRankingAttempt[] = [];
+  for (const item of items) {
+    if (isExpiredAttempt(item)) continue;
+    if (item.username !== session.username || (onlyAttemptId && item.attemptId !== onlyAttemptId)) { retained.push(item); continue; }
+    try {
+      for (const event of [...item.events].sort((a, b) => a.sequence - b.sequence)) {
+        await recordCareerSelection(session, item.attemptId, event);
+        item.events = item.events.filter((candidate) => candidate.eventId !== event.eventId);
+      }
+      if (item.complete) {
+        await request(`/career/attempts/${item.attemptId}/complete`, { method: 'POST', headers: authorization(session), body: JSON.stringify({}) });
+        completed = true;
+      } else retained.push(item);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) throw error;
+      retained.push(item);
+    }
+  }
+  saveRankingOutbox(retained);
+  return completed;
+};
+
+export const completePendingRankingAttempt = async (session: RankingSession, attemptId: string): Promise<boolean> => {
+  const items = loadRankingOutbox();
+  const item = items.find((candidate) => candidate.attemptId === attemptId && candidate.username === session.username);
+  if (!item || isExpiredAttempt(item)) return false;
+  item.complete = true;
+  saveRankingOutbox(items);
+  return flushPendingRanking(session, attemptId);
+};
 
 export const deleteRankingAccount = async (session: RankingSession): Promise<void> => {
   await request('/users/me', {

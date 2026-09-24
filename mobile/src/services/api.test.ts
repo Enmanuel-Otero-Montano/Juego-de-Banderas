@@ -1,10 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { deleteRankingAccount, requestPasswordReset, resendVerificationEmail, updateRankingProfile } from './api';
+import { completePendingRankingAttempt, deleteRankingAccount, queueCareerSelection, requestPasswordReset, resendVerificationEmail, startPendingRankingAttempt, updateRankingProfile } from './api';
+
+class MemoryStorage implements Storage {
+  private values = new Map<string, string>();
+  get length() { return this.values.size; }
+  clear() { this.values.clear(); }
+  getItem(key: string) { return this.values.get(key) ?? null; }
+  key(index: number) { return [...this.values.keys()][index] ?? null; }
+  removeItem(key: string) { this.values.delete(key); }
+  setItem(key: string, value: string) { this.values.set(key, value); }
+}
 
 describe('cliente de cuentas', () => {
   beforeEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
+    vi.stubGlobal('localStorage', new MemoryStorage());
   });
 
   it('acepta correctamente una respuesta 204 al eliminar la cuenta', async () => {
@@ -86,5 +97,28 @@ describe('cliente de cuentas', () => {
       vi.useRealTimers();
       vi.unstubAllGlobals();
     }
+  });
+
+  it('persiste un evento fallido y lo publica antes de completar el intento', async () => {
+    const session = { accessToken: 'token-de-prueba', username: 'atlas' };
+    startPendingRankingAttempt(session, 'attempt-1');
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValueOnce(new Error('offline')));
+
+    await expect(queueCareerSelection(session, 'attempt-1', {
+      eventId: 'event-1', sequence: 1, countryCode: 'uy', selectedCode: 'uy',
+    })).resolves.toBe(false);
+    expect(localStorage.getItem('atlas-flags-ranking-outbox-v1')).toContain('event-1');
+
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(Response.json({ sequence: 1 }))
+      .mockResolvedValueOnce(Response.json({ ranked: true }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(completePendingRankingAttempt(session, 'attempt-1')).resolves.toBe(true);
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      'http://127.0.0.1:8000/career/attempts/attempt-1/events',
+      'http://127.0.0.1:8000/career/attempts/attempt-1/complete',
+    ]);
+    expect(localStorage.getItem('atlas-flags-ranking-outbox-v1')).toBe('[]');
   });
 });

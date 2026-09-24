@@ -48,16 +48,18 @@ import {
   ApiError,
   beginCareerAttempt,
   clearRankingSession,
+  completePendingRankingAttempt,
   deleteRankingAccount,
+  flushPendingRanking,
   getCareerHistory,
   getLeaderboard,
   loadRankingSession,
   loginRankingAccount,
-  recordCareerSelection,
+  queueCareerSelection,
   registerRankingAccount,
   requestPasswordReset,
   resendVerificationEmail,
-  submitCareerStage,
+  startPendingRankingAttempt,
   updateRankingProfile,
   type LeaderboardEntry,
   type RankingSession,
@@ -80,7 +82,7 @@ import { App as CapacitorApp } from '@capacitor/app';
 import brandMark from '../assets/icon-only.png';
 
 type Screen = 'home' | 'regions' | 'career' | 'origin' | 'onboarding' | 'progress' | 'store' | 'settings' | 'privacy' | 'leaderboard' | 'account' | 'game';
-type RankingStatus = 'publishing' | 'personal-best' | 'recorded' | 'incomplete' | 'offline' | 'unranked' | 'error';
+type RankingStatus = 'publishing' | 'personal-best' | 'recorded' | 'incomplete' | 'offline' | 'unranked' | 'pending' | 'error';
 type GameResult = { reward: SessionReward; records: AnswerRecord[]; config: GameConfig; rankingStatus?: RankingStatus };
 
 const regions: RegionKey[] = ['Americas', 'Europe', 'Asia', 'Africa', 'Oceania'];
@@ -447,13 +449,13 @@ function JourneyGameScreen({ config, profile, rankingSession, today, setProfile,
     rankedSequenceRef.current = sequence;
     const eventId = `ranked-${sequence}-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
     rankedQueueRef.current = rankedQueueRef.current
-      .then(() => recordCareerSelection(rankingSession, config.rankingAttemptId!, {
+      .then(async () => { await queueCareerSelection(rankingSession, config.rankingAttemptId!, {
         eventId,
         sequence,
         countryCode,
         selectedCode,
-      }))
-      .catch(() => { rankingSyncFailedRef.current = true; });
+      }); })
+      .catch(() => undefined);
   };
 
   const finishJourney = async () => {
@@ -470,9 +472,7 @@ function JourneyGameScreen({ config, profile, rankingSession, today, setProfile,
       selectedCodes: selectedCodesRef.current.get(country.code) || [],
     }));
     const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
-    const finishedConfig = rankingSyncFailedRef.current
-      ? { ...config, rankingAttemptId: undefined, rankingDegraded: true }
-      : config;
+    const finishedConfig = config;
     const result = completeSession({ ...profile, campaignHearts: livesRef.current }, finishedConfig, records, isoDate(), remaining);
     setProfile(result.profile);
     onComplete(result.reward, records, finishedConfig);
@@ -775,7 +775,7 @@ function GameScreen({ config, profile, today, setProfile, onExit, onComplete }: 
   );
 }
 
-function ResultsModal({ reward, records, config, rankingStatus, today, onClose, onReplay }: {
+function ResultsModal({ reward, records, config, rankingStatus, today, onClose, onReplay, onRetryRanking }: {
   reward: SessionReward;
   records: AnswerRecord[];
   config: GameConfig;
@@ -783,6 +783,7 @@ function ResultsModal({ reward, records, config, rankingStatus, today, onClose, 
   today: string;
   onClose: () => void;
   onReplay: () => void;
+  onRetryRanking?: () => void;
 }) {
   const { t } = useI18n();
   const [showScoringHelp, setShowScoringHelp] = useState(false);
@@ -834,7 +835,8 @@ function ResultsModal({ reward, records, config, rankingStatus, today, onClose, 
           </div>
         )}
         <div className="reward-row"><span><Zap /> +{reward.xp} XP</span><span><CircleDollarSign /> +{reward.coins}</span>{reward.newStageUnlocked && <span><Lock /> {t('results.newStage')}</span>}</div>
-        {config.mode === 'career' && rankingStatus && <p className={`ranking-result ranking-result--${rankingStatus}`}>{rankingStatus === 'publishing' ? t('results.publishing') : rankingStatus === 'personal-best' ? t('results.personalBest') : rankingStatus === 'recorded' ? t('results.recorded') : rankingStatus === 'incomplete' ? t('results.incomplete') : rankingStatus === 'offline' ? t('results.offline') : rankingStatus === 'unranked' ? t('results.unranked') : t('results.publishError')}</p>}
+        {config.mode === 'career' && rankingStatus && <p className={`ranking-result ranking-result--${rankingStatus}`}>{rankingStatus === 'publishing' ? t('results.publishing') : rankingStatus === 'personal-best' ? t('results.personalBest') : rankingStatus === 'recorded' ? t('results.recorded') : rankingStatus === 'incomplete' ? t('results.incomplete') : rankingStatus === 'offline' ? t('results.offline') : rankingStatus === 'unranked' ? t('results.unranked') : rankingStatus === 'pending' ? t('results.pending') : t('results.publishError')}</p>}
+        {rankingStatus === 'pending' && onRetryRanking && <button className="secondary-button" onClick={onRetryRanking}>{t('results.retrySync')}</button>}
         {shareError && <p className="ranking-result ranking-result--error" role="status">{t('share.error')}</p>}
         <button className="primary-button" onClick={onClose}>{t('results.backMap')}</button>
         <div className="result-secondary"><button onClick={onReplay}><RotateCcw /> {t('results.replay')}</button><button onClick={share}><Share2 /> {t('results.share')}</button></div>
@@ -1381,6 +1383,21 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!rankingSession) return;
+    const retry = () => {
+      void flushPendingRanking(rankingSession).catch((error) => {
+        if (error instanceof ApiError && error.status === 401) {
+          clearRankingSession();
+          setRankingSession(null);
+        }
+      });
+    };
+    retry();
+    document.addEventListener('visibilitychange', retry);
+    return () => document.removeEventListener('visibilitychange', retry);
+  }, [rankingSession]);
+
+  useEffect(() => {
     let midnightTimer: ReturnType<typeof setTimeout> | undefined;
     const refreshDay = () => setToday(isoDate());
     const scheduleMidnightRefresh = () => {
@@ -1451,6 +1468,7 @@ export default function App() {
             rankingAttemptId: plan.attemptId,
             rankedCountryCodes: plan.countryCodes,
           };
+          startPendingRankingAttempt(rankingSession, plan.attemptId);
         } catch (error) {
           if (error instanceof ApiError && error.status === 401) {
             clearRankingSession();
@@ -1539,17 +1557,8 @@ export default function App() {
     }
     setResult({ reward, records, config, rankingStatus: 'publishing' });
     try {
-      const response = await submitCareerStage(rankingSession, config);
-      const authoritativeReward = {
-        ...reward,
-        score: response.score,
-        baseScore: response.base_score,
-        timeBonus: response.time_bonus,
-        cleanBonus: response.clean_bonus,
-        hintsUsed: response.hints_used,
-        mistakes: response.mistakes,
-      };
-      setResult({ reward: authoritativeReward, records, config, rankingStatus: response.ranked ? (response.stage_best_updated ? 'personal-best' : 'recorded') : 'incomplete' });
+      const published = await completePendingRankingAttempt(rankingSession, config.rankingAttemptId);
+      setResult({ reward, records, config, rankingStatus: reward.correct === reward.total ? (published ? 'recorded' : 'pending') : 'incomplete' });
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         clearRankingSession();
@@ -1623,7 +1632,12 @@ export default function App() {
         </div>
       )}
       {regularScreen && !['store', 'settings', 'origin', 'privacy', 'account'].includes(screen) && <BottomNav screen={screen} setScreen={setScreen} />}
-      {result && <ResultsModal {...result} today={today} onClose={closeResults} onReplay={replay} />}
+      {result && <ResultsModal {...result} today={today} onClose={closeResults} onReplay={replay} onRetryRanking={() => {
+        if (!rankingSession || !result.config.rankingAttemptId) return;
+        void completePendingRankingAttempt(rankingSession, result.config.rankingAttemptId).then((published) => {
+          if (published) setResult({ ...result, rankingStatus: 'recorded' });
+        }).catch(() => undefined);
+      }} />}
       {showWelcome && <WelcomeModal onClose={() => { localStorage.setItem('atlas-flags-welcomed', '1'); setShowWelcome(false); }} />}
       {appDialog && <AppDialog dialog={appDialog} onClose={() => setAppDialog(null)} />}
     </div>
