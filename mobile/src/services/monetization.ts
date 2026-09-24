@@ -13,6 +13,15 @@ let adsReady = false;
 let purchasesReady = false;
 let privacyOptionsRequired = false;
 
+const activeEntitlement = (customerInfo: { entitlements: { active: Record<string, unknown> } }): boolean =>
+  Boolean(customerInfo.entitlements.active[premiumEntitlement]);
+
+const saveEntitlementStatus = (isPremium: boolean): boolean => {
+  if (isPremium) rememberVerifiedPremium();
+  else forgetVerifiedPremium();
+  return isPremium;
+};
+
 /** Los anuncios se ofrecen únicamente al cerrar cada tercera sesión completada. */
 export const shouldShowInterstitial = (sessionsCompleted: number, isPremium: boolean): boolean =>
   Number.isInteger(sessionsCompleted) && sessionsCompleted > 0 && sessionsCompleted % 3 === 0 && !isPremium;
@@ -53,9 +62,7 @@ export const monetization = {
       try {
         await Purchases.configure({ apiKey: revenueCatKey });
         const { customerInfo } = await Purchases.getCustomerInfo();
-        isPremium = Boolean(customerInfo.entitlements.active[premiumEntitlement]);
-        if (isPremium) rememberVerifiedPremium();
-        else forgetVerifiedPremium();
+        isPremium = saveEntitlementStatus(activeEntitlement(customerInfo));
         purchasesReady = true;
       } catch (error) {
         purchasesReady = false;
@@ -85,6 +92,34 @@ export const monetization = {
 
   requiresPrivacyOptions(): boolean {
     return privacyOptionsRequired;
+  },
+
+  /**
+   * Vincula RevenueCat a la cuenta autenticada, nunca al alias público. Así una
+   * compra (o un entitlement promocional de revisión) se conserva al cambiar
+   * de dispositivo y no puede adivinarse a partir del ranking.
+   */
+  async identifyRankingUser(userId: number): Promise<boolean> {
+    if (!Capacitor.isNativePlatform() || !purchasesReady || !Number.isInteger(userId) || userId <= 0) return false;
+    try {
+      const { customerInfo } = await Purchases.logIn({ appUserID: `atlasflags-user-${userId}` });
+      return saveEntitlementStatus(activeEntitlement(customerInfo));
+    } catch (error) {
+      console.warn('No se pudo vincular la compra con la cuenta de ranking', error);
+      return hasPremiumGrace();
+    }
+  },
+
+  /** Desvincula la cuenta de ranking sin eliminar sus compras de RevenueCat. */
+  async clearRankingIdentity(): Promise<boolean> {
+    if (!Capacitor.isNativePlatform() || !purchasesReady) return false;
+    try {
+      const { customerInfo } = await Purchases.logOut();
+      return saveEntitlementStatus(activeEntitlement(customerInfo));
+    } catch (error) {
+      console.warn('No se pudo desvincular la cuenta de ranking', error);
+      return false;
+    }
   },
 
   async showPrivacyOptions(): Promise<boolean> {
@@ -142,17 +177,12 @@ export const monetization = {
   async buyPremium(aPackage: PurchasesPackage): Promise<boolean> {
     if (!purchasesReady) return false;
     const { customerInfo } = await Purchases.purchasePackage({ aPackage });
-    const premium = Boolean(customerInfo.entitlements.active[premiumEntitlement]);
-    if (premium) rememberVerifiedPremium();
-    return premium;
+    return saveEntitlementStatus(activeEntitlement(customerInfo));
   },
 
   async restorePremium(): Promise<boolean> {
     if (!purchasesReady) return false;
     const { customerInfo } = await Purchases.restorePurchases();
-    const premium = Boolean(customerInfo.entitlements.active[premiumEntitlement]);
-    if (premium) rememberVerifiedPremium();
-    else forgetVerifiedPremium();
-    return premium;
+    return saveEntitlementStatus(activeEntitlement(customerInfo));
   },
 };

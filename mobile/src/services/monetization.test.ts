@@ -4,6 +4,8 @@ const nativePlatform = vi.hoisted(() => ({ value: true }));
 const purchases = vi.hoisted(() => ({
   configure: vi.fn(),
   getCustomerInfo: vi.fn(),
+  logIn: vi.fn(),
+  logOut: vi.fn(),
   getOfferings: vi.fn(),
   purchasePackage: vi.fn(),
   restorePurchases: vi.fn(),
@@ -35,6 +37,8 @@ describe('gracia del entitlement Pro', () => {
     nativePlatform.value = true;
     purchases.configure.mockReset();
     purchases.getCustomerInfo.mockReset();
+    purchases.logIn.mockReset();
+    purchases.logOut.mockReset();
     ads.initialize.mockReset();
     ads.requestConsentInfo.mockReset();
     ads.showConsentForm.mockReset();
@@ -69,6 +73,16 @@ describe('gracia del entitlement Pro', () => {
     await expect(monetization.initialize()).resolves.toBe(false);
     expect(localStorage.getItem(cacheKey)).toBeNull();
     expect(ads.initialize).toHaveBeenCalledTimes(1);
+  });
+
+  it('vincula un entitlement promocional a un identificador de cuenta estable', async () => {
+    purchases.getCustomerInfo.mockResolvedValue({ customerInfo: inactiveCustomer });
+    purchases.logIn.mockResolvedValue({ customerInfo: activeCustomer });
+    const { monetization } = await import('./monetization');
+
+    await monetization.initialize();
+    await expect(monetization.identifyRankingUser(42)).resolves.toBe(true);
+    expect(purchases.logIn).toHaveBeenCalledWith({ appUserID: 'atlasflags-user-42' });
   });
 });
 

@@ -1369,6 +1369,11 @@ export default function App() {
   const connectRanking = (session: RankingSession, alias: string) => {
     const nextProfile = { ...profile, displayName: alias || profile.displayName };
     setRankingSession(session);
+    if (Number.isInteger(session.userId)) {
+      void monetization.identifyRankingUser(session.userId as number).then((isPremium) => {
+        if (profile.isPremium !== isPremium) setProfile({ ...profile, isPremium });
+      });
+    }
     void syncRanking(session, nextProfile).then((synced) => {
       if (!synced) notice(t('account.title'), t('account.operationError'));
     });
@@ -1604,6 +1609,9 @@ export default function App() {
   const signOut = () => {
     clearRankingSession();
     setRankingSession(null);
+    void monetization.clearRankingIdentity().then((isPremium) => {
+      setProfile({ ...profile, isPremium, rankedProfileReady: false });
+    });
     setProfile({ ...profile, rankedProfileReady: false });
   };
   const deleteAccount = () => {
@@ -1619,6 +1627,7 @@ export default function App() {
           await deleteRankingAccount(rankingSession);
           clearRankingSession();
           setRankingSession(null);
+          void monetization.clearRankingIdentity();
           setProfile({ ...profile, displayName: null, rankedProfileReady: false });
           notice(t('dialog.deleteAccountTitle'), t('dialog.accountDeleted'));
         } catch {

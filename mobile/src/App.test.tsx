@@ -32,6 +32,8 @@ vi.mock('@capacitor/haptics', () => ({
 vi.mock('./services/monetization', () => ({
   monetization: {
     initialize: vi.fn().mockResolvedValue(false),
+    identifyRankingUser: vi.fn().mockResolvedValue(false),
+    clearRankingIdentity: vi.fn().mockResolvedValue(false),
     requiresPrivacyOptions: vi.fn().mockReturnValue(false),
     showPrivacyOptions: vi.fn().mockResolvedValue(false),
     showRewardedHint: vi.fn().mockResolvedValue(true),

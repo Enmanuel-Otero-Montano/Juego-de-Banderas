@@ -13,6 +13,8 @@ export interface RankingSession {
   accessToken: string;
   refreshToken: string;
   username: string;
+  /** Identificador estable para vincular la compra con la cuenta de ranking. */
+  userId?: number;
 }
 
 export interface LeaderboardEntry {
@@ -282,8 +284,9 @@ export const requestPasswordReset = async (email: string): Promise<void> => {
 
 export const loginRankingAccount = async (username: string, password: string): Promise<RankingSession> => {
   const form = new URLSearchParams({ username, password });
-  const response = await request<{ access_token: string; refresh_token: string }>('/token', { method: 'POST', body: form });
-  const session = { accessToken: response.access_token, refreshToken: response.refresh_token, username };
+  const response = await request<{ access_token: string; refresh_token: string; user_id: number }>('/token', { method: 'POST', body: form });
+  if (!Number.isInteger(response.user_id)) throw new ApiError('La respuesta de inicio de sesión no incluyó una cuenta válida.');
+  const session = { accessToken: response.access_token, refreshToken: response.refresh_token, username, userId: response.user_id };
   await saveRankingSession(session);
   return session;
 };
