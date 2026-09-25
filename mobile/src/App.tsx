@@ -36,6 +36,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { Flag } from './components/Flag';
+import { FlagAtlas } from './components/FlagAtlas';
 import { countries, formatPopulation, getCapitalName, getCountryByCode, getCountryName, getRegionCountries } from './data/countries';
 import { getExpeditionPool, getHomeStageId, getJourneyExpeditionCountries, getJourneyRoute, getJourneyStage, getJourneyStagePool, getJourneyStageText, getNextRouteChoices, journeyStages } from './data/journey';
 import { buildQuestions, completeSession, hiddenOptionCodes, isoDate, millisecondsUntilNextLocalDay, shuffle } from './game';
@@ -1108,7 +1109,7 @@ function JourneyEvolution({ profile, session }: { profile: PlayerProfile; sessio
   );
 }
 
-function ProgressScreen({ profile, session }: { profile: PlayerProfile; session: RankingSession | null }) {
+function ProgressScreen({ profile, session, onOpenAccount, onOpenJourney }: { profile: PlayerProfile; session: RankingSession | null; onOpenAccount: () => void; onOpenJourney: () => void }) {
   const { t, language } = useI18n();
   const accuracy = profile.totalAnswers ? Math.round((profile.correctAnswers / profile.totalAnswers) * 100) : 0;
   const mastered = Object.entries(profile.masteredCountries).filter(([, value]) => value >= 3);
@@ -1132,6 +1133,7 @@ function ProgressScreen({ profile, session }: { profile: PlayerProfile; session:
         <div className="section-title-row"><div><p className="eyebrow">{t('progress.collection')}</p><h2>{t('progress.masteredFlags')}</h2></div><span>{mastered.length}/195</span></div>
         {recent.length ? <div className="mastered-flags">{recent.map((country) => <div key={country.code}><Flag code={country.code} name={getCountryName(country, language)} /><small>{getCountryName(country, language)}</small></div>)}</div> : <p className="empty-state">{t('progress.empty')}</p>}
       </section>
+      <FlagAtlas session={session} onOpenAccount={onOpenAccount} onOpenJourney={onOpenJourney} />
       <section className="content-card streak-card"><div><Flame /><span><strong>{t('progress.days', { count: profile.streak })}</strong><small>{t('progress.comeBack')}</small></span></div><div className="week-dots">{[0,1,2,3,4,5,6].map((day) => <span key={day} className={day < Math.min(profile.streak, 7) ? 'active' : ''}>{day < Math.min(profile.streak, 7) && <Check />}</span>)}</div></section>
     </main>
   );
@@ -1651,7 +1653,7 @@ export default function App() {
       {screen === 'regions' && <RegionsScreen onBack={() => setScreen('home')} startGame={startGame} />}
       {screen === 'career' && <CareerScreen profile={profile} startGame={startGame} onChooseOrigin={() => openOriginPicker('career')} onChooseRoute={chooseRoute} onLeaderboard={() => setScreen('leaderboard')} />}
       {screen === 'origin' && <OriginPickerScreen currentCode={profile.homeCountryCode} onBack={() => setScreen(originReturn)} onSelect={chooseOrigin} />}
-      {screen === 'progress' && <ProgressScreen profile={profile} session={rankingSession} />}
+      {screen === 'progress' && <ProgressScreen profile={profile} session={rankingSession} onOpenAccount={() => setScreen('account')} onOpenJourney={() => setScreen('career')} />}
       {screen === 'store' && <StoreScreen profile={profile} setProfile={setProfile} onBack={() => setScreen('home')} />}
       {screen === 'settings' && <SettingsScreen profile={profile} session={rankingSession} adPrivacyOptionsRequired={adPrivacyOptionsRequired} setProfile={setProfile} onBack={() => setScreen('home')} onPrivacy={() => setScreen('privacy')} onAdPrivacy={() => { void openAdPrivacy(); }} onOrigin={() => openOriginPicker('settings')} onAccount={() => setScreen('account')} onAliasChange={changeAlias} onSignOut={signOut} onDeleteAccount={() => { void deleteAccount(); }} />}
       {screen === 'privacy' && <PrivacyScreen onBack={() => setScreen('settings')} />}

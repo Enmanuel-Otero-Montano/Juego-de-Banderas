@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { completePendingRankingAttempt, deleteRankingAccount, queueCareerSelection, RANKING_SESSION_EXPIRED_EVENT, requestPasswordReset, resendVerificationEmail, startPendingRankingAttempt, updateRankingProfile } from './api';
+import { completePendingRankingAttempt, deleteRankingAccount, getFlagAtlas, queueCareerSelection, RANKING_SESSION_EXPIRED_EVENT, requestPasswordReset, resendVerificationEmail, startPendingRankingAttempt, updateRankingProfile } from './api';
 
 class MemoryStorage implements Storage {
   private values = new Map<string, string>();
@@ -16,6 +16,17 @@ describe('cliente de cuentas', () => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
     vi.stubGlobal('localStorage', new MemoryStorage());
+  });
+
+  it('pide el atlas sin enviar países ni totales', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(Response.json({ flags: {} }));
+    vi.stubGlobal('fetch', fetchMock);
+    await getFlagAtlas({ accessToken: 'token-de-prueba', refreshToken: 'refresh-de-prueba', username: 'atlas' });
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://127.0.0.1:8000/career/atlas',
+      expect.objectContaining({ headers: expect.objectContaining({ Authorization: 'Bearer token-de-prueba' }) }),
+    );
+    expect(fetchMock.mock.calls[0][1].body).toBeUndefined();
   });
 
   it('acepta correctamente una respuesta 204 al eliminar la cuenta', async () => {

@@ -355,6 +355,9 @@ export const submitCareerStage = async (
   });
 };
 
+export const getFlagAtlas = async (session: RankingSession): Promise<unknown> =>
+  authenticatedRequest(session, '/career/atlas');
+
 export const getCareerHistory = async (
   session: RankingSession,
   difficulty: Difficulty,
