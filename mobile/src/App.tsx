@@ -87,6 +87,8 @@ import type { PurchasesPackage } from '@revenuecat/purchases-capacitor';
 import { Haptics, NotificationType } from '@capacitor/haptics';
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
+import { feedbackTone } from './feedback';
+import { shareResult, shareWasCanceled } from './shareResult';
 import brandMark from '../assets/icon-only.png';
 import welcomeGlobe from '../assets/welcome-globe.png';
 
@@ -106,15 +108,16 @@ const playFeedback = (success: boolean, soundEnabled: boolean, hapticsEnabled: b
   try {
     const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AudioContextClass) return;
+    const tone = feedbackTone(success);
     const context = new AudioContextClass();
     const oscillator = context.createOscillator();
     const gain = context.createGain();
-    oscillator.frequency.value = success ? 620 : 190;
-    gain.gain.setValueAtTime(0.08, context.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.18);
+    oscillator.frequency.value = tone.frequency;
+    gain.gain.setValueAtTime(tone.gain, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + tone.seconds);
     oscillator.connect(gain).connect(context.destination);
     oscillator.start();
-    oscillator.stop(context.currentTime + 0.18);
+    oscillator.stop(context.currentTime + tone.seconds);
   } catch {
     // Audio feedback is optional.
   }
@@ -635,15 +638,28 @@ function JourneyGameScreen({ config, profile, rankingSession, today, setProfile,
   );
 }
 
+function QuestionLabel({ message }: { message: string }) {
+  const parts = message.split(/(\*[^*]+\*)/g).filter(Boolean);
+  return (
+    <p className="question-label question-label--prompt">
+      {parts.map((part, index) => (
+        part.startsWith('*') && part.endsWith('*')
+          ? <strong key={index} className="question-keyword">{part.slice(1, -1)}</strong>
+          : <span key={index}>{part}</span>
+      ))}
+    </p>
+  );
+}
+
 function QuestionPrompt({ question }: { question: Question }) {
   const { t, language } = useI18n();
   if (question.kind === 'flag-to-name') {
-    return <><p className="question-label">{t('game.questionFlag')}</p><div className="question-flag"><Flag code={question.answer.code} name={getCountryName(question.answer, language)} size="hero" /></div></>;
+    return <><QuestionLabel message={t('game.questionFlag')} /><div className="question-flag"><Flag code={question.answer.code} name={getCountryName(question.answer, language)} size="hero" /></div></>;
   }
   if (question.kind === 'capital-to-flag') {
-    return <><p className="question-label">{t('game.questionCapital')}</p><h2 className="question-word">{getCapitalName(question.answer, language)}</h2></>;
+    return <><QuestionLabel message={t('game.questionCapital')} /><h2 className="question-word">{getCapitalName(question.answer, language)}</h2></>;
   }
-  return <><p className="question-label">{t('game.findFlag')}</p><h2 className="question-word">{getCountryName(question.answer, language)}</h2></>;
+  return <><QuestionLabel message={t('game.findFlag')} /><h2 className="question-word">{getCountryName(question.answer, language)}</h2></>;
 }
 
 function GameScreen({ config, profile, today, setProfile, onExit, onComplete }: {
@@ -809,12 +825,10 @@ function ResultsModal({ reward, records, config, rankingStatus, today, onClose, 
     const tiles = records.map((answer) => (answer.correct ? '🟩' : '🟥')).join('');
     const text = t('share.text', { app: t('app.name'), date: today, tiles, correct: reward.correct, total: reward.total });
     try {
-      if (navigator.share) await navigator.share({ title: t('app.name'), text });
-      else if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
-      else throw new Error('Clipboard unavailable');
+      await shareResult(t('app.name'), text);
       setShareError(false);
     } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') return;
+      if (shareWasCanceled(error)) return;
       setShareError(true);
     }
   };

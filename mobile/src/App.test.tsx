@@ -30,6 +30,10 @@ vi.mock('@capacitor/haptics', () => ({
   NotificationType: { Success: 'success', Error: 'error' },
 }));
 
+vi.mock('@capacitor/share', () => ({
+  Share: { share: vi.fn() },
+}));
+
 vi.mock('./services/monetization', () => ({
   monetization: {
     initialize: vi.fn().mockResolvedValue(false),
@@ -239,6 +243,8 @@ describe('App', () => {
     await act(async () => buttonWithText(container, 'Por regiones').click());
     await act(async () => buttonWithText(container, 'Oceanía').click());
     expect(container.querySelector('.game-screen')?.getAttribute('data-region')).toBe('Oceania');
+    expect(container.querySelector('.question-keyword')?.textContent).toBe('PAÍS');
+    expect(container.querySelector('.question-label--prompt')?.textContent).toBe('¿DE QUÉ PAÍS ES ESTA BANDERA?');
 
     for (let attempt = 0; attempt < 3; attempt += 1) {
       await act(async () => answerWrong());
@@ -247,6 +253,16 @@ describe('App', () => {
     expect(container.querySelector('.lives')?.getAttribute('aria-label')).toBe('0 vidas');
     await act(async () => buttonWithText(container, 'Ver resultado').click());
     expect(container.textContent).toContain('Repetir');
+    const webShare = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'share', { configurable: true, value: webShare });
+    await act(async () => buttonWithText(container, 'Compartir').click());
+    expect(webShare).toHaveBeenCalledOnce();
+    const shared = webShare.mock.calls[0][0] as { title: string; text: string; url?: string };
+    expect(shared.title).toBe('Banderas, Países y Regiones');
+    expect(shared.text).toContain('¿Puedes superarme?');
+    expect(shared.text).toMatch(/\d+\/\d+ banderas/);
+    expect(shared.url).toBeUndefined();
+    Object.defineProperty(navigator, 'share', { configurable: true, value: undefined });
 
     await act(async () => buttonWithText(container, 'Repetir').click());
 

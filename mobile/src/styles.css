@@ -325,6 +325,8 @@ h1, h2, h3, strong { font-family: 'Manrope', 'DM Sans', sans-serif; }
 .progress-track span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #4ca57b, #1e7058); transition: width .3s ease; }
 .question-area { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 240px; padding: 24px 0 18px; text-align: center; }
 .question-label { margin-bottom: 20px; color: var(--muted); font: 800 10px 'Manrope'; letter-spacing: .11em; }
+.question-label--prompt { max-width: min(94%, 360px); margin-bottom: 16px; padding: 10px 14px; color: var(--ink); border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line)); border-radius: 16px; background: color-mix(in srgb, var(--mint) 72%, var(--surface)); font: 800 14px/1.35 'Manrope'; letter-spacing: .03em; text-wrap: balance; }
+.question-keyword { color: var(--accent); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
 .question-word { max-width: 90%; font-size: clamp(28px, 8vw, 40px); line-height: 1.1; letter-spacing: -.04em; }
 .question-flag { display: grid; place-items: center; width: min(82%, 330px); min-height: 166px; padding: 22px; border: 1px solid #e1e6e1; border-radius: 24px; background: var(--surface); box-shadow: var(--shadow); }
 .flag { display: inline-block; flex-shrink: 0; overflow: hidden; border-radius: 4px; object-fit: cover; box-shadow: 0 4px 10px rgba(20, 39, 34, .18); }
