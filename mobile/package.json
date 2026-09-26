@@ -12,6 +12,7 @@
     "preview": "vite preview --host 0.0.0.0",
     "test": "vitest run",
     "test:watch": "vitest",
+    "catalog:check": "node scripts/check-catalog-contract.mjs",
     "check": "npm test && npm run build && npm run store-assets:check",
     "android:sync": "npm run build && cap sync android",
     "android:debug": "npm run android:sync && cd android && ./gradlew assembleDebug",

@@ -1,5 +1,6 @@
 import { Component, type ReactNode } from 'react';
 import { useI18n } from '../i18n';
+import { recordCrash } from '../services/diagnostics';
 
 type BoundaryProps = {
   children: ReactNode;
@@ -15,6 +16,10 @@ class ErrorBoundary extends Component<BoundaryProps, BoundaryState> {
 
   static getDerivedStateFromError(): BoundaryState {
     return { failed: true };
+  }
+
+  componentDidCatch(error: Error): void {
+    recordCrash(error);
   }
 
   render() {

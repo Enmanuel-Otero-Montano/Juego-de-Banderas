@@ -36,6 +36,7 @@ Requiere Node.js 22 o posterior.
 npm install
 npm run dev
 npm test
+npm run catalog:check -- --backend /ruta/al/backend
 npm run build
 npm run screenshots
 npm run store-assets
@@ -54,6 +55,18 @@ npm run android:open
 ```
 
 La configuración actual usa el ID de aplicación `com.enmanuelotero.atlasflags`, `minSdk 24` y `targetSdk 36`.
+
+## Contrato de catálogos
+
+`npm test` compara el catálogo local con `contracts/catalog-contract.json`. El backend tiene el mismo archivo y lo valida con `python3 tests/test_catalog_contract.py`. GitHub Actions, en cada repo, clona el otro y ejecuta `npm run catalog:check`, que falla si países, regiones, orden de etapas, temporada o tiempos por dificultad dejan de coincidir.
+
+El JSON no se edita a mano. Para regenerarlo en los dos repos, primero alineá las fuentes y después:
+
+```bash
+npm run catalog:check -- --backend /ruta/al/banderas_paises_y_regiones --write
+```
+
+`--write` solo reescribe ambos artefactos si las fuentes ya son idénticas. El chequeo no usa red ni servicios externos; en CI el segundo checkout es el único paso con red.
 
 ## Activar monetización real
 

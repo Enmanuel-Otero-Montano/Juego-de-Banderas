@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { AdMob, AdmobConsentStatus } from '@capacitor-community/admob';
 import { Purchases, type PurchasesPackage } from '@revenuecat/purchases-capacitor';
+import { purchaseOutcome, recordDiagnostic } from './diagnostics';
 
 const TEST_REWARDED_ANDROID = 'ca-app-pub-3940256099942544/5224354917';
 const TEST_INTERSTITIAL_ANDROID = 'ca-app-pub-3940256099942544/1033173712';
@@ -141,7 +142,10 @@ export const monetization = {
       await new Promise((resolve) => window.setTimeout(resolve, 500));
       return true;
     }
-    if (!adsReady) return false;
+    if (!adsReady) {
+      recordDiagnostic({ type: 'ad_unavailable', format: 'rewarded' });
+      return false;
+    }
     try {
       await AdMob.prepareRewardVideoAd({
         adId: import.meta.env.VITE_ADMOB_REWARDED_ID || TEST_REWARDED_ANDROID,
@@ -150,13 +154,18 @@ export const monetization = {
       await AdMob.showRewardVideoAd();
       return true;
     } catch (error) {
+      recordDiagnostic({ type: 'ad_unavailable', format: 'rewarded' });
       console.warn('Anuncio recompensado no disponible', error);
       return false;
     }
   },
 
   async maybeShowInterstitial(sessionsCompleted: number, isPremium: boolean): Promise<void> {
-    if (!Capacitor.isNativePlatform() || !adsReady || !shouldShowInterstitial(sessionsCompleted, isPremium)) return;
+    if (!Capacitor.isNativePlatform() || !shouldShowInterstitial(sessionsCompleted, isPremium)) return;
+    if (!adsReady) {
+      recordDiagnostic({ type: 'ad_unavailable', format: 'interstitial' });
+      return;
+    }
     try {
       await AdMob.prepareInterstitial({
         adId: import.meta.env.VITE_ADMOB_INTERSTITIAL_ID || TEST_INTERSTITIAL_ANDROID,
@@ -164,6 +173,7 @@ export const monetization = {
       });
       await AdMob.showInterstitial();
     } catch (error) {
+      recordDiagnostic({ type: 'ad_unavailable', format: 'interstitial' });
       console.warn('Intersticial no disponible', error);
     }
   },
@@ -171,18 +181,40 @@ export const monetization = {
   async getPremiumPackage(): Promise<PurchasesPackage | null> {
     if (!purchasesReady) return null;
     const offerings = await Purchases.getOfferings();
-    return offerings.current?.lifetime || null;
+    const lifetime = offerings.current?.lifetime || null;
+    if (!lifetime) recordDiagnostic({ type: 'offering_missing' });
+    return lifetime;
   },
 
   async buyPremium(aPackage: PurchasesPackage): Promise<boolean> {
-    if (!purchasesReady) return false;
-    const { customerInfo } = await Purchases.purchasePackage({ aPackage });
-    return saveEntitlementStatus(activeEntitlement(customerInfo));
+    if (!purchasesReady) {
+      recordDiagnostic({ type: 'purchase', result: 'error' });
+      return false;
+    }
+    try {
+      const { customerInfo } = await Purchases.purchasePackage({ aPackage });
+      const premium = saveEntitlementStatus(activeEntitlement(customerInfo));
+      recordDiagnostic({ type: 'purchase', result: premium ? 'success' : 'error' });
+      return premium;
+    } catch (error) {
+      recordDiagnostic({ type: 'purchase', result: purchaseOutcome(error) });
+      throw error;
+    }
   },
 
   async restorePremium(): Promise<boolean> {
-    if (!purchasesReady) return false;
-    const { customerInfo } = await Purchases.restorePurchases();
-    return saveEntitlementStatus(activeEntitlement(customerInfo));
+    if (!purchasesReady) {
+      recordDiagnostic({ type: 'restore', result: 'error' });
+      return false;
+    }
+    try {
+      const { customerInfo } = await Purchases.restorePurchases();
+      const premium = saveEntitlementStatus(activeEntitlement(customerInfo));
+      recordDiagnostic({ type: 'restore', result: premium ? 'success' : 'error' });
+      return premium;
+    } catch (error) {
+      recordDiagnostic({ type: 'restore', result: purchaseOutcome(error) });
+      throw error;
+    }
   },
 };

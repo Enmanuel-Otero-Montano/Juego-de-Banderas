@@ -167,6 +167,8 @@ describe('App', () => {
       },
     }));
     localStorage.setItem('atlas-premium-hints-2026-09-25', '2');
+    localStorage.setItem('atlas-flags-theme-v1', 'dark');
+    localStorage.setItem('atlas-flags-backdrop-v1', 'varied');
     vi.mocked(monetization.initialize).mockResolvedValueOnce(true);
 
     await act(async () => {
@@ -213,6 +215,8 @@ describe('App', () => {
     expect(saved.journeyProgress.normal.completedStages).toEqual([]);
     expect(localStorage.getItem('atlas-premium-hints-2026-09-25')).toBeNull();
     expect(localStorage.getItem('atlas-flags-language-v1')).toBe('es');
+    expect(localStorage.getItem('atlas-flags-theme-v1')).toBe('dark');
+    expect(localStorage.getItem('atlas-flags-backdrop-v1')).toBe('varied');
     expect(container.textContent).toContain('La partida de este dispositivo volvió a empezar');
   });
 
@@ -234,6 +238,7 @@ describe('App', () => {
     });
     await act(async () => buttonWithText(container, 'Por regiones').click());
     await act(async () => buttonWithText(container, 'Oceanía').click());
+    expect(container.querySelector('.game-screen')?.getAttribute('data-region')).toBe('Oceania');
 
     for (let attempt = 0; attempt < 3; attempt += 1) {
       await act(async () => answerWrong());
@@ -249,5 +254,74 @@ describe('App', () => {
     expect(container.querySelector('.lives')?.getAttribute('aria-label')).toBe('3 vidas');
     expect(container.querySelector('.feedback-card')).toBeNull();
     expect(container.textContent).not.toContain('Ver resultado');
+  });
+
+  it('guarda el tema elegido y lo aplica en la página', async () => {
+    await act(async () => {
+      root.render(<I18nProvider><App /></I18nProvider>);
+    });
+    await act(async () => {
+      (container.querySelector('button[aria-label="Ajustes"]') as HTMLButtonElement).click();
+    });
+    await act(async () => buttonWithText(container, 'Oscuro').click());
+    expect(localStorage.getItem('atlas-flags-theme-v1')).toBe('dark');
+    expect(document.documentElement.dataset.theme).toBe('dark');
+
+    await act(async () => buttonWithText(container, 'Claro').click());
+    expect(document.documentElement.dataset.theme).toBe('light');
+    expect(localStorage.getItem('atlas-flags-theme-v1')).toBe('light');
+  });
+
+  it('guarda si el fondo de la partida es variado o fijo', async () => {
+    await act(async () => {
+      root.render(<I18nProvider><App /></I18nProvider>);
+    });
+    await act(async () => {
+      (container.querySelector('button[aria-label="Ajustes"]') as HTMLButtonElement).click();
+    });
+    expect(document.documentElement.dataset.backdrop).toBe('fixed');
+    expect(buttonWithText(container, 'Fijo').className).toContain('active');
+
+    await act(async () => buttonWithText(container, 'Variados').click());
+    expect(localStorage.getItem('atlas-flags-backdrop-v1')).toBe('varied');
+    expect(document.documentElement.dataset.backdrop).toBe('varied');
+
+    await act(async () => buttonWithText(container, 'Fijo').click());
+    expect(localStorage.getItem('atlas-flags-backdrop-v1')).toBe('fixed');
+    expect(document.documentElement.dataset.backdrop).toBe('fixed');
+  });
+
+  it('cambia la interfaz a francés y lo recuerda', async () => {
+    await act(async () => {
+      root.render(<I18nProvider><App /></I18nProvider>);
+    });
+    await act(async () => {
+      (container.querySelector('button[aria-label="Ajustes"]') as HTMLButtonElement).click();
+    });
+    await act(async () => buttonWithText(container, 'FR').click());
+    expect(localStorage.getItem('atlas-flags-language-v1')).toBe('fr');
+    expect(document.documentElement.lang).toBe('fr');
+    expect(container.textContent).toContain('Réglages');
+    await act(async () => {
+      (container.querySelector('button[aria-label="Retour"]') as HTMLButtonElement).click();
+    });
+    expect(container.textContent).toContain('Où voyageons-nous aujourd’hui ?');
+  });
+
+  it('cambia la interfaz a alemán y lo recuerda', async () => {
+    await act(async () => {
+      root.render(<I18nProvider><App /></I18nProvider>);
+    });
+    await act(async () => {
+      (container.querySelector('button[aria-label="Ajustes"]') as HTMLButtonElement).click();
+    });
+    await act(async () => buttonWithText(container, 'DE').click());
+    expect(localStorage.getItem('atlas-flags-language-v1')).toBe('de');
+    expect(document.documentElement.lang).toBe('de');
+    expect(container.textContent).toContain('Einstellungen');
+    await act(async () => {
+      (container.querySelector('button[aria-label="Zurück"]') as HTMLButtonElement).click();
+    });
+    expect(container.textContent).toContain('Wohin reisen wir heute?');
   });
 });

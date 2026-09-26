@@ -91,7 +91,7 @@ export const getCountryName = (country: Country, language: LocaleCode): string =
   }
 };
 
-const localizedCapitals: Record<'es' | 'pt', Record<string, string>> = {
+const localizedCapitals: Record<Exclude<LocaleCode, 'en'>, Record<string, string>> = {
   es: {
     at: 'Viena', az: 'Bakú', be: 'Bruselas', bg: 'Sofía', ch: 'Berna', ci: 'Yamusukro',
     cn: 'Pekín', cz: 'Praga', de: 'Berlín', dk: 'Copenhague', eg: 'El Cairo', ee: 'Tallin',
@@ -114,6 +114,28 @@ const localizedCapitals: Record<'es' | 'pt', Record<string, string>> = {
     sa: 'Riade', se: 'Estocolmo', si: 'Liubliana', sy: 'Damasco', tr: 'Ancara', gb: 'Londres',
     us: 'Washington, D.C.', uz: 'Tashkent', va: 'Cidade do Vaticano', vn: 'Hanói', ye: 'Sana',
   },
+  fr: {
+    at: 'Vienne', az: 'Bakou', be: 'Bruxelles', bg: 'Sofia', ch: 'Berne', ci: 'Yamoussoukro',
+    cn: 'Pékin', cz: 'Prague', de: 'Berlin', dk: 'Copenhague', eg: 'Le Caire', ee: 'Tallinn',
+    et: 'Addis-Abeba', ge: 'Tbilissi', gr: 'Athènes', id: 'Jakarta', ie: 'Dublin', in: 'New Delhi',
+    is: 'Reykjavik', it: 'Rome', jp: 'Tokyo', jo: 'Amman', kh: 'Phnom Penh', kp: 'Pyongyang',
+    kr: 'Séoul', lb: 'Beyrouth', lk: 'Sri Jayawardenepura Kotte', lt: 'Vilnius', ly: 'Tripoli',
+    ma: 'Rabat', mm: 'Naypyidaw', mn: 'Oulan-Bator', mv: 'Malé', np: 'Katmandou', nl: 'Amsterdam',
+    no: 'Oslo', om: 'Mascate', pl: 'Varsovie', pt: 'Lisbonne', ro: 'Bucarest', ru: 'Moscou',
+    sa: 'Riyad', se: 'Stockholm', si: 'Ljubljana', sy: 'Damas', tr: 'Ankara', gb: 'Londres',
+    us: 'Washington, D.C.', uz: 'Tachkent', va: 'Cité du Vatican', vn: 'Hanoï', ye: 'Sanaa',
+  },
+  de: {
+    at: 'Wien', az: 'Baku', be: 'Brüssel', bg: 'Sofia', ch: 'Bern', ci: 'Yamoussoukro',
+    cn: 'Peking', cz: 'Prag', de: 'Berlin', dk: 'Kopenhagen', eg: 'Kairo', ee: 'Tallinn',
+    et: 'Addis Abeba', ge: 'Tiflis', gr: 'Athen', id: 'Jakarta', ie: 'Dublin', in: 'Neu-Delhi',
+    is: 'Reykjavík', it: 'Rom', jp: 'Tokio', jo: 'Amman', kh: 'Phnom Penh', kp: 'Pjöngjang',
+    kr: 'Seoul', lb: 'Beirut', lk: 'Sri Jayawardenepura Kotte', lt: 'Vilnius', ly: 'Tripolis',
+    ma: 'Rabat', mm: 'Naypyidaw', mn: 'Ulan-Bator', mv: 'Malé', np: 'Kathmandu', nl: 'Amsterdam',
+    no: 'Oslo', om: 'Maskat', pl: 'Warschau', pt: 'Lissabon', ro: 'Bukarest', ru: 'Moskau',
+    sa: 'Riad', se: 'Stockholm', si: 'Ljubljana', sy: 'Damaskus', tr: 'Ankara', gb: 'London',
+    us: 'Washington, D.C.', uz: 'Taschkent', va: 'Vatikanstadt', vn: 'Hanoi', ye: 'Sanaa',
+  },
 };
 
 export const getCapitalName = (country: Country, language: LocaleCode): string =>
@@ -122,4 +144,4 @@ export const getCapitalName = (country: Country, language: LocaleCode): string =
 export const formatPopulation = (population: number, language: LocaleCode = 'es'): string =>
   population > 0
     ? new Intl.NumberFormat(localeTags[language], { notation: 'compact', maximumFractionDigits: 1 }).format(population)
-    : ({ es: 'población sin datos', en: 'population unavailable', pt: 'população indisponível' })[language];
+    : ({ es: 'población sin datos', en: 'population unavailable', pt: 'população indisponível', fr: 'population indisponible', de: 'Bevölkerung nicht verfügbar' })[language];

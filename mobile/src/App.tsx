@@ -20,6 +20,8 @@ import {
   Lock,
   Map,
   MapPin,
+  Monitor,
+  Palette,
   Plane,
   RotateCcw,
   Search,
@@ -41,7 +43,11 @@ import { countries, formatPopulation, getCapitalName, getCountryByCode, getCount
 import { getExpeditionPool, getHomeStageId, getJourneyExpeditionCountries, getJourneyRoute, getJourneyStage, getJourneyStagePool, getJourneyStageText, getNextRouteChoices, journeyStages } from './data/journey';
 import { buildQuestions, completeSession, hiddenOptionCodes, isoDate, millisecondsUntilNextLocalDay, shuffle } from './game';
 import { languageOptions, useI18n } from './i18n';
+import { BackdropProvider, backdropOptions, useBackdrop } from './backdrop';
+import { playRegion } from './regionBackdrop';
+import { ThemeProvider, themeOptions, useTheme } from './theme';
 import { leaderboardContextTitle, leaderboardEntryShowsCountry, type LeaderboardScope } from './leaderboard';
+import { recordDiagnostic } from './services/diagnostics';
 import { monetization } from './services/monetization';
 import { chooseDifficultyCountries, difficultyRules } from './rules';
 import { clearDailyHintCounters, clearedRouteStageCount, emptyJourneyProgress, initialProfile, loadProfile, resetLocalProgress, saveProfile } from './storage';
@@ -570,7 +576,7 @@ function JourneyGameScreen({ config, profile, rankingSession, today, setProfile,
   };
 
   return (
-    <main className="game-screen journey-game" onContextMenu={(event) => event.preventDefault()}>
+    <main className="game-screen journey-game" data-region={playRegion(config)} onContextMenu={(event) => event.preventDefault()}>
       <header className="game-header">
         <button className="icon-button icon-button--light" onClick={onExit} aria-label={t('journey.exit')}><X /></button>
         <div className="game-header__center"><strong>{config.title}</strong><span>{t('journey.group', { current: groupIndex + 1, total: groups.length })}</span></div>
@@ -662,7 +668,7 @@ function GameScreen({ config, profile, today, setProfile, onExit, onComplete }: 
   const question = questions[index];
   if (!question) {
     return (
-      <main className="game-screen">
+      <main className="game-screen" data-region="World">
         <section className="empty-state" role="alert">
           <h1>{t('game.unavailable')}</h1>
           <p>{t('game.unavailableDetail')}</p>
@@ -732,7 +738,7 @@ function GameScreen({ config, profile, today, setProfile, onExit, onComplete }: 
   };
 
   return (
-    <main className="game-screen">
+    <main className="game-screen" data-region={playRegion(config, question.answer.region)}>
       <header className="game-header">
         <button className="icon-button icon-button--light" onClick={onExit} aria-label={t('game.exit')}><X /></button>
         <div className="game-header__center"><strong>{config.title}</strong><span>{t('game.progress', { current: index + 1, total: questions.length })}</span></div>
@@ -1188,6 +1194,8 @@ function StoreScreen({ profile, setProfile, onBack }: { profile: PlayerProfile; 
 
 function SettingsScreen({ profile, session, adPrivacyOptionsRequired, setProfile, onBack, onPrivacy, onAdPrivacy, onOrigin, onAccount, onAliasChange, onSignOut, onResetProgress, onDeleteAccount }: { profile: PlayerProfile; session: RankingSession | null; adPrivacyOptionsRequired: boolean; setProfile: (profile: PlayerProfile) => void; onBack: () => void; onPrivacy: () => void; onAdPrivacy: () => void; onOrigin: () => void; onAccount: () => void; onAliasChange: (alias: string | null) => void; onSignOut: () => void; onResetProgress: () => void; onDeleteAccount: () => void }) {
   const { t, language, setLanguage } = useI18n();
+  const { preference, setPreference } = useTheme();
+  const { preference: backdrop, setPreference: setBackdrop } = useBackdrop();
   const homeCountry = countries.find((country) => country.code === profile.homeCountryCode);
   const [aliasEditorOpen, setAliasEditorOpen] = useState(false);
   const [aliasDraft, setAliasDraft] = useState(profile.displayName || '');
@@ -1208,6 +1216,14 @@ function SettingsScreen({ profile, session, adPrivacyOptionsRequired, setProfile
       <section className="settings-list">
         <button onClick={() => setProfile({ ...profile, soundEnabled: !profile.soundEnabled })}><span>{profile.soundEnabled ? <Volume2 /> : <VolumeX />}<strong>{t('settings.sounds')}</strong></span><i className={profile.soundEnabled ? 'toggle active' : 'toggle'} /></button>
         <button onClick={() => setProfile({ ...profile, hapticsEnabled: !profile.hapticsEnabled })}><span><Gamepad2 /><strong>{t('settings.vibration')}</strong></span><i className={profile.hapticsEnabled ? 'toggle active' : 'toggle'} /></button>
+        <div className="language-setting"><span><Monitor /><strong>{t('settings.theme')}</strong></span><div className="language-options" role="group" aria-label={t('settings.theme')}>{themeOptions.map((option) => {
+          const label = { system: t('settings.theme.system'), light: t('settings.theme.light'), dark: t('settings.theme.dark') }[option];
+          return <button key={option} className={preference === option ? 'active' : ''} aria-pressed={preference === option} onClick={() => setPreference(option)}>{label}</button>;
+        })}</div></div>
+        <div className="language-setting"><span><Palette /><strong>{t('settings.backdrop')}</strong></span><div className="language-options" role="group" aria-label={t('settings.backdrop')}>{backdropOptions.map((option) => {
+          const label = { varied: t('settings.backdrop.varied'), fixed: t('settings.backdrop.fixed') }[option];
+          return <button key={option} className={backdrop === option ? 'active' : ''} aria-pressed={backdrop === option} onClick={() => setBackdrop(option)}>{label}</button>;
+        })}</div></div>
         <div className="language-setting"><span><Globe2 /><strong>{t('settings.language')}</strong></span><div className="language-options" role="group" aria-label={t('settings.language')}>{languageOptions.map((option) => <button key={option.code} className={language === option.code ? 'active' : ''} onClick={() => setLanguage(option.code)} aria-label={option.label}>{option.short}</button>)}</div></div>
         <button onClick={onOrigin}><span><MapPin /><span className="setting-copy"><strong>{t('settings.origin')}</strong><small>{homeCountry ? getCountryName(homeCountry, language) : t('settings.notChosen')}</small></span></span><ChevronRight /></button>
         <button onClick={openAliasEditor}><span><Trophy /><span className="setting-copy"><strong>{t('settings.alias')}</strong><small>{profile.displayName || t('settings.aliasDetail')}</small></span></span><ChevronRight /></button>
@@ -1347,7 +1363,7 @@ function AppDialog({ dialog, onClose }: { dialog: AppDialogConfig; onClose: () =
   );
 }
 
-export default function App() {
+function GameApp() {
   const { t } = useI18n();
   const [profile, setProfileState] = useState(loadProfile);
   const [today, setToday] = useState(isoDate);
@@ -1484,6 +1500,7 @@ export default function App() {
         setGameConfig(null);
         setScreen(result.config.mode === 'career' ? 'career' : 'home');
       } else if (screen === 'game') {
+        if (gameConfig && !result) recordDiagnostic({ type: 'abandon', mode: gameConfig.mode });
         setGameConfig(null);
         setScreen(gameConfig?.mode === 'career' ? 'career' : 'home');
       } else if (screen !== 'home') {
@@ -1531,6 +1548,7 @@ export default function App() {
       setGameConfig(nextConfig);
       setResult(null);
       setScreen('game');
+      recordDiagnostic({ type: 'session_start', mode: nextConfig.mode });
       startingGameRef.current = false;
     })();
   };
@@ -1596,6 +1614,7 @@ export default function App() {
     });
   };
   const completeCareer = async (reward: SessionReward, records: AnswerRecord[], config: GameConfig) => {
+    recordDiagnostic({ type: 'session_complete', mode: config.mode });
     if (config.stageId === 13) {
       setResult({ reward, records, config });
       return;
@@ -1700,8 +1719,8 @@ export default function App() {
       {screen === 'game' && gameConfig && (
         <div key={gameSession} className={result ? 'game-under-result' : undefined} aria-hidden={Boolean(result)}>
           {gameConfig.mode === 'career'
-            ? <JourneyGameScreen config={gameConfig} profile={profile} rankingSession={rankingSession} today={today} setProfile={setProfile} paused={Boolean(result)} onExit={() => { setGameConfig(null); setScreen('career'); }} onComplete={(reward, records, config) => { void completeCareer(reward, records, config); }} />
-            : <GameScreen config={gameConfig} profile={profile} today={today} setProfile={setProfile} onExit={() => { setGameConfig(null); setScreen('home'); }} onComplete={(reward, records, config) => setResult({ reward, records, config })} />}
+            ? <JourneyGameScreen config={gameConfig} profile={profile} rankingSession={rankingSession} today={today} setProfile={setProfile} paused={Boolean(result)} onExit={() => { if (!result) recordDiagnostic({ type: 'abandon', mode: gameConfig.mode }); setGameConfig(null); setScreen('career'); }} onComplete={(reward, records, config) => { void completeCareer(reward, records, config); }} />
+            : <GameScreen config={gameConfig} profile={profile} today={today} setProfile={setProfile} onExit={() => { if (!result) recordDiagnostic({ type: 'abandon', mode: gameConfig.mode }); setGameConfig(null); setScreen('home'); }} onComplete={(reward, records, config) => { recordDiagnostic({ type: 'session_complete', mode: config.mode }); setResult({ reward, records, config }); }} />}
         </div>
       )}
       {regularScreen && !['store', 'settings', 'origin', 'privacy', 'account'].includes(screen) && <BottomNav screen={screen} setScreen={setScreen} />}
@@ -1714,5 +1733,15 @@ export default function App() {
       {showWelcome && <WelcomeModal onClose={() => { localStorage.setItem('atlas-flags-welcomed', '1'); setShowWelcome(false); }} />}
       {appDialog && <AppDialog dialog={appDialog} onClose={() => setAppDialog(null)} />}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <BackdropProvider>
+        <GameApp />
+      </BackdropProvider>
+    </ThemeProvider>
   );
 }

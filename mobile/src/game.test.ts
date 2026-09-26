@@ -20,11 +20,13 @@ describe('catálogo de países', () => {
     expect(countries.find((country) => country.code === 'uy')?.name).toBe('Uruguay');
   });
 
-  it('localiza los nombres de países en los tres idiomas', () => {
+  it('localiza los nombres de países en español, inglés, portugués, francés y alemán', () => {
     const germany = countries.find((country) => country.code === 'de')!;
     expect(getCountryName(germany, 'es')).toBe('Alemania');
     expect(getCountryName(germany, 'en')).toBe('Germany');
     expect(getCountryName(germany, 'pt')).toBe('Alemanha');
+    expect(getCountryName(germany, 'fr')).toBe('Allemagne');
+    expect(getCountryName(germany, 'de')).toBe('Deutschland');
   });
 
   it('localiza los nombres de capitales que cambian según el idioma', () => {
@@ -32,12 +34,24 @@ describe('catálogo de países', () => {
     expect(getCapitalName(china, 'es')).toBe('Pekín');
     expect(getCapitalName(china, 'en')).toBe('Beijing');
     expect(getCapitalName(china, 'pt')).toBe('Pequim');
+    expect(getCapitalName(china, 'fr')).toBe('Pékin');
+    expect(getCapitalName(china, 'de')).toBe('Peking');
   });
 
   it('localiza el contenido de las etapas', () => {
     expect(getJourneyStageText(journeyStages[0], 'es').title).toBe('Rumbo al sur');
     expect(getJourneyStageText(journeyStages[0], 'en').title).toBe('Heading south');
     expect(getJourneyStageText(journeyStages[0], 'pt').title).toBe('Rumo ao sul');
+    expect(getJourneyStageText(journeyStages[0], 'fr')).toEqual({
+      title: 'Cap au sud',
+      label: 'Amérique du Sud',
+      focus: 'Premiers pas',
+    });
+    expect(getJourneyStageText(journeyStages[0], 'de')).toEqual({
+      title: 'Kurs nach Süden',
+      label: 'Südamerika',
+      focus: 'Erste Schritte',
+    });
   });
 
   it('usa salidas seguras ante una etapa o traducción inválida', () => {

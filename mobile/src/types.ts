@@ -3,7 +3,7 @@ export type GameMode = 'quick' | 'region' | 'career' | 'daily';
 export type QuestionKind = 'flag-to-name' | 'name-to-flag' | 'capital-to-flag';
 export type Difficulty = 'easy' | 'normal' | 'hard';
 export type RecognitionTier = 'familiar' | 'intermediate' | 'expert';
-export type LocaleCode = 'es' | 'en' | 'pt';
+export type LocaleCode = 'es' | 'en' | 'pt' | 'fr' | 'de';
 
 export interface Country {
   code: string;

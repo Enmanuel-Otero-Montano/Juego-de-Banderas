@@ -1,5 +1,6 @@
 import type { Difficulty, GameConfig, RegionKey } from '../types';
 import { rankingContract } from '../ranking';
+import { recordDiagnostic } from './diagnostics';
 import { readSecureSession, removeSecureSession, writeSecureSession } from './secureSession';
 
 const RANKING_OUTBOX_KEY = 'atlas-flags-ranking-outbox-v1';
@@ -221,7 +222,10 @@ export const flushPendingRanking = async (session: RankingSession, onlyAttemptId
   let completed = false;
   const retained: PendingRankingAttempt[] = [];
   for (const item of items) {
-    if (isExpiredAttempt(item)) continue;
+    if (isExpiredAttempt(item)) {
+      if (item.complete) recordDiagnostic({ type: 'ranking_publish_failed', code: 'expired', reason: 'ttl' });
+      continue;
+    }
     if (item.username !== session.username || (onlyAttemptId && item.attemptId !== onlyAttemptId)) { retained.push(item); continue; }
     try {
       for (const event of [...item.events].sort((a, b) => a.sequence - b.sequence)) {
@@ -233,6 +237,11 @@ export const flushPendingRanking = async (session: RankingSession, onlyAttemptId
         completed = true;
       } else retained.push(item);
     } catch (error) {
+      recordDiagnostic({
+        type: 'ranking_publish_failed',
+        code: error instanceof ApiError && typeof error.status === 'number' ? String(error.status) : 'network',
+        reason: error instanceof Error ? error.message : 'unavailable',
+      });
       if (error instanceof ApiError && error.status === 401) throw error;
       retained.push(item);
     }
