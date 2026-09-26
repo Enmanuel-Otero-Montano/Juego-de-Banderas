@@ -100,8 +100,8 @@ El icono de Play Store y Android parte del logo web (`assets/images/logo-app-ban
 ## Conexión de rankings
 
 El modo Viaje puede jugarse sin cuenta y conserva el progreso en el dispositivo.
-Para publicar etapas, el usuario crea una cuenta con alias, correo y contraseña;
-el nombre real y la foto no son requeridos. Las etapas publicadas se recalculan
+Para publicar etapas, el usuario crea una cuenta con alias, correo y contraseña.
+Las etapas publicadas se recalculan
 en el servidor y se consultan por dificultad, país o región.
 
 Para Android de producción, define `VITE_API_URL` con una URL HTTPS pública

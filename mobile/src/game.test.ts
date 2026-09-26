@@ -85,8 +85,8 @@ describe('progreso', () => {
   it('no desbloquea una etapa con respuestas pendientes', () => {
     const config: GameConfig = { ...dailyConfig, mode: 'career', stageId: 1, seed: undefined, questionCount: 10 };
     const result = completeSession({ ...initialProfile }, config, records, '2026-09-11');
-    expect(result.profile.unlockedStage).toBe(1);
-    expect(result.profile.completedStages).not.toContain(1);
+    expect(result.profile.journeyProgress.normal.unlockedStage).toBe(1);
+    expect(result.profile.journeyProgress.normal.completedStages).not.toContain(1);
     expect(result.reward.newStageUnlocked).toBe(false);
     expect(result.profile.journeyHistory[0]).toMatchObject({ accuracy: 80, passed: false, stageId: 1 });
   });
@@ -95,10 +95,40 @@ describe('progreso', () => {
     const config: GameConfig = { ...dailyConfig, mode: 'career', stageId: 1, seed: undefined, questionCount: 10 };
     const perfect = records.map((record) => ({ ...record, correct: true }));
     const result = completeSession({ ...initialProfile }, config, perfect, '2026-09-11');
-    expect(result.profile.unlockedStage).toBe(2);
-    expect(result.profile.completedStages).toContain(1);
+    expect(result.profile.journeyProgress.normal.unlockedStage).toBe(2);
+    expect(result.profile.journeyProgress.normal.completedStages).toContain(1);
     expect(result.reward.newStageUnlocked).toBe(true);
     expect(result.profile.journeyHistory[0]).toMatchObject({ accuracy: 100, passed: true, stageId: 1 });
+  });
+
+  it('guarda el avance de cada dificultad por separado', () => {
+    const perfect = records.map((record) => ({ ...record, correct: true }));
+    const easy = completeSession(
+      { ...initialProfile },
+      { ...dailyConfig, mode: 'career', stageId: 1, difficulty: 'easy', seed: undefined, questionCount: 8 },
+      perfect.slice(0, 8),
+      '2026-09-11',
+    );
+    expect(easy.profile.journeyProgress.easy).toEqual({ unlockedStage: 2, completedStages: [1] });
+    expect(easy.profile.journeyProgress.hard.unlockedStage).toBe(1);
+
+    const skipped = completeSession(
+      easy.profile,
+      { ...dailyConfig, mode: 'career', stageId: 2, difficulty: 'hard', seed: undefined, questionCount: 10 },
+      perfect,
+      '2026-09-11',
+    );
+    expect(skipped.profile.journeyProgress.hard).toEqual({ unlockedStage: 1, completedStages: [] });
+    expect(skipped.profile.journeyProgress.easy.completedStages).toEqual([1]);
+
+    const hardStart = completeSession(
+      skipped.profile,
+      { ...dailyConfig, mode: 'career', stageId: 1, difficulty: 'hard', seed: undefined, questionCount: 10 },
+      perfect,
+      '2026-09-11',
+    );
+    expect(hardStart.profile.journeyProgress.hard).toEqual({ unlockedStage: 2, completedStages: [1] });
+    expect(hardStart.profile.journeyProgress.easy).toEqual({ unlockedStage: 2, completedStages: [1] });
   });
 
   it('restablece los corazones al fallar una etapa de viaje', () => {
@@ -106,7 +136,7 @@ describe('progreso', () => {
     const failed = records.map((record, index) => ({ ...record, correct: index < 2 }));
     const result = completeSession({ ...initialProfile, campaignHearts: 0 }, config, failed, '2026-09-11');
     expect(result.profile.campaignHearts).toBe(15);
-    expect(result.profile.unlockedStage).toBe(1);
+    expect(result.profile.journeyProgress.normal.unlockedStage).toBe(1);
   });
 
   it('no permite repetir la recompensa diaria', () => {
@@ -119,15 +149,28 @@ describe('progreso', () => {
   it('abre la expedición global al superar la etapa 12', () => {
     const config: GameConfig = { ...dailyConfig, mode: 'career', stageId: 12, seed: undefined, questionCount: 10 };
     const perfect = records.map((record) => ({ ...record, correct: true }));
-    const result = completeSession({ ...initialProfile, unlockedStage: 12 }, config, perfect, '2026-09-11');
-    expect(result.profile.unlockedStage).toBe(13);
-    expect(result.profile.completedStages).toContain(12);
+    const result = completeSession({
+      ...initialProfile,
+      journeyProgress: {
+        ...initialProfile.journeyProgress,
+        normal: { unlockedStage: 12, completedStages: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] },
+      },
+    }, config, perfect, '2026-09-11');
+    expect(result.profile.journeyProgress.normal.unlockedStage).toBe(13);
+    expect(result.profile.journeyProgress.normal.completedStages).toContain(12);
     expect(result.reward.newStageUnlocked).toBe(true);
   });
 
   it('registra las banderas vistas en la expedición sin duplicarlas', () => {
     const config: GameConfig = { ...dailyConfig, mode: 'career', stageId: 13, seed: undefined, questionCount: 10 };
-    const result = completeSession({ ...initialProfile, unlockedStage: 13, expeditionSeen: [records[0].countryCode] }, config, records, '2026-09-11');
+    const result = completeSession({
+      ...initialProfile,
+      journeyProgress: {
+        ...initialProfile.journeyProgress,
+        normal: { unlockedStage: 13, completedStages: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] },
+      },
+      expeditionSeen: [records[0].countryCode],
+    }, config, records, '2026-09-11');
     expect(result.profile.expeditionSeen).toHaveLength(10);
     expect(new Set(result.profile.expeditionSeen).size).toBe(10);
   });
@@ -160,7 +203,7 @@ describe('ruta personalizada', () => {
   });
 
   it('ofrece dos destinos de continentes diferentes en la primera bifurcación', () => {
-    const profile = { ...initialProfile, homeCountryCode: 'uy', journeyRoute: [1], unlockedStage: 2 };
+    const profile = { ...initialProfile, homeCountryCode: 'uy', journeyRoute: [1] };
     const choices = getNextRouteChoices(profile);
     expect(choices).toHaveLength(2);
     expect(choices[0].continent).not.toBe(choices[1].continent);
@@ -169,7 +212,7 @@ describe('ruta personalizada', () => {
 
   it('construye para cualquier origen una ruta con los 11 bloques regionales una sola vez', () => {
     for (const country of countries) {
-      let profile = { ...initialProfile, homeCountryCode: country.code, journeyRoute: [getHomeStageId(country)], unlockedStage: 2 };
+      let profile = { ...initialProfile, homeCountryCode: country.code, journeyRoute: [getHomeStageId(country)] };
       while (profile.journeyRoute.length < 11) {
         const choices = getNextRouteChoices(profile);
         profile = { ...profile, journeyRoute: [...profile.journeyRoute, ...choices.map((stage) => stage.id)] };

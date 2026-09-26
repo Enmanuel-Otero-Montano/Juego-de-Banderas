@@ -4,6 +4,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
 import { I18nProvider } from './i18n';
+import { monetization } from './services/monetization';
 import { initialProfile } from './storage';
 
 const apiMocks = vi.hoisted(() => ({
@@ -144,5 +145,109 @@ describe('App', () => {
 
     expect(apiMocks.clearRankingSession).toHaveBeenCalledTimes(1);
     expect(container.textContent).toContain('Tu sesión de clasificación venció. Inicia sesión de nuevo para publicar resultados.');
+  });
+
+  it('reinicia la partida local y conserva país, preferencias y compra', async () => {
+    localStorage.setItem('atlas-flags-profile-v1', JSON.stringify({
+      ...initialProfile,
+      homeCountryCode: 'uy',
+      xp: 400,
+      coins: 40,
+      streak: 4,
+      isPremium: true,
+      soundEnabled: false,
+      hapticsEnabled: false,
+      displayName: 'Capitán',
+      rankedProfileReady: true,
+      masteredCountries: { uy: 3 },
+      journeyProgress: {
+        easy: { unlockedStage: 1, completedStages: [] },
+        normal: { unlockedStage: 3, completedStages: [1, 2] },
+        hard: { unlockedStage: 1, completedStages: [] },
+      },
+    }));
+    localStorage.setItem('atlas-premium-hints-2026-09-25', '2');
+    vi.mocked(monetization.initialize).mockResolvedValueOnce(true);
+
+    await act(async () => {
+      root.render(<I18nProvider><App /></I18nProvider>);
+    });
+    await act(async () => {
+      await vi.mocked(monetization.initialize).mock.results.at(-1)?.value;
+    });
+    await act(async () => {
+      (container.querySelector('button[aria-label="Ajustes"]') as HTMLButtonElement).click();
+    });
+    await act(async () => buttonWithText(container, 'Empezar de cero').click());
+
+    const dialog = container.querySelector('.app-dialog') as HTMLElement;
+    expect(dialog.textContent).toContain('Se borra la partida de este dispositivo');
+    expect(dialog.textContent).toContain('Etapas de Viaje');
+    expect(dialog.textContent).toContain('Pasaporte Pro');
+
+    await act(async () => buttonWithText(dialog, 'Empezar de cero').click());
+
+    const saved = JSON.parse(localStorage.getItem('atlas-flags-profile-v1') || '{}') as {
+      xp: number;
+      coins: number;
+      streak: number;
+      homeCountryCode: string;
+      isPremium: boolean;
+      soundEnabled: boolean;
+      hapticsEnabled: boolean;
+      displayName: string;
+      rankedProfileReady: boolean;
+      masteredCountries: Record<string, number>;
+      journeyProgress: { normal: { completedStages: number[] } };
+    };
+    expect(saved.xp).toBe(0);
+    expect(saved.coins).toBe(initialProfile.coins);
+    expect(saved.streak).toBe(0);
+    expect(saved.homeCountryCode).toBe('uy');
+    expect(saved.isPremium).toBe(true);
+    expect(saved.soundEnabled).toBe(false);
+    expect(saved.hapticsEnabled).toBe(false);
+    expect(saved.displayName).toBe('Capitán');
+    expect(saved.rankedProfileReady).toBe(true);
+    expect(saved.masteredCountries).toEqual({});
+    expect(saved.journeyProgress.normal.completedStages).toEqual([]);
+    expect(localStorage.getItem('atlas-premium-hints-2026-09-25')).toBeNull();
+    expect(localStorage.getItem('atlas-flags-language-v1')).toBe('es');
+    expect(container.textContent).toContain('La partida de este dispositivo volvió a empezar');
+  });
+
+  it('al repetir una región perdida empieza una partida nueva', async () => {
+    const answerWrong = () => {
+      const flagAlt = container.querySelector('.question-flag img')?.getAttribute('alt') || '';
+      const word = container.querySelector('.question-word')?.textContent || '';
+      const answerName = flagAlt.replace(/^Bandera de /, '') || word;
+      const option = [...container.querySelectorAll<HTMLButtonElement>('.answer-option')].find((button) => {
+        const label = `${button.textContent || ''} ${button.querySelector('img')?.getAttribute('alt') || ''}`;
+        return Boolean(answerName) && !label.includes(answerName);
+      });
+      if (!option) throw new Error('No se encontró una respuesta incorrecta');
+      option.click();
+    };
+
+    await act(async () => {
+      root.render(<I18nProvider><App /></I18nProvider>);
+    });
+    await act(async () => buttonWithText(container, 'Por regiones').click());
+    await act(async () => buttonWithText(container, 'Oceanía').click());
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await act(async () => answerWrong());
+      if (attempt < 2) await act(async () => buttonWithText(container, 'Continuar').click());
+    }
+    expect(container.querySelector('.lives')?.getAttribute('aria-label')).toBe('0 vidas');
+    await act(async () => buttonWithText(container, 'Ver resultado').click());
+    expect(container.textContent).toContain('Repetir');
+
+    await act(async () => buttonWithText(container, 'Repetir').click());
+
+    expect(container.textContent).toContain('1 de 10');
+    expect(container.querySelector('.lives')?.getAttribute('aria-label')).toBe('3 vidas');
+    expect(container.querySelector('.feedback-card')).toBeNull();
+    expect(container.textContent).not.toContain('Ver resultado');
   });
 });

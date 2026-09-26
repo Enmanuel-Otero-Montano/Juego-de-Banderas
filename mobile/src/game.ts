@@ -1,4 +1,4 @@
-import type { AnswerRecord, Country, GameConfig, PlayerProfile, Question, QuestionKind, SessionReward } from './types';
+import type { AnswerRecord, Country, Difficulty, GameConfig, PlayerProfile, Question, QuestionKind, SessionReward } from './types';
 import { calculateScore } from './rules';
 import { initialProfile, MAX_CAMPAIGN_HEARTS } from './storage';
 
@@ -98,17 +98,19 @@ export const completeSession = (
 
   const gap = profile.lastPlayedDate ? daysBetween(profile.lastPlayedDate, today) : 0;
   const streak = profile.lastPlayedDate === today ? profile.streak : gap === 1 ? profile.streak + 1 : 1;
-  const completedStages = [...profile.completedStages];
-  let unlockedStage = profile.unlockedStage;
+  const difficulty: Difficulty = config.difficulty === 'easy' || config.difficulty === 'hard' ? config.difficulty : 'normal';
+  const currentProgress = profile.journeyProgress[difficulty];
+  const completedStages = [...currentProgress.completedStages];
+  let unlockedStage = currentProgress.unlockedStage;
   let newStageUnlocked = false;
   let expeditionSeen = [...(profile.expeditionSeen || [])];
 
-  if (config.mode === 'career' && config.stageId === 13) {
+  if (config.mode === 'career' && config.stageId === 13 && unlockedStage >= 13) {
     expeditionSeen = [...new Set([...expeditionSeen, ...answers.map((answer) => answer.countryCode)])];
     if (accuracy === 1 && !completedStages.includes(13)) completedStages.push(13);
-  } else if (config.mode === 'career' && config.stageId && accuracy === 1) {
+  } else if (config.mode === 'career' && config.stageId && config.stageId === unlockedStage && accuracy === 1) {
     if (!completedStages.includes(config.stageId)) completedStages.push(config.stageId);
-    if (config.stageId === unlockedStage && unlockedStage < 13) {
+    if (unlockedStage < 13) {
       unlockedStage += 1;
       newStageUnlocked = true;
     }
@@ -151,8 +153,9 @@ export const completeSession = (
       sessionsCompleted: profile.sessionsCompleted + 1,
       correctAnswers: profile.correctAnswers + correct,
       totalAnswers: profile.totalAnswers + answers.length,
-      unlockedStage,
-      completedStages,
+      journeyProgress: config.mode === 'career'
+        ? { ...profile.journeyProgress, [difficulty]: { unlockedStage, completedStages } }
+        : profile.journeyProgress,
       expeditionSeen,
       masteredCountries,
       dailyResults,

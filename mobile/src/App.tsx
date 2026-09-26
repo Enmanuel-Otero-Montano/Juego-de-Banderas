@@ -44,7 +44,7 @@ import { languageOptions, useI18n } from './i18n';
 import { leaderboardContextTitle, leaderboardEntryShowsCountry, type LeaderboardScope } from './leaderboard';
 import { monetization } from './services/monetization';
 import { chooseDifficultyCountries, difficultyRules } from './rules';
-import { initialProfile, loadProfile, saveProfile } from './storage';
+import { clearDailyHintCounters, clearedRouteStageCount, emptyJourneyProgress, initialProfile, loadProfile, resetLocalProgress, saveProfile } from './storage';
 import {
   ApiError,
   beginCareerAttempt,
@@ -82,6 +82,7 @@ import { Haptics, NotificationType } from '@capacitor/haptics';
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import brandMark from '../assets/icon-only.png';
+import welcomeGlobe from '../assets/welcome-globe.png';
 
 type Screen = 'home' | 'regions' | 'career' | 'origin' | 'onboarding' | 'progress' | 'store' | 'settings' | 'privacy' | 'leaderboard' | 'account' | 'game';
 type RankingStatus = 'publishing' | 'personal-best' | 'recorded' | 'incomplete' | 'offline' | 'unranked' | 'pending' | 'error';
@@ -185,7 +186,7 @@ function HomeScreen({ profile, today, startGame, setScreen }: {
         <div className="daily-card__flag"><span className="mystery-flag" aria-hidden="true" /><span>?</span></div>
       </button>
 
-      <div className="section-title-row"><div><p className="eyebrow">{t('home.chooseRoute')}</p><h2>{t('home.gameModes')}</h2></div></div>
+      <div className="section-title-row"><h2>{t('home.gameModes')}</h2></div>
 
       <div className="mode-grid">
         <button className="mode-card mode-card--career" onClick={() => setScreen('career')}>
@@ -207,7 +208,7 @@ function HomeScreen({ profile, today, startGame, setScreen }: {
 
       <section className="progress-strip">
         <div><Award /><span><strong>{Object.values(profile.masteredCountries).filter((value) => value >= 3).length}</strong><small>{t('home.mastered')}</small></span></div>
-        <div><Trophy /><span><strong>{profile.completedStages.filter((stage) => stage <= 12).length}/12</strong><small>{t('home.stages')}</small></span></div>
+        <div><Trophy /><span><strong>{clearedRouteStageCount(profile)}/12</strong><small>{t('home.stages')}</small></span></div>
         <div><Star /><span><strong>{profile.totalAnswers ? Math.round((profile.correctAnswers / profile.totalAnswers) * 100) : 0}%</strong><small>{t('home.accuracy')}</small></span></div>
       </section>
     </main>
@@ -294,21 +295,23 @@ function OriginPickerScreen({ currentCode, onBack, onSelect, required = false }:
   );
 }
 
-function CareerScreen({ profile, startGame, onChooseOrigin, onChooseRoute, onLeaderboard }: {
+function CareerScreen({ profile, startGame, onChooseOrigin, onChooseRoute, onLeaderboard, onDifficultyChange }: {
   profile: PlayerProfile;
   startGame: (config: GameConfig) => void;
   onChooseOrigin: () => void;
   onChooseRoute: (chosenId: number, otherId: number) => void;
   onLeaderboard: () => void;
+  onDifficultyChange: (difficulty: Difficulty) => void;
 }) {
   const { t, language, locale } = useI18n();
-  const [difficulty, setDifficulty] = useState<Difficulty>('normal');
   const [showScoringHelp, setShowScoringHelp] = useState(false);
+  const difficulty = profile.selectedJourneyDifficulty;
+  const progress = profile.journeyProgress[difficulty];
   const rule = difficultyRules[difficulty];
   const homeCountry = countries.find((country) => country.code === profile.homeCountryCode);
   const route = getJourneyRoute(profile);
   const routeWithFinal = route.length === 11 ? [...route, 12] : route;
-  const nextChoices = homeCountry && route.length < 11 && profile.unlockedStage > route.length ? getNextRouteChoices(profile) : [];
+  const nextChoices = homeCountry && route.length < 11 && progress.unlockedStage > route.length ? getNextRouteChoices(profile) : [];
   const expeditionCountries = getJourneyExpeditionCountries(profile);
 
   if (!homeCountry) {
@@ -327,15 +330,15 @@ function CareerScreen({ profile, startGame, onChooseOrigin, onChooseRoute, onLea
     <main className="screen career-screen">
       <div className="journey-hero"><p className="eyebrow">{t('career.from', { country: getCountryName(homeCountry, language).toLocaleUpperCase(locale) })}</p><h1>{t('career.routeTitle')}</h1><p>{t('career.routeSubtitle')}</p><div className="journey-hero-links"><button className="text-button journey-ranking-link" onClick={onLeaderboard}><Trophy /> {t('career.ranking')}</button><button className="text-button journey-ranking-link" onClick={() => setShowScoringHelp(true)}><CircleHelp /> {t('scoring.open')}</button></div></div>
       {showScoringHelp && <ScoringHelpModal onClose={() => setShowScoringHelp(false)} />}
-      <DifficultySelector value={difficulty} onChange={setDifficulty} />
+      <DifficultySelector value={difficulty} onChange={onDifficultyChange} />
       <div className="journey-path">
         {routeWithFinal.map((baseStageId, index) => {
           const stage = getJourneyStage(baseStageId);
           if (!stage) return null;
           const stageText = getJourneyStageText(stage, language);
           const stageNumber = index + 1;
-          const locked = stageNumber > profile.unlockedStage;
-          const completed = profile.completedStages.includes(stageNumber);
+          const locked = stageNumber > progress.unlockedStage;
+          const completed = progress.completedStages.includes(stageNumber);
           const isHome = stageNumber === 1;
           return (
             <button
@@ -375,8 +378,8 @@ function CareerScreen({ profile, startGame, onChooseOrigin, onChooseRoute, onLea
         )}
         {route.length < 11 && !nextChoices.length && <div className="route-checkpoint"><Lock /><span><strong>{t('career.unlockTitle')}</strong><small>{t('career.unlockDetail')}</small></span></div>}
         <button
-          className={`stage-card stage-card--expedition ${profile.unlockedStage < 13 ? 'stage-card--locked' : ''}`}
-          disabled={profile.unlockedStage < 13}
+          className={`stage-card stage-card--expedition ${progress.unlockedStage < 13 ? 'stage-card--locked' : ''}`}
+          disabled={progress.unlockedStage < 13}
           onClick={() => startGame({
             mode: 'career',
             title: t('career.expeditionTitle'),
@@ -387,9 +390,9 @@ function CareerScreen({ profile, startGame, onChooseOrigin, onChooseRoute, onLea
             stageId: 13,
           })}
         >
-          <span className="stage-card__number">{profile.unlockedStage < 13 ? <Lock size={17} /> : <Globe2 size={19} />}</span>
+          <span className="stage-card__number">{progress.unlockedStage < 13 ? <Lock size={17} /> : <Globe2 size={19} />}</span>
           <span className="stage-card__copy"><small>{t('career.completeCollection')}</small><strong>{t('career.expeditionTitle')}</strong><em>{t('career.flagsFound', { seen: Math.min(profile.expeditionSeen.length, expeditionCountries.length), total: expeditionCountries.length })}</em></span>
-          {profile.unlockedStage >= 13 && <ChevronRight />}
+          {progress.unlockedStage >= 13 && <ChevronRight />}
         </button>
       </div>
     </main>
@@ -1071,7 +1074,7 @@ function JourneyEvolution({ profile, session }: { profile: PlayerProfile; sessio
 
   return (
     <section className="content-card evolution-card">
-      <div className="section-title-row"><div><p className="eyebrow">{t('progress.evolutionEyebrow')}</p><h2>{t('progress.evolution')}</h2></div><span>{t(metric === 'score' ? 'progress.score' : 'progress.accuracy')}</span></div>
+      <div className="section-title-row"><div><p className="eyebrow">{t('progress.evolutionEyebrow')}</p><h2>{t('progress.evolution')}</h2></div></div>
       <DifficultySelector value={difficulty} onChange={(next) => { setDifficulty(next); setSelectedId(null); }} />
       <div className="metric-selector">
         <button className={metric === 'score' ? 'active' : ''} onClick={() => setMetric('score')}>{t('progress.score')}</button>
@@ -1126,7 +1129,7 @@ function ProgressScreen({ profile, session, onOpenAccount, onOpenJourney }: { pr
         <div><Flame /><strong>{profile.streak}</strong><span>{t('progress.streak')}</span></div>
         <div><Star /><strong>{accuracy}%</strong><span>{t('progress.accuracy')}</span></div>
         <div><FlagIcon /><strong>{mastered.length}</strong><span>{t('progress.mastered')}</span></div>
-        <div><Trophy /><strong>{profile.completedStages.length}</strong><span>{t('progress.stages')}</span></div>
+        <div><Trophy /><strong>{clearedRouteStageCount(profile)}</strong><span>{t('progress.stages')}</span></div>
       </div>
       <JourneyEvolution profile={profile} session={session} />
       <section className="content-card">
@@ -1183,7 +1186,7 @@ function StoreScreen({ profile, setProfile, onBack }: { profile: PlayerProfile; 
   );
 }
 
-function SettingsScreen({ profile, session, adPrivacyOptionsRequired, setProfile, onBack, onPrivacy, onAdPrivacy, onOrigin, onAccount, onAliasChange, onSignOut, onDeleteAccount }: { profile: PlayerProfile; session: RankingSession | null; adPrivacyOptionsRequired: boolean; setProfile: (profile: PlayerProfile) => void; onBack: () => void; onPrivacy: () => void; onAdPrivacy: () => void; onOrigin: () => void; onAccount: () => void; onAliasChange: (alias: string | null) => void; onSignOut: () => void; onDeleteAccount: () => void }) {
+function SettingsScreen({ profile, session, adPrivacyOptionsRequired, setProfile, onBack, onPrivacy, onAdPrivacy, onOrigin, onAccount, onAliasChange, onSignOut, onResetProgress, onDeleteAccount }: { profile: PlayerProfile; session: RankingSession | null; adPrivacyOptionsRequired: boolean; setProfile: (profile: PlayerProfile) => void; onBack: () => void; onPrivacy: () => void; onAdPrivacy: () => void; onOrigin: () => void; onAccount: () => void; onAliasChange: (alias: string | null) => void; onSignOut: () => void; onResetProgress: () => void; onDeleteAccount: () => void }) {
   const { t, language, setLanguage } = useI18n();
   const homeCountry = countries.find((country) => country.code === profile.homeCountryCode);
   const [aliasEditorOpen, setAliasEditorOpen] = useState(false);
@@ -1211,6 +1214,7 @@ function SettingsScreen({ profile, session, adPrivacyOptionsRequired, setProfile
         <button onClick={session ? onSignOut : onAccount}><span><ShieldCheck /><span className="setting-copy"><strong>{session ? t('settings.rankingSession') : t('settings.rankingAccount')}</strong><small>{session ? t('settings.connectedAs', { username: session.username }) : t('settings.createAccount')}</small></span></span><ChevronRight /></button>
         <button onClick={onPrivacy}><span><ShieldCheck /><strong>{t('settings.privacy')}</strong></span><ChevronRight /></button>
         {!profile.isPremium && adPrivacyOptionsRequired && <button onClick={onAdPrivacy}><span><ShieldCheck /><span className="setting-copy"><strong>{t('settings.adOptions')}</strong><small>{t('settings.adOptionsDetail')}</small></span></span><ChevronRight /></button>}
+        <button className="danger-setting" onClick={onResetProgress}><span><RotateCcw /><span className="setting-copy"><strong>{t('settings.resetProgress')}</strong><small>{t('settings.resetProgressDetail')}</small></span></span><ChevronRight /></button>
         {session && <button className="danger-setting" onClick={onDeleteAccount}><span><Trash2 /><span className="setting-copy"><strong>{t('settings.deleteAccount')}</strong><small>{t('settings.deleteDetail')}</small></span></span><ChevronRight /></button>}
       </section>
       <section className="content-card about-card"><BrandMark /><h2>{t('app.name')}</h2><p>{t('settings.version')}</p><small>{t('settings.tagline')}</small></section>
@@ -1288,7 +1292,7 @@ function WelcomeModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="modal-backdrop welcome-backdrop">
       <section className="welcome-modal" role="dialog" aria-modal="true">
-        <div className="welcome-art"><span>🌍</span><i>✦</i><b>✦</b></div>
+        <div className="welcome-art"><img src={welcomeGlobe} alt="" /><i>✦</i><b>✦</b></div>
         <p className="eyebrow">{t('welcome.eyebrow')}</p><h2>{t('welcome.title')}</h2><p>{t('welcome.detail')}</p>
         <div className="welcome-features"><span><Zap />{t('welcome.quick')}</span><span><Map />{t('welcome.stages')}</span><span><Award />{t('welcome.local')}</span></div>
         <button className="primary-button" onClick={onClose}>{t('welcome.start')} <ChevronRight /></button>
@@ -1297,9 +1301,16 @@ function WelcomeModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+type AppDialogSection = {
+  title: string;
+  body: string;
+  tone?: 'danger';
+};
+
 type AppDialogConfig = {
   title: string;
   message: string;
+  sections?: AppDialogSection[];
   confirmLabel: string;
   cancelLabel?: string;
   danger?: boolean;
@@ -1312,6 +1323,12 @@ function AppDialog({ dialog, onClose }: { dialog: AppDialogConfig; onClose: () =
       <section className="app-dialog" role="alertdialog" aria-modal="true" aria-labelledby="app-dialog-title" aria-describedby="app-dialog-message" onClick={(event) => event.stopPropagation()}>
         <h2 id="app-dialog-title">{dialog.title}</h2>
         <p id="app-dialog-message">{dialog.message}</p>
+        {dialog.sections?.map((section) => (
+          <div key={section.title} className={section.tone === 'danger' ? 'app-dialog-section app-dialog-section--danger' : 'app-dialog-section'}>
+            <strong>{section.title}</strong>
+            <p>{section.body}</p>
+          </div>
+        ))}
         <div className="modal-actions">
           <button
             className={dialog.danger ? 'primary-button primary-button--danger' : 'primary-button'}
@@ -1337,6 +1354,7 @@ export default function App() {
   const [rankingSession, setRankingSession] = useState<RankingSession | null>(null);
   const [screen, setScreen] = useState<Screen>(() => loadProfile().homeCountryCode ? 'home' : 'onboarding');
   const [gameConfig, setGameConfig] = useState<GameConfig | null>(null);
+  const [gameSession, setGameSession] = useState(0);
   const [result, setResult] = useState<GameResult | null>(null);
   const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem('atlas-flags-welcomed'));
   const [originReturn, setOriginReturn] = useState<'career' | 'settings' | 'home'>('home');
@@ -1509,6 +1527,7 @@ export default function App() {
           notice(t('leaderboard.title'), 'No se pudo conectar con la clasificación. Esta partida continuará como progreso local.');
         }
       }
+      setGameSession((current) => current + 1);
       setGameConfig(nextConfig);
       setResult(null);
       setScreen('game');
@@ -1521,8 +1540,7 @@ export default function App() {
       ...profile,
       homeCountryCode: country.code,
       journeyRoute: [getHomeStageId(country)],
-      unlockedStage: 1,
-      completedStages: [],
+      journeyProgress: emptyJourneyProgress(),
       expeditionSeen: [],
     };
     if (rankingSession) {
@@ -1616,6 +1634,26 @@ export default function App() {
     });
     setProfile({ ...profile, rankedProfileReady: false });
   };
+  const resetProgress = () => {
+    setAppDialog({
+      title: t('dialog.resetProgressTitle'),
+      message: t('dialog.resetProgress'),
+      sections: [
+        { title: t('dialog.resetErases'), body: t('dialog.resetErasesDetail'), tone: 'danger' },
+        { title: t('dialog.resetKeeps'), body: t('dialog.resetKeepsDetail') },
+      ],
+      confirmLabel: t('settings.resetProgress'),
+      cancelLabel: t('common.cancel'),
+      danger: true,
+      onConfirm: () => {
+        const nextProfile = resetLocalProgress(profile);
+        clearDailyHintCounters();
+        setProfileState(nextProfile);
+        if (saveProfile(nextProfile)) notice(t('dialog.resetProgressTitle'), t('dialog.resetProgressDone'));
+        else notice(t('storage.errorTitle'), t('storage.error'));
+      },
+    });
+  };
   const deleteAccount = () => {
     if (!rankingSession) return;
     setAppDialog({
@@ -1651,16 +1689,16 @@ export default function App() {
       {screen === 'onboarding' && <OriginPickerScreen currentCode={null} required onSelect={chooseOrigin} />}
       {screen === 'home' && <HomeScreen profile={profile} today={today} startGame={startGame} setScreen={setScreen} />}
       {screen === 'regions' && <RegionsScreen onBack={() => setScreen('home')} startGame={startGame} />}
-      {screen === 'career' && <CareerScreen profile={profile} startGame={startGame} onChooseOrigin={() => openOriginPicker('career')} onChooseRoute={chooseRoute} onLeaderboard={() => setScreen('leaderboard')} />}
+      {screen === 'career' && <CareerScreen profile={profile} startGame={startGame} onChooseOrigin={() => openOriginPicker('career')} onChooseRoute={chooseRoute} onLeaderboard={() => setScreen('leaderboard')} onDifficultyChange={(difficulty) => { if (difficulty !== profile.selectedJourneyDifficulty) setProfile({ ...profile, selectedJourneyDifficulty: difficulty }); }} />}
       {screen === 'origin' && <OriginPickerScreen currentCode={profile.homeCountryCode} onBack={() => setScreen(originReturn)} onSelect={chooseOrigin} />}
       {screen === 'progress' && <ProgressScreen profile={profile} session={rankingSession} onOpenAccount={() => setScreen('account')} onOpenJourney={() => setScreen('career')} />}
       {screen === 'store' && <StoreScreen profile={profile} setProfile={setProfile} onBack={() => setScreen('home')} />}
-      {screen === 'settings' && <SettingsScreen profile={profile} session={rankingSession} adPrivacyOptionsRequired={adPrivacyOptionsRequired} setProfile={setProfile} onBack={() => setScreen('home')} onPrivacy={() => setScreen('privacy')} onAdPrivacy={() => { void openAdPrivacy(); }} onOrigin={() => openOriginPicker('settings')} onAccount={() => setScreen('account')} onAliasChange={changeAlias} onSignOut={signOut} onDeleteAccount={() => { void deleteAccount(); }} />}
+      {screen === 'settings' && <SettingsScreen profile={profile} session={rankingSession} adPrivacyOptionsRequired={adPrivacyOptionsRequired} setProfile={setProfile} onBack={() => setScreen('home')} onPrivacy={() => setScreen('privacy')} onAdPrivacy={() => { void openAdPrivacy(); }} onOrigin={() => openOriginPicker('settings')} onAccount={() => setScreen('account')} onAliasChange={changeAlias} onSignOut={signOut} onResetProgress={resetProgress} onDeleteAccount={() => { void deleteAccount(); }} />}
       {screen === 'privacy' && <PrivacyScreen onBack={() => setScreen('settings')} />}
       {screen === 'leaderboard' && <LeaderboardScreen profile={profile} onBack={() => setScreen('home')} onAccount={() => setScreen('account')} />}
       {screen === 'account' && <AccountScreen profile={profile} onBack={() => setScreen('settings')} onConnected={connectRanking} />}
       {screen === 'game' && gameConfig && (
-        <div className={result ? 'game-under-result' : undefined} aria-hidden={Boolean(result)}>
+        <div key={gameSession} className={result ? 'game-under-result' : undefined} aria-hidden={Boolean(result)}>
           {gameConfig.mode === 'career'
             ? <JourneyGameScreen config={gameConfig} profile={profile} rankingSession={rankingSession} today={today} setProfile={setProfile} paused={Boolean(result)} onExit={() => { setGameConfig(null); setScreen('career'); }} onComplete={(reward, records, config) => { void completeCareer(reward, records, config); }} />
             : <GameScreen config={gameConfig} profile={profile} today={today} setProfile={setProfile} onExit={() => { setGameConfig(null); setScreen('home'); }} onComplete={(reward, records, config) => setResult({ reward, records, config })} />}

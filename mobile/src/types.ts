@@ -68,6 +68,13 @@ export interface JourneyHistoryEntry {
   passed: boolean;
 }
 
+export interface JourneyDifficultyProgress {
+  unlockedStage: number;
+  completedStages: number[];
+}
+
+export type JourneyProgress = Record<Difficulty, JourneyDifficultyProgress>;
+
 export interface PlayerProfile {
   schemaVersion: number;
   xp: number;
@@ -77,8 +84,10 @@ export interface PlayerProfile {
   sessionsCompleted: number;
   correctAnswers: number;
   totalAnswers: number;
-  unlockedStage: number;
-  completedStages: number[];
+  /** Avance independiente de Fácil, Normal y Difícil sobre la misma ruta. */
+  journeyProgress: JourneyProgress;
+  /** Dificultad visible en el mapa del viaje. */
+  selectedJourneyDifficulty: Difficulty;
   expeditionSeen: string[];
   homeCountryCode: string | null;
   journeyRoute: number[];
