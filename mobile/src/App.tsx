@@ -170,10 +170,11 @@ function HomeScreen({ profile, today, startGame, setScreen }: {
   startGame: (config: GameConfig) => void;
   setScreen: (screen: Screen) => void;
 }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const dailyDone = Boolean(profile.dailyResults[today]);
   const level = Math.floor(profile.xp / 250) + 1;
   const levelProgress = profile.xp % 250;
+  const homeCountry = getCountryByCode(profile.homeCountryCode);
 
   return (
     <main className="screen home-screen">
@@ -192,7 +193,11 @@ function HomeScreen({ profile, today, startGame, setScreen }: {
           <p>{t('home.dailyDetail')}</p>
           <span className="daily-card__action">{dailyDone ? t('home.practiceAgain') : t('home.playNow')} <ChevronRight size={17} /></span>
         </div>
-        <div className="daily-card__flag"><span className="mystery-flag" aria-hidden="true" /><span>?</span></div>
+        <div className="daily-card__flag">
+          {homeCountry
+            ? <Flag code={homeCountry.code} name={getCountryName(homeCountry, language)} size="large" />
+            : <><span className="mystery-flag" aria-hidden="true" /><span>?</span></>}
+        </div>
       </button>
 
       <div className="section-title-row"><h2>{t('home.gameModes')}</h2></div>

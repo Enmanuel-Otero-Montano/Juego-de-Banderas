@@ -113,6 +113,8 @@ describe('App', () => {
       root.render(<I18nProvider><App /></I18nProvider>);
     });
     expect(container.textContent).toContain('¿A dónde viajamos hoy?');
+    expect(container.querySelector('.daily-card__flag img')?.getAttribute('alt')).toContain('Uruguay');
+    expect(container.querySelector('.daily-card__flag .mystery-flag')).toBeNull();
 
     await act(async () => {
       (container.querySelector('button[aria-label="Ajustes"]') as HTMLButtonElement).click();
