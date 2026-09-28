@@ -49,12 +49,12 @@ try {
       const page = await browser.newPage({ viewport: { width: size, height: size }, deviceScaleFactor: 1 });
       await page.setContent(`
         <style>
-          html,body{margin:0;width:${size}px;height:${size}px;overflow:hidden;background:transparent}
+          html,body{margin:0;width:${size}px;height:${size}px;overflow:hidden;background:#F5F7F2}
           img{display:block;width:100%;height:100%;object-fit:cover;border-radius:${radius}}
         </style>
         <img src="${icon}" alt="">
       `, { waitUntil: 'load' });
-      await page.screenshot({ path: path.join(directory, file), omitBackground: true });
+      await page.screenshot({ path: path.join(directory, file), omitBackground: false });
       await page.close();
     }
   }

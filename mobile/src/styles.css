@@ -98,9 +98,8 @@ h1, h2, h3, strong { font-family: 'Manrope', 'DM Sans', sans-serif; }
   display: block;
   width: 38px;
   height: 38px;
-  object-fit: cover;
-  border-radius: 13px;
-  background: #00572d;
+  object-fit: contain;
+  background: transparent;
 }
 
 .topbar__stats { display: flex; align-items: center; gap: 8px; }
@@ -321,7 +320,7 @@ h1, h2, h3, strong { font-family: 'Manrope', 'DM Sans', sans-serif; }
 .route-checkpoint small { margin-top: 2px; font-size: 9px; line-height: 1.35; }
 .origin-screen { padding-bottom: 28px; }
 .onboarding-copy { margin: 10px 2px 24px; }
-.onboarding-copy .brand-mark { width: 72px; height: 72px; margin-bottom: 16px; border-radius: 22px; }
+.onboarding-copy .brand-mark { width: 72px; height: 72px; margin-bottom: 16px; }
 .onboarding-copy h1 { margin: 6px 0 10px; font-size: 28px; letter-spacing: -.04em; }
 .onboarding-copy > p:last-child { color: var(--muted); font-size: 13px; line-height: 1.5; }
 .country-search { position: sticky; z-index: 5; top: calc(64px + env(safe-area-inset-top)); display: flex; align-items: center; gap: 9px; height: 48px; padding: 0 13px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); box-shadow: 0 7px 18px rgba(20,62,51,.07); }
@@ -491,7 +490,7 @@ h1, h2, h3, strong { font-family: 'Manrope', 'DM Sans', sans-serif; }
 .result-secondary svg { width: 16px; }
 
 .profile-hero { padding: 12px 18px 22px; text-align: center; border-radius: 22px; background: linear-gradient(145deg, var(--profile-from), var(--profile-to)); }
-.profile-hero .brand-mark { width: 58px; height: 58px; margin: 0 auto 12px; border-radius: 19px; }
+.profile-hero .brand-mark { width: 58px; height: 58px; margin: 0 auto 12px; }
 .profile-hero h1 { margin: 4px 0 14px; font-size: 25px; }
 .xp-bar { height: 7px; overflow: hidden; border-radius: 999px; background: rgba(23,50,43,.12); }
 .xp-bar span { display: block; height: 100%; border-radius: inherit; background: var(--green); }
@@ -633,7 +632,7 @@ h1, h2, h3, strong { font-family: 'Manrope', 'DM Sans', sans-serif; }
 .toggle.active { background: var(--green); }
 .toggle.active::after { transform: translateX(17px); }
 .about-card { text-align: center; }
-.about-card .brand-mark { width: 56px; height: 56px; margin: 0 auto; border-radius: 18px; }
+.about-card .brand-mark { width: 56px; height: 56px; margin: 0 auto; }
 .about-card h2 { margin-top: 7px; font-size: 17px; }
 .about-card p { color: var(--muted); font-size: 11px; }
 .about-card small { display: block; margin-top: 12px; color: var(--muted); }

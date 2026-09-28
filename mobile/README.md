@@ -109,7 +109,7 @@ La monetización evita vender ventaja competitiva. Los anuncios recompensados so
 
 ## Marca
 
-El icono de Play Store y Android parte del logo web (`assets/images/logo-app-banderas-1260x1260-fondo-gris.png`): globo de continentes de colores con ¿ y ?, sobre fondo verde oscuro saturado y soporte gris. La fuente es `mobile/assets/icon-only.png`; `npm run android:icons` y `npm run store-assets` regeneran mipmaps y `play-assets/icon-512.png`.
+El icono de Play Store y Android parte del globo (`mobile/assets/icon-only.png`), sin fondo verde. Dentro de la app el logo es transparente. En el launcher y en Play Store el fondo es el claro de la app (`#F5F7F2`), porque el ícono adaptativo de Android necesita una capa de fondo. `npm run android:icons` y `npm run store-assets` regeneran mipmaps y `play-assets/icon-512.png`.
 ## Conexión de rankings
 
 El modo Viaje puede jugarse sin cuenta y conserva el progreso en el dispositivo.

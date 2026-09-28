@@ -60,11 +60,11 @@ try {
   if (assetLocale === 'es') {
     const iconPage = await browser.newPage({ viewport: { width: 512, height: 512 }, deviceScaleFactor: 1 });
     await iconPage.setContent(`
-      <style>*{box-sizing:border-box}html,body{margin:0;width:512px;height:512px;overflow:hidden;background:transparent}img{width:512px;height:512px;display:block}</style>
+      <style>*{box-sizing:border-box}html,body{margin:0;width:512px;height:512px;overflow:hidden;background:#F5F7F2}img{width:512px;height:512px;display:block}</style>
       <img src="${icon}" alt="">
     `, { waitUntil: 'load' });
     const iconPath = path.join(outputDir, 'icon-512.png');
-    await iconPage.screenshot({ path: iconPath, omitBackground: true });
+    await iconPage.screenshot({ path: iconPath, omitBackground: false });
     ensureRgbaPng(iconPath);
   }
 
