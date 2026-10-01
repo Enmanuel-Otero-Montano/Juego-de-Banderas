@@ -32,7 +32,8 @@ export type DiagnosticEvent =
   | { type: 'offering_missing' }
   | { type: 'purchase'; result: PurchaseResult }
   | { type: 'restore'; result: PurchaseResult }
-  | { type: 'ad_unavailable'; format: AdFormat };
+  | { type: 'ad_unavailable'; format: AdFormat }
+  | { type: 'ad_impression'; format: AdFormat; valueMicros: number; currencyCode: string };
 
 export interface DiagnosticRecord {
   at: number;
@@ -120,6 +121,16 @@ const closedEvent = (input: Record<string, unknown>): DiagnosticEvent | null => 
     case 'ad_unavailable': {
       const format = adFormat(input.format);
       return format ? { type: 'ad_unavailable', format } : null;
+    }
+    case 'ad_impression': {
+      const format = adFormat(input.format);
+      const valueMicros = typeof input.valueMicros === 'number' && Number.isFinite(input.valueMicros) && input.valueMicros >= 0
+        ? Math.round(input.valueMicros)
+        : 0;
+      const currencyCode = typeof input.currencyCode === 'string' && /^[A-Z]{3}$/.test(input.currencyCode)
+        ? input.currencyCode
+        : 'XXX';
+      return format ? { type: 'ad_impression', format, valueMicros, currencyCode } : null;
     }
     default:
       return null;

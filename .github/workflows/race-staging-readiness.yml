@@ -1,0 +1,52 @@
+name: Race staging readiness
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "mobile/android/**"
+      - "mobile/src/multiplayer/**"
+      - "mobile/src/App.tsx"
+      - "mobile/src/services/**"
+      - "mobile/scripts/validate-staging.mjs"
+      - "mobile/.env.staging.example"
+      - "mobile/package*.json"
+      - ".github/workflows/race-staging-readiness.yml"
+
+jobs:
+  android-staging:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK 36
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Install app dependencies
+        working-directory: mobile
+        run: npm ci
+      - name: Run mobile tests
+        working-directory: mobile
+        run: npm test
+      - name: Prepare non-routable CI staging configuration
+        working-directory: mobile
+        run: |
+          cp .env.staging.example .env.staging
+          sed -i 's#https://staging-api.replace-me.example#https://staging-atlasflags-ci.onrender.com#' .env.staging
+      - name: Build the isolated staging APK
+        working-directory: mobile
+        run: npm run android:staging
+      - uses: actions/upload-artifact@v4
+        with:
+          name: atlas-flags-staging-apk
+          path: mobile/android/app/build/outputs/apk/staging/app-staging.apk
+          if-no-files-found: error

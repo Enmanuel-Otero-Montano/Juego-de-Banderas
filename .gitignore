@@ -4,5 +4,6 @@ mobile/dist/
 mobile/.env
 mobile/.env.local
 mobile/.env.production
+mobile/.env.staging
 mobile/android/keystore.properties
 mobile/*.tsbuildinfo

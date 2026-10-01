@@ -6,6 +6,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(android.os.Bundle savedInstanceState) {
         registerPlugin(SecureSessionPlugin.class);
+        registerPlugin(InstallReferrerPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

@@ -107,6 +107,11 @@ La versión anterior mezclaba páginas independientes, autenticación obligatori
 
 La monetización evita vender ventaja competitiva. Los anuncios recompensados son opcionales y los intersticiales aparecen solo en una transición natural. Pasaporte Pro ofrece comodidad y apoyo al desarrollo, no respuestas ni puntuación extra.
 
+El primer multijugador en staging es **Carrera de Banderas**, una competición
+privada en tiempo real para 2–8 personas. La especificación está en
+[`docs/MODO_MULTIJUGADOR.md`](docs/MODO_MULTIJUGADOR.md) y el procedimiento para
+desplegarla y probarla sin tocar producción está en [`STAGING.md`](STAGING.md).
+
 ## Marca
 
 El icono de Play Store y Android parte del globo (`mobile/assets/icon-only.png`), sin fondo verde. Dentro de la app el logo es transparente. En el launcher y en Play Store el fondo es el claro de la app (`#F5F7F2`), porque el ícono adaptativo de Android necesita una capa de fondo. `npm run android:icons` y `npm run store-assets` regeneran mipmaps y `play-assets/icon-512.png`.

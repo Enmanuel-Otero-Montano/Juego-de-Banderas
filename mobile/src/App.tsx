@@ -32,6 +32,7 @@ import {
   Star,
   Trash2,
   Trophy,
+  Users,
   Volume2,
   VolumeX,
   X,
@@ -91,12 +92,16 @@ import { feedbackTone } from './feedback';
 import { shareResult, shareWasCanceled } from './shareResult';
 import brandMark from '../assets/icon-only.png';
 import welcomeGlobe from '../assets/welcome-globe.png';
+import { RaceMode } from './multiplayer/RaceMode';
+import { raceText } from './multiplayer/raceCopy';
+import { clearPendingRaceInvite, readPendingRaceInvite, savePendingRaceInvite } from './multiplayer/installReferrer';
 
-type Screen = 'home' | 'regions' | 'career' | 'origin' | 'onboarding' | 'progress' | 'store' | 'settings' | 'privacy' | 'leaderboard' | 'account' | 'game';
+type Screen = 'home' | 'regions' | 'career' | 'race' | 'origin' | 'onboarding' | 'progress' | 'store' | 'settings' | 'privacy' | 'leaderboard' | 'account' | 'game';
 type RankingStatus = 'publishing' | 'personal-best' | 'recorded' | 'incomplete' | 'offline' | 'unranked' | 'pending' | 'error';
 type GameResult = { reward: SessionReward; records: AnswerRecord[]; config: GameConfig; rankingStatus?: RankingStatus };
 
 const regions: RegionKey[] = ['Americas', 'Europe', 'Asia', 'Africa', 'Oceania'];
+const raceModeEnabled = import.meta.env.DEV || import.meta.env.VITE_RACE_MODE_ENABLED === 'true';
 const JOURNEY_FEEDBACK_MS = 750;
 const startingJourneyHearts = (hearts: number) => (hearts > 0 ? hearts : initialProfile.campaignHearts);
 
@@ -203,6 +208,11 @@ function HomeScreen({ profile, today, startGame, setScreen }: {
       <div className="section-title-row"><h2>{t('home.gameModes')}</h2></div>
 
       <div className="mode-grid">
+        {raceModeEnabled && <button className="mode-card mode-card--race" onClick={() => setScreen('race')}>
+          <span className="mode-card__icon mode-card__icon--race"><Users /></span>
+          <span><strong>{raceText(language, 'mode')}</strong><small>{raceText(language, 'detail')}</small></span>
+          <ChevronRight />
+        </button>}
         <button className="mode-card mode-card--career" onClick={() => setScreen('career')}>
           <span className="mode-card__icon"><Compass /></span>
           <span><strong>{t('home.journeyMode')}</strong><small>{t('home.journeyModeDetail')}</small></span>
@@ -1393,6 +1403,8 @@ function GameApp() {
   const [result, setResult] = useState<GameResult | null>(null);
   const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem('atlas-flags-welcomed'));
   const [originReturn, setOriginReturn] = useState<'career' | 'settings' | 'home'>('home');
+  const [accountReturn, setAccountReturn] = useState<'settings' | 'progress' | 'race'>('settings');
+  const [pendingRaceInvite, setPendingRaceInvite] = useState<string | null>(null);
   const [adPrivacyOptionsRequired, setAdPrivacyOptionsRequired] = useState(false);
   const [appDialog, setAppDialog] = useState<AppDialogConfig | null>(null);
   const startingGameRef = useRef(false);
@@ -1440,6 +1452,26 @@ function GameApp() {
       if (!cancelled) setRankingSession(session);
     });
     return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!raceModeEnabled) return;
+    const openInvite = (url: string) => {
+      try {
+        const match = new URL(url).pathname.match(/^\/race\/([A-Za-z0-9_-]{32,256})\/?$/);
+        if (!match) return;
+        savePendingRaceInvite(match[1]);
+        setPendingRaceInvite(match[1]);
+        setScreen('race');
+      } catch { /* Ignore unrelated or malformed links. */ }
+    };
+    if (!Capacitor.isNativePlatform()) return;
+    void readPendingRaceInvite().then((token) => {
+      if (token) { setPendingRaceInvite(token); setScreen('race'); }
+    });
+    void CapacitorApp.getLaunchUrl().then((result) => { if (result?.url) openInvite(result.url); });
+    const listener = CapacitorApp.addListener('appUrlOpen', ({ url }) => openInvite(url));
+    return () => { void listener.then((handle) => handle.remove()); };
   }, []);
 
   useEffect(() => {
@@ -1720,7 +1752,13 @@ function GameApp() {
     if (!opened) notice(t('settings.adOptions'), t('dialog.adUnavailable'));
   };
 
-  const regularScreen = screen !== 'game' && screen !== 'onboarding';
+  const completeRaceRound = (_roundId: string): number => {
+    const nextCount = profile.sessionsCompleted + 1;
+    setProfile({ ...profile, sessionsCompleted: nextCount });
+    return nextCount;
+  };
+
+  const regularScreen = screen !== 'game' && screen !== 'onboarding' && screen !== 'race';
   return (
     <div className="app-shell">
       {regularScreen && <TopBar profile={profile} onStore={() => setScreen('store')} onSettings={() => setScreen('settings')} onLeaderboard={() => setScreen('leaderboard')} />}
@@ -1728,13 +1766,16 @@ function GameApp() {
       {screen === 'home' && <HomeScreen profile={profile} today={today} startGame={startGame} setScreen={setScreen} />}
       {screen === 'regions' && <RegionsScreen onBack={() => setScreen('home')} startGame={startGame} />}
       {screen === 'career' && <CareerScreen profile={profile} startGame={startGame} onChooseOrigin={() => openOriginPicker('career')} onChooseRoute={chooseRoute} onLeaderboard={() => setScreen('leaderboard')} onDifficultyChange={(difficulty) => { if (difficulty !== profile.selectedJourneyDifficulty) setProfile({ ...profile, selectedJourneyDifficulty: difficulty }); }} />}
+      {screen === 'race' && <RaceMode session={rankingSession} isPremium={profile.isPremium} pendingInviteToken={pendingRaceInvite}
+        onConsumeInvite={() => { clearPendingRaceInvite(pendingRaceInvite); setPendingRaceInvite(null); }} onBack={() => setScreen('home')}
+        onAccount={() => { setAccountReturn('race'); setScreen('account'); }} onRoundCompleted={completeRaceRound} />}
       {screen === 'origin' && <OriginPickerScreen currentCode={profile.homeCountryCode} onBack={() => setScreen(originReturn)} onSelect={chooseOrigin} />}
-      {screen === 'progress' && <ProgressScreen profile={profile} session={rankingSession} onOpenAccount={() => setScreen('account')} onOpenJourney={() => setScreen('career')} />}
+      {screen === 'progress' && <ProgressScreen profile={profile} session={rankingSession} onOpenAccount={() => { setAccountReturn('progress'); setScreen('account'); }} onOpenJourney={() => setScreen('career')} />}
       {screen === 'store' && <StoreScreen profile={profile} setProfile={setProfile} onBack={() => setScreen('home')} />}
-      {screen === 'settings' && <SettingsScreen profile={profile} session={rankingSession} adPrivacyOptionsRequired={adPrivacyOptionsRequired} setProfile={setProfile} onBack={() => setScreen('home')} onPrivacy={() => setScreen('privacy')} onAdPrivacy={() => { void openAdPrivacy(); }} onOrigin={() => openOriginPicker('settings')} onAccount={() => setScreen('account')} onAliasChange={changeAlias} onSignOut={signOut} onResetProgress={resetProgress} onDeleteAccount={() => { void deleteAccount(); }} />}
+      {screen === 'settings' && <SettingsScreen profile={profile} session={rankingSession} adPrivacyOptionsRequired={adPrivacyOptionsRequired} setProfile={setProfile} onBack={() => setScreen('home')} onPrivacy={() => setScreen('privacy')} onAdPrivacy={() => { void openAdPrivacy(); }} onOrigin={() => openOriginPicker('settings')} onAccount={() => { setAccountReturn('settings'); setScreen('account'); }} onAliasChange={changeAlias} onSignOut={signOut} onResetProgress={resetProgress} onDeleteAccount={() => { void deleteAccount(); }} />}
       {screen === 'privacy' && <PrivacyScreen onBack={() => setScreen('settings')} />}
       {screen === 'leaderboard' && <LeaderboardScreen profile={profile} onBack={() => setScreen('home')} onAccount={() => setScreen('account')} />}
-      {screen === 'account' && <AccountScreen profile={profile} onBack={() => setScreen('settings')} onConnected={connectRanking} />}
+      {screen === 'account' && <AccountScreen profile={profile} onBack={() => setScreen(accountReturn)} onConnected={(session, alias) => { connectRanking(session, alias); setScreen(accountReturn); }} />}
       {screen === 'game' && gameConfig && (
         <div key={gameSession} className={result ? 'game-under-result' : undefined} aria-hidden={Boolean(result)}>
           {gameConfig.mode === 'career'

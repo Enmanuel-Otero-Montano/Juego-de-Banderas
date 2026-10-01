@@ -54,6 +54,10 @@ productionUrl('VITE_API_URL');
 productionUrl('PLAY_PRIVACY_POLICY_URL');
 productionUrl('PLAY_ACCOUNT_DELETION_URL');
 
+if (!['true', 'false'].includes(config.VITE_RACE_MODE_ENABLED || '')) {
+  errors.push('VITE_RACE_MODE_ENABLED: debe ser true o false de forma explícita');
+}
+
 if (!/^ca-app-pub-\d{16}~\d{10}$/.test(config.VITE_ADMOB_APP_ID || '')) {
   errors.push('VITE_ADMOB_APP_ID: formato inválido');
 }

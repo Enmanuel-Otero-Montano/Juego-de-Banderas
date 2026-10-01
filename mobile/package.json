@@ -16,6 +16,8 @@
     "check": "npm test && npm run build && npm run store-assets:check",
     "android:sync": "npm run build && cap sync android",
     "android:debug": "npm run android:sync && cd android && ./gradlew assembleDebug",
+    "staging:check": "node scripts/validate-staging.mjs",
+    "android:staging": "npm run staging:check && npm run build -- --mode staging && cap sync android && cd android && ./gradlew assembleStaging -PatlasEnvironment=staging",
     "release:check": "node scripts/validate-release.mjs",
     "android:bundle": "npm run release:check && npm run build -- --mode production && cap sync android && cd android && ./gradlew bundleRelease",
     "android:open": "cap open android",

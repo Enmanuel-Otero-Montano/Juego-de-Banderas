@@ -1,5 +1,5 @@
 import { Capacitor } from '@capacitor/core';
-import { AdMob, AdmobConsentStatus } from '@capacitor-community/admob';
+import { AdMob, AdmobConsentStatus, InterstitialAdPluginEvents } from '@capacitor-community/admob';
 import { Purchases, type PurchasesPackage } from '@revenuecat/purchases-capacitor';
 import { purchaseOutcome, recordDiagnostic } from './diagnostics';
 
@@ -13,6 +13,8 @@ const PREMIUM_GRACE_MS = 7 * 24 * 60 * 60 * 1000;
 let adsReady = false;
 let purchasesReady = false;
 let privacyOptionsRequired = false;
+let interstitialPrepared = false;
+let interstitialPreparation: Promise<boolean> | null = null;
 
 const activeEntitlement = (customerInfo: { entitlements: { active: Record<string, unknown> } }): boolean =>
   Boolean(customerInfo.entitlements.active[premiumEntitlement]);
@@ -161,20 +163,59 @@ export const monetization = {
   },
 
   async maybeShowInterstitial(sessionsCompleted: number, isPremium: boolean): Promise<void> {
-    if (!Capacitor.isNativePlatform() || !shouldShowInterstitial(sessionsCompleted, isPremium)) return;
-    if (!adsReady) {
+    await this.preloadInterstitial(sessionsCompleted, isPremium);
+    await this.showPreloadedInterstitial();
+  },
+
+  /** Precarga durante el resultado; nunca bloquea la navegación si falla. */
+  async preloadInterstitial(sessionsCompleted: number, isPremium: boolean): Promise<boolean> {
+    if (!Capacitor.isNativePlatform() || !shouldShowInterstitial(sessionsCompleted, isPremium) || !adsReady) return false;
+    if (interstitialPrepared) return true;
+    if (interstitialPreparation) return interstitialPreparation;
+    interstitialPreparation = AdMob.prepareInterstitial({
+      adId: import.meta.env.VITE_ADMOB_INTERSTITIAL_ID || TEST_INTERSTITIAL_ANDROID,
+      isTesting: !import.meta.env.VITE_ADMOB_INTERSTITIAL_ID,
+    }).then(() => {
+      interstitialPrepared = true;
+      return true;
+    }).catch((error) => {
       recordDiagnostic({ type: 'ad_unavailable', format: 'interstitial' });
-      return;
-    }
+      console.warn('Intersticial no disponible', error);
+      return false;
+    }).finally(() => { interstitialPreparation = null; });
+    return interstitialPreparation;
+  },
+
+  /** Muestra sólo una pieza ya lista y registra ingreso únicamente por AdImpression. */
+  async showPreloadedInterstitial(): Promise<boolean> {
+    if (!Capacitor.isNativePlatform() || !interstitialPrepared) return false;
+    interstitialPrepared = false;
+    let impressed = false;
+    let settle: () => void = () => undefined;
+    const settled = new Promise<void>((resolve) => { settle = resolve; });
+    const handles = await Promise.all([
+      AdMob.addListener(InterstitialAdPluginEvents.AdImpression, (data) => {
+        impressed = true;
+        recordDiagnostic({
+          type: 'ad_impression',
+          format: 'interstitial',
+          valueMicros: data.valueMicros,
+          currencyCode: data.currencyCode,
+        });
+      }),
+      AdMob.addListener(InterstitialAdPluginEvents.Dismissed, settle),
+      AdMob.addListener(InterstitialAdPluginEvents.FailedToShow, settle),
+    ]);
     try {
-      await AdMob.prepareInterstitial({
-        adId: import.meta.env.VITE_ADMOB_INTERSTITIAL_ID || TEST_INTERSTITIAL_ANDROID,
-        isTesting: !import.meta.env.VITE_ADMOB_INTERSTITIAL_ID,
-      });
       await AdMob.showInterstitial();
+      await Promise.race([settled, new Promise<void>((resolve) => window.setTimeout(resolve, 90_000))]);
+      return impressed;
     } catch (error) {
       recordDiagnostic({ type: 'ad_unavailable', format: 'interstitial' });
       console.warn('Intersticial no disponible', error);
+      return false;
+    } finally {
+      await Promise.all(handles.map((handle) => handle.remove()));
     }
   },
 

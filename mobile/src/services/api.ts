@@ -165,7 +165,7 @@ const refreshRankingSession = async (session: RankingSession): Promise<void> => 
   await refreshInFlight;
 };
 
-const authenticatedRequest = async <T>(session: RankingSession, path: string, init: RequestInit = {}): Promise<T> => {
+export const authenticatedRequest = async <T>(session: RankingSession, path: string, init: RequestInit = {}): Promise<T> => {
   try {
     return await request<T>(path, { ...init, headers: authorization(session) });
   } catch (error) {

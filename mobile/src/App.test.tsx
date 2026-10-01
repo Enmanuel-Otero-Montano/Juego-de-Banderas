@@ -16,6 +16,7 @@ const apiMocks = vi.hoisted(() => ({
 
 vi.mock('@capacitor/core', () => ({
   Capacitor: { isNativePlatform: () => false },
+  registerPlugin: vi.fn(() => ({ getPendingRaceInvite: vi.fn().mockResolvedValue({ token: null }) })),
 }));
 
 vi.mock('@capacitor/app', () => ({
@@ -43,6 +44,8 @@ vi.mock('./services/monetization', () => ({
     showPrivacyOptions: vi.fn().mockResolvedValue(false),
     showRewardedHint: vi.fn().mockResolvedValue(true),
     maybeShowInterstitial: vi.fn().mockResolvedValue(undefined),
+    preloadInterstitial: vi.fn().mockResolvedValue(false),
+    showPreloadedInterstitial: vi.fn().mockResolvedValue(false),
     getPremiumPackage: vi.fn().mockResolvedValue(null),
     buyPremium: vi.fn().mockResolvedValue(false),
     restorePremium: vi.fn().mockResolvedValue(false),
@@ -56,6 +59,7 @@ vi.mock('./services/api', () => {
   }
   return {
     ApiError,
+    authenticatedRequest: vi.fn(),
     beginCareerAttempt: vi.fn(),
     clearRankingSession: apiMocks.clearRankingSession,
     completePendingRankingAttempt: vi.fn(),
@@ -106,6 +110,18 @@ describe('App', () => {
   afterEach(async () => {
     await act(async () => root.unmount());
     container.remove();
+  });
+
+  it('abre Carrera de Banderas y pide una cuenta antes de crear o unirse', async () => {
+    await act(async () => {
+      root.render(<I18nProvider><App /></I18nProvider>);
+    });
+
+    await act(async () => buttonWithText(container, 'Carrera de Banderas').click());
+
+    expect(container.textContent).toContain('Necesitas una cuenta');
+    expect(container.textContent).toContain('Iniciar sesión o crear cuenta');
+    expect(container.textContent).not.toContain('Crear carrera');
   });
 
   it('allows a local player to request a password recovery link from settings', async () => {

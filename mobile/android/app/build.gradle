@@ -14,15 +14,22 @@ def readSimpleEnv = { File source ->
     return values
 }
 
-def releaseEnv = readSimpleEnv(rootProject.file('../.env.production'))
+def atlasEnvironment = providers.gradleProperty('atlasEnvironment').getOrElse('production')
+if (!(atlasEnvironment in ['production', 'staging'])) {
+    throw new GradleException("atlasEnvironment debe ser production o staging, no '${atlasEnvironment}'.")
+}
+def selectedEnvFile = rootProject.file("../.env.${atlasEnvironment}")
+def buildEnv = readSimpleEnv(selectedEnvFile)
 def releaseRequested = gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') }
 def testAdmobAppId = 'ca-app-pub-3940256099942544~3347511713'
 // La release consume exclusivamente el mismo valor que valida el pipeline.
 // No se permite una variable ambiente alternativa que pueda modificar el
 // manifest después de la validación.
-def releaseAdmobAppId = releaseEnv['VITE_ADMOB_APP_ID']
-def versionCodeValue = (releaseEnv['ANDROID_VERSION_CODE'] ?: '1').toInteger()
-def versionNameValue = releaseEnv['ANDROID_VERSION_NAME'] ?: '1.0.0'
+def releaseAdmobAppId = buildEnv['VITE_ADMOB_APP_ID']
+def releaseApiUrl = buildEnv['VITE_API_URL'] ?: 'https://localhost'
+def raceInviteHost = new URI(releaseApiUrl).host ?: 'localhost'
+def versionCodeValue = (buildEnv['ANDROID_VERSION_CODE'] ?: '1').toInteger()
+def versionNameValue = buildEnv['ANDROID_VERSION_NAME'] ?: '1.0.0'
 
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('keystore.properties')
@@ -35,7 +42,7 @@ def signingReady = ['storeFile', 'storePassword', 'keyAlias', 'keyPassword'].eve
 
 if (releaseRequested) {
     if (!releaseAdmobAppId) {
-        throw new GradleException('Falta VITE_ADMOB_APP_ID en mobile/.env.production.')
+        throw new GradleException("Falta VITE_ADMOB_APP_ID en mobile/.env.${atlasEnvironment}.")
     }
     if (!(releaseAdmobAppId ==~ /^ca-app-pub-\d{16}~\d{10}$/)) {
         throw new GradleException('VITE_ADMOB_APP_ID tiene un formato inválido para una release.')
@@ -44,7 +51,7 @@ if (releaseRequested) {
         throw new GradleException('No se puede firmar una release con el ID de prueba de AdMob.')
     }
     if (System.getenv('ADMOB_APP_ID')) {
-        throw new GradleException('ADMOB_APP_ID no está permitido en releases; usa VITE_ADMOB_APP_ID validado en mobile/.env.production.')
+        throw new GradleException("ADMOB_APP_ID no está permitido en releases; usa VITE_ADMOB_APP_ID validado en mobile/.env.${atlasEnvironment}.")
     }
 }
 if (releaseRequested && !signingReady) {
@@ -77,7 +84,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode versionCodeValue
         versionName versionNameValue
-        manifestPlaceholders = [admobAppId: testAdmobAppId, usesCleartextTraffic: "true"]
+        manifestPlaceholders = [admobAppId: testAdmobAppId, usesCleartextTraffic: "true", raceInviteHost: raceInviteHost]
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -97,10 +104,19 @@ android {
     }
     buildTypes {
         debug {
-            manifestPlaceholders = [admobAppId: testAdmobAppId, usesCleartextTraffic: "true"]
+            manifestPlaceholders = [admobAppId: testAdmobAppId, usesCleartextTraffic: "true", raceInviteHost: raceInviteHost]
+        }
+        staging {
+            initWith debug
+            applicationIdSuffix ".staging"
+            versionNameSuffix "-staging"
+            debuggable true
+            matchingFallbacks = ['debug']
+            resValue "string", "app_name", "Banderas (Staging)"
+            manifestPlaceholders = [admobAppId: testAdmobAppId, usesCleartextTraffic: "false", raceInviteHost: raceInviteHost]
         }
         release {
-            manifestPlaceholders = [admobAppId: releaseAdmobAppId ?: testAdmobAppId, usesCleartextTraffic: "false"]
+            manifestPlaceholders = [admobAppId: releaseAdmobAppId ?: testAdmobAppId, usesCleartextTraffic: "false", raceInviteHost: raceInviteHost]
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -121,6 +137,7 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
+    implementation 'com.android.installreferrer:installreferrer:2.2'
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
