@@ -976,9 +976,9 @@ function AccountScreen({ profile, onBack, onConnected }: { profile: PlayerProfil
         setMode('login');
       } else if (mode === 'register') {
         const normalizedEmail = email.trim();
-        await registerRankingAccount({ username: trimmedAlias, email: normalizedEmail, password });
+        const registration = await registerRankingAccount({ username: trimmedAlias, email: normalizedEmail, password });
         setVerificationEmail(normalizedEmail);
-        setStatus(t('account.created'));
+        setStatus(t(registration.verification_email_sent ? 'account.created' : 'account.createdEmailFailed'));
         setMode('login');
       } else {
         const session = await loginRankingAccount(trimmedAlias, password);
@@ -989,6 +989,12 @@ function AccountScreen({ profile, onBack, onConnected }: { profile: PlayerProfil
       if (error instanceof ApiError && error.status === 403 && error.email) {
         setVerificationEmail(error.email);
         setStatus(t('account.unverified'));
+      } else if (mode === 'register' && error instanceof ApiError && error.status === 400 && error.message === 'Email already registered') {
+        setVerificationEmail(email.trim());
+        setStatus(t('account.emailAlreadyRegistered'));
+        setMode('login');
+      } else if (mode === 'register' && error instanceof ApiError && error.status === 400 && error.message === 'Username already taken') {
+        setStatus(t('account.aliasTaken'));
       } else {
         setStatus(t('account.operationError'));
       }

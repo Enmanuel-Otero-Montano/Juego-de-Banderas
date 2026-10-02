@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { completePendingRankingAttempt, deleteRankingAccount, getFlagAtlas, queueCareerSelection, RANKING_SESSION_EXPIRED_EVENT, requestPasswordReset, resendVerificationEmail, startPendingRankingAttempt, updateRankingProfile } from './api';
+import { completePendingRankingAttempt, deleteRankingAccount, getFlagAtlas, queueCareerSelection, RANKING_SESSION_EXPIRED_EVENT, registerRankingAccount, requestPasswordReset, resendVerificationEmail, startPendingRankingAttempt, updateRankingProfile } from './api';
 
 class MemoryStorage implements Storage {
   private values = new Map<string, string>();
@@ -84,6 +84,17 @@ describe('cliente de cuentas', () => {
         body: '"atlas@example.com"',
       }),
     );
+  });
+
+  it('conserva el estado real del envío al registrar una cuenta', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(Response.json({ verification_email_sent: false }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(registerRankingAccount({
+      username: 'atlas',
+      email: 'atlas@example.com',
+      password: 'secure-pass',
+    })).resolves.toEqual({ verification_email_sent: false });
   });
 
   it('solicita la recuperación de contraseña como JSON', async () => {

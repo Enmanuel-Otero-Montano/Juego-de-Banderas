@@ -199,6 +199,9 @@ const es = {
   'account.missingLogin': 'Completa el alias y la contraseña.',
   'account.missingRecovery': 'Introduce el correo de tu cuenta.',
   'account.created': 'Cuenta creada. Verifica el correo y luego inicia sesión para publicar resultados.',
+  'account.createdEmailFailed': 'La cuenta fue creada, pero no pudimos enviar el correo. Intenta reenviarlo en unos minutos.',
+  'account.emailAlreadyRegistered': 'Ese correo ya tiene una cuenta. Inicia sesión o solicita otro correo de verificación.',
+  'account.aliasTaken': 'Ese alias ya está en uso. Elige otro.',
   'account.operationError': 'No se pudo completar la operación.',
   'account.resent': 'Si la cuenta todavía no estaba verificada, enviamos un correo nuevo.',
   'account.resendError': 'No se pudo reenviar el correo.',
@@ -343,6 +346,9 @@ type Dictionary = Record<MessageKey, string>;
 
 const en: Dictionary = {
   ...es,
+  'account.createdEmailFailed': 'The account was created, but we could not send the email. Try resending it in a few minutes.',
+  'account.emailAlreadyRegistered': 'That email already has an account. Sign in or request another verification email.',
+  'account.aliasTaken': 'That alias is already in use. Choose another one.',
   'app.name': 'Flags, Countries & Regions',
   'app.description': 'Learn the flags, capitals, and regions of the world through play.',
   'common.back': 'Back', 'common.flags': 'flags', 'common.stage': 'Stage', 'common.loading': 'Loading…', 'common.continue': 'Continue', 'common.cancel': 'Cancel', 'common.save': 'Save', 'common.ok': 'Got it', 'common.points': 'pts', 'storage.errorTitle': 'We could not save your progress', 'storage.error': 'Your game is still open, but free up space and try again so changes are not lost when you close the app.', 'error.title': 'We could not open this screen', 'error.detail': 'Your local progress is safe. Restart the screen to continue.', 'error.restart': 'Restart screen', 'flag.aria': 'Flag of {country}',
@@ -371,6 +377,9 @@ const en: Dictionary = {
 
 const pt: Dictionary = {
   ...es,
+  'account.createdEmailFailed': 'A conta foi criada, mas não conseguimos enviar o e-mail. Tente reenviá-lo em alguns minutos.',
+  'account.emailAlreadyRegistered': 'Esse e-mail já tem uma conta. Entre ou solicite outro e-mail de verificação.',
+  'account.aliasTaken': 'Esse apelido já está em uso. Escolha outro.',
   'app.name': 'Bandeiras, Países e Regiões',
   'app.description': 'Aprenda as bandeiras, capitais e regiões do mundo jogando.',
   'common.back': 'Voltar', 'common.flags': 'bandeiras', 'common.stage': 'Etapa', 'common.loading': 'Carregando…', 'common.continue': 'Continuar', 'common.cancel': 'Cancelar', 'common.save': 'Salvar', 'common.ok': 'Entendi', 'common.points': 'pts', 'storage.errorTitle': 'Não foi possível salvar o progresso', 'storage.error': 'A partida continua aberta, mas libere espaço e tente de novo para não perder alterações ao fechar o app.', 'error.title': 'Não foi possível abrir esta tela', 'error.detail': 'Seu progresso local está seguro. Reinicie a tela para continuar.', 'error.restart': 'Reiniciar tela', 'flag.aria': 'Bandeira de {country}',
@@ -399,6 +408,9 @@ const pt: Dictionary = {
 
 const fr: Dictionary = {
   ...es,
+  'account.createdEmailFailed': 'Le compte a été créé, mais l’e-mail n’a pas pu être envoyé. Réessaie dans quelques minutes.',
+  'account.emailAlreadyRegistered': 'Un compte utilise déjà cet e-mail. Connecte-toi ou demande un nouvel e-mail de vérification.',
+  'account.aliasTaken': 'Cet alias est déjà utilisé. Choisis-en un autre.',
   'app.name': 'Drapeaux, Pays et Régions',
   'app.description': 'Apprends les drapeaux, les capitales et les régions du monde en jouant.',
   'common.back': 'Retour', 'common.flags': 'drapeaux', 'common.stage': 'Étape', 'common.loading': 'Chargement…', 'common.continue': 'Continuer', 'common.cancel': 'Annuler', 'common.save': 'Enregistrer', 'common.ok': 'Compris', 'common.points': 'pts',
@@ -432,6 +444,9 @@ const fr: Dictionary = {
 
 const de: Dictionary = {
   ...es,
+  'account.createdEmailFailed': 'Das Konto wurde erstellt, aber die E-Mail konnte nicht gesendet werden. Versuche es in einigen Minuten erneut.',
+  'account.emailAlreadyRegistered': 'Für diese E-Mail gibt es bereits ein Konto. Melde dich an oder fordere eine neue Bestätigungsmail an.',
+  'account.aliasTaken': 'Dieser Alias wird bereits verwendet. Wähle einen anderen.',
   'app.name': 'Flaggen, Länder und Regionen',
   'app.description': 'Lerne die Flaggen, Hauptstädte und Regionen der Welt spielend.',
   'common.back': 'Zurück', 'common.flags': 'Flaggen', 'common.stage': 'Etappe', 'common.loading': 'Lädt…', 'common.continue': 'Weiter', 'common.cancel': 'Abbrechen', 'common.save': 'Speichern', 'common.ok': 'Verstanden',

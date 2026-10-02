@@ -265,14 +265,18 @@ export const deleteRankingAccount = async (session: RankingSession): Promise<voi
   });
 };
 
-export const registerRankingAccount = async (input: { username: string; email: string; password: string }): Promise<void> => {
+export interface RegisterRankingAccountResult {
+  verification_email_sent: boolean;
+}
+
+export const registerRankingAccount = async (input: { username: string; email: string; password: string }): Promise<RegisterRankingAccountResult> => {
   const form = new URLSearchParams({
     username: input.username,
     email: input.email,
     password: input.password,
     full_name: '',
   });
-  await request('/register', { method: 'POST', body: form });
+  return request<RegisterRankingAccountResult>('/register', { method: 'POST', body: form });
 };
 
 export const resendVerificationEmail = async (email: string): Promise<void> => {
