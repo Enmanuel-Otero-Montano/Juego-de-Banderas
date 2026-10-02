@@ -25,17 +25,12 @@ Mantener una sola instancia y un solo worker (`WEB_CONCURRENCY=1`). Redis no es
 necesario en esta configuración. El proxy debe aceptar upgrade de WebSocket y no
 aplicar un timeout menor a 120 segundos.
 
-Predeploy del backend:
+El servicio gratuito de Render no admite `Pre-Deploy Command`. Usar como
+`Docker Command` el script idempotente que aplica las migraciones antes de
+arrancar:
 
 ```bash
-python scripts/validate_staging_config.py
-alembic upgrade head
-```
-
-Arranque:
-
-```bash
-uvicorn main:app --host 0.0.0.0 --port 8000
+/app/scripts/start_render_staging.sh
 ```
 
 Después del despliegue deben responder por HTTPS `/health/live`, `/health/ready`
@@ -89,8 +84,11 @@ invitación desde Chrome y comprobando que Android ofrece la app.
 
 ## 4. Cuentas y smoke test automático
 
-Crear dos cuentas verificadas exclusivas de staging. No usar cuentas personales
-ni guardar las contraseñas en el repositorio o en el historial de shell.
+Crear dos cuentas verificadas exclusivas de staging. El backend incluye
+`scripts/provision_staging_players.py`, que las crea durante el arranque cuando
+el servicio tiene configuradas `STAGING_PLAYER_ONE_PASSWORD` y
+`STAGING_PLAYER_TWO_PASSWORD`. No usar cuentas personales ni guardar las
+contraseñas en el repositorio o en el historial de shell.
 
 En una terminal con variables cargadas desde un gestor de secretos:
 
