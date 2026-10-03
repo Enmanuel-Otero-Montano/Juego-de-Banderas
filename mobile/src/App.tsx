@@ -960,6 +960,7 @@ function AccountScreen({ profile, onBack, onConnected }: { profile: PlayerProfil
   const [statusIsError, setStatusIsError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
+  const [verificationEmailRequired, setVerificationEmailRequired] = useState(false);
 
   const showStatus = (message: string, isError = false) => {
     setStatus(message);
@@ -989,6 +990,7 @@ function AccountScreen({ profile, onBack, onConnected }: { profile: PlayerProfil
         const normalizedEmail = email.trim();
         const registration = await registerRankingAccount({ username: trimmedAlias, email: normalizedEmail, password });
         setVerificationEmail(normalizedEmail);
+        setVerificationEmailRequired(false);
         showStatus(t(registration.verification_email_sent ? 'account.created' : 'account.createdEmailFailed'), !registration.verification_email_sent);
         setMode('login');
       } else {
@@ -997,15 +999,23 @@ function AccountScreen({ profile, onBack, onConnected }: { profile: PlayerProfil
         onBack();
       }
     } catch (error) {
-      if (error instanceof ApiError && error.status === 403 && error.email) {
-        setVerificationEmail(error.email);
+      if (mode === 'login' && error instanceof ApiError && error.status === 403) {
+        setVerificationEmail('');
+        setVerificationEmailRequired(true);
         showStatus(t('account.unverified'));
       } else if (mode === 'register' && error instanceof ApiError && error.status === 400 && error.message === 'Email already registered') {
         setVerificationEmail(email.trim());
+        setVerificationEmailRequired(false);
         showStatus(t('account.emailAlreadyRegistered'), true);
         setMode('login');
       } else if (mode === 'register' && error instanceof ApiError && error.status === 400 && error.message === 'Username already taken') {
         showStatus(t('account.aliasTaken'), true);
+      } else if (mode === 'login' && error instanceof ApiError && error.status === 401) {
+        showStatus(t('account.invalidCredentials'), true);
+      } else if (error instanceof ApiError && error.status === 429) {
+        showStatus(t('account.tryAgainLater'), true);
+      } else if (error instanceof ApiError && !error.status) {
+        showStatus(t('account.connectionError'), true);
       } else {
         showStatus(t('account.operationError'), true);
       }
@@ -1015,10 +1025,14 @@ function AccountScreen({ profile, onBack, onConnected }: { profile: PlayerProfil
   };
 
   const resendVerification = async () => {
-    if (!verificationEmail) return;
+    const normalizedEmail = verificationEmail.trim();
+    if (!normalizedEmail) {
+      showStatus(t('account.missingVerificationEmail'), true);
+      return;
+    }
     setBusy(true);
     try {
-      await resendVerificationEmail(verificationEmail);
+      await resendVerificationEmail(normalizedEmail);
       showStatus(t('account.resent'));
     } catch {
       showStatus(t('account.resendError'), true);
@@ -1035,11 +1049,12 @@ function AccountScreen({ profile, onBack, onConnected }: { profile: PlayerProfil
         {(mode === 'register' || mode === 'recovery') && <label>{t('account.email')}<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" placeholder="you@example.com" autoComplete="email" /></label>}
         {mode !== 'recovery' && <label>{t('account.password')}<input value={password} onChange={(event) => setPassword(event.target.value)} type="password" minLength={8} placeholder={t('account.passwordHint')} autoComplete={mode === 'register' ? 'new-password' : 'current-password'} /></label>}
         <button className="primary-button" disabled={busy}>{busy ? t('account.connecting') : mode === 'register' ? t('account.create') : mode === 'recovery' ? t('account.reset') : t('account.login')}</button>
-        <button type="button" className="text-button account-switch" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); clearStatus(); }}>
+        <button type="button" className="text-button account-switch" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setVerificationEmailRequired(false); clearStatus(); }}>
           {mode === 'login' ? t('account.switchToCreate') : t('account.switchToLogin')}
         </button>
-        {mode === 'login' && <button type="button" className="text-button" disabled={busy} onClick={() => { setMode('recovery'); clearStatus(); }}>{t('account.forgot')}</button>}
-        {mode === 'login' && verificationEmail && <button type="button" className="text-button" disabled={busy} onClick={() => { void resendVerification(); }}>{t('account.resend')}</button>}
+        {mode === 'login' && <button type="button" className="text-button" disabled={busy} onClick={() => { setMode('recovery'); setVerificationEmailRequired(false); clearStatus(); }}>{t('account.forgot')}</button>}
+        {mode === 'login' && verificationEmailRequired && <label>{t('account.email')}<input value={verificationEmail} onChange={(event) => setVerificationEmail(event.target.value)} type="email" placeholder="you@example.com" autoComplete="email" /></label>}
+        {mode === 'login' && (verificationEmail || verificationEmailRequired) && <button type="button" className="text-button" disabled={busy} onClick={() => { void resendVerification(); }}>{t('account.resend')}</button>}
         {status && <p className={`account-status${statusIsError ? ' account-status--error' : ''}`} role={statusIsError ? 'alert' : 'status'}>{status}</p>}
       </form>
       <section className="content-card"><ShieldCheck /><h2>{t('account.localTitle')}</h2><p>{t('account.localDetail')}</p></section>
