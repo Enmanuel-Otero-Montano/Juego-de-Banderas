@@ -809,7 +809,7 @@ function GameScreen({ config, profile, today, setProfile, onExit, onComplete }: 
         </div>
       ) : (
         <section className={`feedback-card ${isCorrect ? 'feedback-card--correct' : 'feedback-card--wrong'}`}>
-          <div className="feedback-card__title"><span>{isCorrect ? <Check /> : <X />}</span><div><strong>{isCorrect ? t('game.excellent') : t('game.was', { country: getCountryName(question.answer, language) })}</strong><small>{question.kind === 'capital-to-flag' ? t('game.capitalOf', { capital: getCapitalName(question.answer, language), country: getCountryName(question.answer, language) }) : getCapitalName(question.answer, language)} · {formatPopulation(question.answer.population, language)}{question.answer.population > 0 ? ` ${t('game.inhabitants')}` : ''}</small></div></div>
+          <div className="feedback-card__title"><span>{isCorrect ? <Check /> : <X />}</span><div><strong>{isCorrect ? t('game.excellent') : t('game.was', { country: getCountryName(question.answer, language) })}</strong><div className="feedback-card__facts"><span><b>{t('game.capital')}:</b>{getCapitalName(question.answer, language)}</span>{question.answer.population > 0 && <span><b>{t('game.population')}:</b>{formatPopulation(question.answer.population, language)}</span>}</div></div></div>
           <button className="primary-button" onClick={next}>{index >= questions.length - 1 || lives === 0 ? t('game.showResult') : t('common.continue')} <ChevronRight /></button>
         </section>
       )}
@@ -957,28 +957,39 @@ function AccountScreen({ profile, onBack, onConnected }: { profile: PlayerProfil
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState('');
+  const [statusIsError, setStatusIsError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
+
+  const showStatus = (message: string, isError = false) => {
+    setStatus(message);
+    setStatusIsError(isError);
+  };
+
+  const clearStatus = () => {
+    setStatus('');
+    setStatusIsError(false);
+  };
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     const trimmedAlias = alias.trim();
     if ((mode !== 'recovery' && (!trimmedAlias || !password)) || ((mode === 'register' || mode === 'recovery') && !email)) {
-      setStatus(t(mode === 'recovery' ? 'account.missingRecovery' : mode === 'register' ? 'account.missing' : 'account.missingLogin'));
+      showStatus(t(mode === 'recovery' ? 'account.missingRecovery' : mode === 'register' ? 'account.missing' : 'account.missingLogin'), true);
       return;
     }
     setBusy(true);
-    setStatus('');
+    clearStatus();
     try {
       if (mode === 'recovery') {
         await requestPasswordReset(email.trim());
-        setStatus(t('account.resetSent'));
+        showStatus(t('account.resetSent'));
         setMode('login');
       } else if (mode === 'register') {
         const normalizedEmail = email.trim();
         const registration = await registerRankingAccount({ username: trimmedAlias, email: normalizedEmail, password });
         setVerificationEmail(normalizedEmail);
-        setStatus(t(registration.verification_email_sent ? 'account.created' : 'account.createdEmailFailed'));
+        showStatus(t(registration.verification_email_sent ? 'account.created' : 'account.createdEmailFailed'), !registration.verification_email_sent);
         setMode('login');
       } else {
         const session = await loginRankingAccount(trimmedAlias, password);
@@ -988,15 +999,15 @@ function AccountScreen({ profile, onBack, onConnected }: { profile: PlayerProfil
     } catch (error) {
       if (error instanceof ApiError && error.status === 403 && error.email) {
         setVerificationEmail(error.email);
-        setStatus(t('account.unverified'));
+        showStatus(t('account.unverified'));
       } else if (mode === 'register' && error instanceof ApiError && error.status === 400 && error.message === 'Email already registered') {
         setVerificationEmail(email.trim());
-        setStatus(t('account.emailAlreadyRegistered'));
+        showStatus(t('account.emailAlreadyRegistered'), true);
         setMode('login');
       } else if (mode === 'register' && error instanceof ApiError && error.status === 400 && error.message === 'Username already taken') {
-        setStatus(t('account.aliasTaken'));
+        showStatus(t('account.aliasTaken'), true);
       } else {
-        setStatus(t('account.operationError'));
+        showStatus(t('account.operationError'), true);
       }
     } finally {
       setBusy(false);
@@ -1008,9 +1019,9 @@ function AccountScreen({ profile, onBack, onConnected }: { profile: PlayerProfil
     setBusy(true);
     try {
       await resendVerificationEmail(verificationEmail);
-      setStatus(t('account.resent'));
+      showStatus(t('account.resent'));
     } catch {
-      setStatus(t('account.resendError'));
+      showStatus(t('account.resendError'), true);
     } finally {
       setBusy(false);
     }
@@ -1024,12 +1035,12 @@ function AccountScreen({ profile, onBack, onConnected }: { profile: PlayerProfil
         {(mode === 'register' || mode === 'recovery') && <label>{t('account.email')}<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" placeholder="you@example.com" autoComplete="email" /></label>}
         {mode !== 'recovery' && <label>{t('account.password')}<input value={password} onChange={(event) => setPassword(event.target.value)} type="password" minLength={8} placeholder={t('account.passwordHint')} autoComplete={mode === 'register' ? 'new-password' : 'current-password'} /></label>}
         <button className="primary-button" disabled={busy}>{busy ? t('account.connecting') : mode === 'register' ? t('account.create') : mode === 'recovery' ? t('account.reset') : t('account.login')}</button>
-        <button type="button" className="text-button account-switch" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setStatus(''); }}>
+        <button type="button" className="text-button account-switch" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); clearStatus(); }}>
           {mode === 'login' ? t('account.switchToCreate') : t('account.switchToLogin')}
         </button>
-        {mode === 'login' && <button type="button" className="text-button" disabled={busy} onClick={() => { setMode('recovery'); setStatus(''); }}>{t('account.forgot')}</button>}
+        {mode === 'login' && <button type="button" className="text-button" disabled={busy} onClick={() => { setMode('recovery'); clearStatus(); }}>{t('account.forgot')}</button>}
         {mode === 'login' && verificationEmail && <button type="button" className="text-button" disabled={busy} onClick={() => { void resendVerification(); }}>{t('account.resend')}</button>}
-        {status && <p className="account-status">{status}</p>}
+        {status && <p className={`account-status${statusIsError ? ' account-status--error' : ''}`} role={statusIsError ? 'alert' : 'status'}>{status}</p>}
       </form>
       <section className="content-card"><ShieldCheck /><h2>{t('account.localTitle')}</h2><p>{t('account.localDetail')}</p></section>
     </main>

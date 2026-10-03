@@ -31,7 +31,7 @@ try {
     await page.setContent(`
       <style>
         html,body{margin:0;width:${size}px;height:${size}px;overflow:hidden;background:transparent}
-        body{display:grid;place-items:center}img{display:block;width:72%;height:72%;object-fit:contain}
+        body{display:grid;place-items:center}img{display:block;width:68%;height:68%;object-fit:contain}
       </style>
       <img src="${icon}" alt="">
     `, { waitUntil: 'load' });
@@ -49,12 +49,12 @@ try {
       const page = await browser.newPage({ viewport: { width: size, height: size }, deviceScaleFactor: 1 });
       await page.setContent(`
         <style>
-          html,body{margin:0;width:${size}px;height:${size}px;overflow:hidden;background:#F5F7F2}
-          img{display:block;width:100%;height:100%;object-fit:cover;border-radius:${radius}}
+          html,body{margin:0;width:${size}px;height:${size}px;overflow:hidden;background:transparent}
+          img{display:block;width:94%;height:94%;margin:3%;object-fit:contain;border-radius:${radius}}
         </style>
         <img src="${icon}" alt="">
       `, { waitUntil: 'load' });
-      await page.screenshot({ path: path.join(directory, file), omitBackground: false });
+      await page.screenshot({ path: path.join(directory, file), omitBackground: true });
       await page.close();
     }
   }
