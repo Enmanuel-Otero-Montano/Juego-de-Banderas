@@ -612,6 +612,8 @@ h1, h2, h3, strong { font-family: 'Manrope', 'DM Sans', sans-serif; }
 .leaderboard-entry { display: flex; align-items: center; gap: 11px; min-height: 64px; padding: 10px 13px; border-bottom: 1px solid var(--line); }
 .leaderboard-entry:last-child { border-bottom: 0; }
 .leaderboard-entry__rank { width: 31px; color: var(--accent); font-size: 13px; }
+.avatar { display: grid; flex: 0 0 auto; place-items: center; overflow: hidden; color: #087b80; background: #daf5f3; border-radius: 50%; font-weight: 800; object-fit: cover; }
+.leaderboard-avatar { width: 36px; height: 36px; font-size: 13px; }
 .leaderboard-entry > div { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 3px; }
 .leaderboard-entry > div strong { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .leaderboard-entry small { color: var(--muted); font-size: 10px; }
@@ -622,6 +624,7 @@ h1, h2, h3, strong { font-family: 'Manrope', 'DM Sans', sans-serif; }
 .account-form label { display: grid; gap: 6px; color: var(--green-dark); font-size: 11px; font-weight: 800; }
 .account-form input { width: 100%; height: 46px; padding: 0 12px; color: var(--ink); border: 1px solid var(--line); border-radius: 12px; outline-color: var(--accent); background: var(--input); font: inherit; font-size: 14px; }
 .account-status { width: 100%; margin: 1px 0 0; padding: 10px 12px; color: var(--green-dark); text-align: center; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-muted); font-size: 11px; font-weight: 600; line-height: 1.45; }
+.account-status--verification { padding: 14px; color: #0e513b; border: 2px solid #21845f; background: #e5f7eb; box-shadow: 0 0 0 3px rgba(33,132,95,.12); font-size: 12px; font-weight: 800; }
 .account-status--error { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 55%, var(--line)); background: var(--wrong-bg); }
 .account-screen .content-card > svg { width: 24px; color: var(--accent); }
 .account-screen .content-card h2 { margin: 8px 0 4px; font-size: 15px; }
@@ -629,6 +632,20 @@ h1, h2, h3, strong { font-family: 'Manrope', 'DM Sans', sans-serif; }
 .setting-copy { display: flex; flex-direction: column; align-items: flex-start; }
 .setting-copy small { color: var(--muted); font-size: 10px; }
 .settings-list .danger-setting { color: var(--danger); }
+.settings-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin: 2px 0 19px; }
+.settings-heading .section-header { flex: 1; margin: 0; }
+.settings-profile-avatar { display: grid; flex: 0 0 auto; place-items: center; width: 58px; height: 58px; margin-top: -6px; padding: 3px; border: 1px solid #c8ded0; border-radius: 50%; background: #edf8f0; box-shadow: 0 4px 12px rgba(31,112,88,.12); }
+.settings-profile-avatar .avatar { width: 50px; height: 50px; font-size: 18px; }
+.profile-editor-photo { display: grid; justify-items: center; gap: 9px; margin: 0 0 17px; text-align: center; }
+.profile-editor-photo > .avatar { width: 72px; height: 72px; font-size: 25px; }
+.profile-editor-photo > input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.profile-editor-photo > small { margin: 0; text-align: center; line-height: 1.35; }
+.profile-editor-photo > .secondary-button { min-height: 38px; font-size: 12px; }
+.profile-editor-photo-actions { display: grid; grid-template-columns: 1fr 1fr; align-items: center; width: 100%; gap: 8px; }
+.profile-editor-photo-actions .secondary-button { min-height: 38px; padding: 8px; font-size: 11px; }
+.profile-editor-photo-actions .secondary-button svg { width: 15px; }
+.profile-editor-photo-actions .text-button { min-height: 38px; padding: 6px; font-size: 11px; }
+.avatar-error { color: var(--danger) !important; }
 .settings-list .danger-setting svg, .settings-list .danger-setting small { color: var(--danger); }
 .toggle { position: relative; width: 40px; height: 23px; border-radius: 999px; background: #d6ddd8; }
 .toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 17px; height: 17px; border-radius: 50%; background: var(--knob); box-shadow: 0 2px 5px rgba(0,0,0,.18); transition: transform .2s; }
@@ -804,7 +821,7 @@ html[data-backdrop="varied"] .game-screen[data-region] .journey-feedback {
 .race-host-settings { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
 .race-roster { display: grid; gap: 9px; margin-top: 12px; }
 .race-player { display: grid; grid-template-columns: 42px 1fr auto; align-items: center; gap: 10px; min-height: 52px; padding: 7px; border-radius: 14px; background: color-mix(in srgb, var(--surface) 88%, var(--paper)); }
-.race-player__avatar, .race-progress-player > span { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: #daf5f3; color: #087b80; font-weight: 800; }
+.race-player__avatar, .race-progress-player > span { display: grid; place-items: center; width: 38px; height: 38px; overflow: hidden; border-radius: 50%; background: #daf5f3; color: #087b80; font-weight: 800; object-fit: cover; }
 .race-player > span:nth-child(2) { display: grid; }
 .race-player small { color: var(--muted); display: flex; align-items: center; gap: 4px; }
 .race-player--ready { box-shadow: inset 3px 0 #27a36a; }
@@ -837,7 +854,8 @@ html[data-backdrop="varied"] .game-screen[data-region] .journey-feedback {
 .race-result-hero > svg { width: 58px; height: 58px; color: #d39a23; }
 .race-result-hero h1 { margin: 4px 0; }
 .race-standings { display: grid; gap: 8px; }
-.race-standing { display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 8px; padding: 12px; border-radius: 14px; background: color-mix(in srgb, var(--surface) 88%, var(--paper)); }
+.race-standing { display: grid; grid-template-columns: 32px 32px 1fr auto; align-items: center; gap: 8px; padding: 12px; border-radius: 14px; background: color-mix(in srgb, var(--surface) 88%, var(--paper)); }
+.race-standing__avatar { display: grid; place-items: center; width: 30px; height: 30px; overflow: hidden; color: #087b80; background: #daf5f3; border-radius: 50%; font-size: 12px; font-weight: 800; object-fit: cover; }
 .race-standing > strong { font-size: 1.25rem; }
 .race-standing > span:last-child { display: grid; justify-items: end; font-weight: 800; }
 .race-standing small { color: var(--muted); font-weight: 500; }

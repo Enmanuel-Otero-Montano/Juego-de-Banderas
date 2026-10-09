@@ -37,5 +37,9 @@ export const updateRaceRoom = (
 export const leaveRaceRoom = (session: RankingSession, roomId: string): Promise<void> =>
   authenticatedRequest(session, `/race-rooms/${encodeURIComponent(roomId)}/leave`, { method: 'POST' });
 
-export const startRaceRound = (session: RankingSession, roomId: string): Promise<RaceRound> =>
-  authenticatedRequest(session, `/race-rooms/${encodeURIComponent(roomId)}/rounds`, { method: 'POST' });
+export const startRaceRound = (session: RankingSession, roomId: string, expectedRevision?: number): Promise<RaceRound> =>
+  authenticatedRequest(session, `/race-rooms/${encodeURIComponent(roomId)}/rounds`, {
+    method: 'POST', ...(expectedRevision === undefined ? {} : {
+      headers: jsonHeaders, body: JSON.stringify({ expected_revision: expectedRevision }),
+    }),
+  });

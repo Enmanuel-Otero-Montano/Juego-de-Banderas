@@ -6,7 +6,7 @@ Aplicación web **interactiva** y **didáctica** donde pondrá a prueba su conoc
 ![](extras/imagen-3.png)
 ![](extras/imagen-4.png)
 ### Como usar
-[Click aquí para iniciar](https://enmanuel-otero-montano.github.io/Juego-de-Banderas/ "Inicio")
+[Click aquí para iniciar](https://banderas.ofiul.com/ "Inicio")
 ### Tecnologías utilizadas
 - **HTML**
 - **CSS**

@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   Award,
   BarChart3,
+  Camera,
   Check,
   ChevronRight,
   CircleDollarSign,
@@ -54,6 +55,7 @@ import { chooseDifficultyCountries, difficultyRules } from './rules';
 import { clearDailyHintCounters, clearedRouteStageCount, emptyJourneyProgress, initialProfile, loadProfile, resetLocalProgress, saveProfile } from './storage';
 import {
   ApiError,
+  apiBaseUrl,
   beginCareerAttempt,
   clearRankingSession,
   completePendingRankingAttempt,
@@ -70,6 +72,7 @@ import {
   resendVerificationEmail,
   startPendingRankingAttempt,
   updateRankingProfile,
+  updateProfileAvatar,
   type LeaderboardEntry,
   type RankingSession,
 } from './services/api';
@@ -92,6 +95,7 @@ import { feedbackTone } from './feedback';
 import { shareResult, shareWasCanceled } from './shareResult';
 import brandMark from '../assets/icon-only.png';
 import welcomeGlobe from '../assets/welcome-globe.png';
+import appPackage from '../package.json';
 import { RaceMode } from './multiplayer/RaceMode';
 import { raceText } from './multiplayer/raceCopy';
 import { clearPendingRaceInvite, readPendingRaceInvite, savePendingRaceInvite } from './multiplayer/installReferrer';
@@ -104,6 +108,21 @@ const regions: RegionKey[] = ['Americas', 'Europe', 'Asia', 'Africa', 'Oceania']
 const raceModeEnabled = import.meta.env.DEV || import.meta.env.VITE_RACE_MODE_ENABLED === 'true';
 const JOURNEY_FEEDBACK_MS = 750;
 const startingJourneyHearts = (hearts: number) => (hearts > 0 ? hearts : initialProfile.campaignHearts);
+const signOutDialogCopy = {
+  es: { label: 'Cerrar sesión', title: '¿Cerrar sesión?', message: 'Dejarás de publicar resultados desde este dispositivo. Tu cuenta y tu progreso local se conservarán.', confirm: 'Cerrar sesión' },
+  en: { label: 'Sign out', title: 'Sign out?', message: 'You will stop publishing results from this device. Your account and local progress will be kept.', confirm: 'Sign out' },
+  pt: { label: 'Sair', title: 'Sair?', message: 'Você deixará de publicar resultados neste dispositivo. Sua conta e o progresso local serão mantidos.', confirm: 'Sair' },
+  fr: { label: 'Se déconnecter', title: 'Se déconnecter ?', message: 'Tu ne publieras plus de résultats depuis cet appareil. Ton compte et ta progression locale seront conservés.', confirm: 'Se déconnecter' },
+  de: { label: 'Abmelden', title: 'Abmelden?', message: 'Du veröffentlichst von diesem Gerät keine Ergebnisse mehr. Dein Konto und lokaler Fortschritt bleiben erhalten.', confirm: 'Abmelden' },
+};
+const versionLabel = { es: 'Versión', en: 'Version', pt: 'Versão', fr: 'Version', de: 'Version' };
+const privacyAvatarCopy = {
+  es: { updated: 'Última actualización: 4 de octubre de 2026', title: 'Foto de perfil opcional', body: 'Si eliges una foto, la asociamos a tu cuenta para mostrarla junto con tu alias en clasificaciones y carreras multijugador. Puedes reemplazarla o quitarla desde Perfil; no se usa para publicidad y se borra al quitarla o al eliminar la cuenta.' },
+  en: { updated: 'Last updated: October 4, 2026', title: 'Optional profile picture', body: 'If you choose a picture, we link it to your account to show it beside your alias in leaderboards and multiplayer races. You can replace or remove it from Profile; it is not used for advertising and is deleted when removed or when the account is deleted.' },
+  pt: { updated: 'Última atualização: 4 de outubro de 2026', title: 'Foto de perfil opcional', body: 'Se você escolher uma foto, nós a vinculamos à sua conta para exibi-la ao lado do seu apelido nas classificações e corridas multijogador. Você pode substituí-la ou removê-la em Perfil; ela não é usada para publicidade e é apagada ao removê-la ou excluir a conta.' },
+  fr: { updated: 'Dernière mise à jour : 4 octobre 2026', title: 'Photo de profil facultative', body: 'Si tu choisis une photo, nous l’associons à ton compte pour l’afficher avec ton alias dans les classements et les courses multijoueurs. Tu peux la remplacer ou la retirer depuis Profil ; elle n’est pas utilisée pour la publicité et est supprimée quand tu la retires ou supprimes ton compte.' },
+  de: { updated: 'Letzte Aktualisierung: 4. Oktober 2026', title: 'Optionales Profilbild', body: 'Wenn du ein Bild auswählst, verknüpfen wir es mit deinem Konto und zeigen es neben deinem Alias in Ranglisten und Mehrspieler-Rennen. Du kannst es im Profil ersetzen oder entfernen; es wird nicht für Werbung genutzt und beim Entfernen oder Löschen des Kontos gelöscht.' },
+};
 
 const playFeedback = (success: boolean, soundEnabled: boolean, hapticsEnabled: boolean) => {
   if (hapticsEnabled && Capacitor.isNativePlatform()) {
@@ -131,6 +150,14 @@ const playFeedback = (success: boolean, soundEnabled: boolean, hapticsEnabled: b
 function BrandMark({ className, labeled = false }: { className?: string; labeled?: boolean }) {
   const { t } = useI18n();
   return <img className={className ? `brand-mark ${className}` : 'brand-mark'} src={brandMark} alt={labeled ? t('app.name') : ''} />;
+}
+
+function Avatar({ name, path, version, className }: { name: string; path?: string | null; version?: number; className?: string }) {
+  const [failed, setFailed] = useState(false);
+  const src = path ? `${apiBaseUrl}${path}${version ? `?v=${version}` : ''}` : null;
+  useEffect(() => { setFailed(false); }, [src]);
+  if (!src || failed) return <span className={className ? `avatar ${className}` : 'avatar'} aria-label={name}>{name.slice(0, 1).toUpperCase()}</span>;
+  return <img className={className ? `avatar ${className}` : 'avatar'} src={src} alt={name} onError={() => setFailed(true)} />;
 }
 
 function TopBar({ profile, onStore, onSettings, onLeaderboard }: { profile: PlayerProfile; onStore: () => void; onSettings: () => void; onLeaderboard: () => void }) {
@@ -940,6 +967,7 @@ function LeaderboardScreen({ profile, onBack, onAccount }: { profile: PlayerProf
         {items.map((entry) => (
           <article key={entry.user_id} className="leaderboard-entry">
             <strong className="leaderboard-entry__rank">#{entry.rank}</strong>
+            <Avatar name={entry.display_name || entry.username} path={entry.avatar_url} className="leaderboard-avatar" />
             <div><strong>{entry.display_name || entry.username}</strong><small>{t(leaderboardEntryShowsCountry(scope) ? 'leaderboard.entry' : 'leaderboard.entryLocal', { country: entryCountryName(entry.country), stages: entry.stages_completed, hints: entry.total_hints_used })}</small></div>
             <span><strong>{entry.total_score}</strong><small>{t('common.points')}</small></span>
           </article>
@@ -951,11 +979,12 @@ function LeaderboardScreen({ profile, onBack, onAccount }: { profile: PlayerProf
 }
 
 function AccountScreen({ profile, onBack, onConnected }: { profile: PlayerProfile; onBack: () => void; onConnected: (session: RankingSession, alias: string) => void }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [mode, setMode] = useState<'login' | 'register' | 'recovery'>('login');
   const [alias, setAlias] = useState(profile.displayName || '');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [avatar, setAvatar] = useState<File | null>(null);
   const [status, setStatus] = useState('');
   const [statusIsError, setStatusIsError] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -988,7 +1017,7 @@ function AccountScreen({ profile, onBack, onConnected }: { profile: PlayerProfil
         setMode('login');
       } else if (mode === 'register') {
         const normalizedEmail = email.trim();
-        const registration = await registerRankingAccount({ username: trimmedAlias, email: normalizedEmail, password });
+        const registration = await registerRankingAccount({ username: trimmedAlias, email: normalizedEmail, password, language, avatar });
         setVerificationEmail(normalizedEmail);
         setVerificationEmailRequired(false);
         showStatus(t(registration.verification_email_sent ? 'account.created' : 'account.createdEmailFailed'), !registration.verification_email_sent);
@@ -1032,7 +1061,7 @@ function AccountScreen({ profile, onBack, onConnected }: { profile: PlayerProfil
     }
     setBusy(true);
     try {
-      await resendVerificationEmail(normalizedEmail);
+      await resendVerificationEmail(normalizedEmail, language);
       showStatus(t('account.resent'));
     } catch {
       showStatus(t('account.resendError'), true);
@@ -1048,14 +1077,15 @@ function AccountScreen({ profile, onBack, onConnected }: { profile: PlayerProfil
         {mode !== 'recovery' && <label>{t('account.publicAlias')}<input value={alias} onChange={(event) => setAlias(event.target.value)} maxLength={24} placeholder={t('account.aliasExample')} autoComplete="username" /></label>}
         {(mode === 'register' || mode === 'recovery') && <label>{t('account.email')}<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" placeholder="you@example.com" autoComplete="email" /></label>}
         {mode !== 'recovery' && <label>{t('account.password')}<input value={password} onChange={(event) => setPassword(event.target.value)} type="password" minLength={8} placeholder={t('account.passwordHint')} autoComplete={mode === 'register' ? 'new-password' : 'current-password'} /></label>}
+        {mode === 'register' && <label>{t('settings.avatar')}<input type="file" accept="image/png,image/jpeg" onChange={(event) => setAvatar(event.target.files?.[0] || null)} /><small>{t('settings.avatarDetail')}</small></label>}
         <button className="primary-button" disabled={busy}>{busy ? t('account.connecting') : mode === 'register' ? t('account.create') : mode === 'recovery' ? t('account.reset') : t('account.login')}</button>
+        {status && <p className={`account-status${statusIsError ? ' account-status--error' : verificationEmail ? ' account-status--verification' : ''}`} role={statusIsError ? 'alert' : 'status'}>{status}</p>}
         <button type="button" className="text-button account-switch" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setVerificationEmailRequired(false); clearStatus(); }}>
           {mode === 'login' ? t('account.switchToCreate') : t('account.switchToLogin')}
         </button>
         {mode === 'login' && <button type="button" className="text-button" disabled={busy} onClick={() => { setMode('recovery'); setVerificationEmailRequired(false); clearStatus(); }}>{t('account.forgot')}</button>}
         {mode === 'login' && verificationEmailRequired && <label>{t('account.email')}<input value={verificationEmail} onChange={(event) => setVerificationEmail(event.target.value)} type="email" placeholder="you@example.com" autoComplete="email" /></label>}
         {mode === 'login' && (verificationEmail || verificationEmailRequired) && <button type="button" className="text-button" disabled={busy} onClick={() => { void resendVerification(); }}>{t('account.resend')}</button>}
-        {status && <p className={`account-status${statusIsError ? ' account-status--error' : ''}`} role={statusIsError ? 'alert' : 'status'}>{status}</p>}
       </form>
       <section className="content-card"><ShieldCheck /><h2>{t('account.localTitle')}</h2><p>{t('account.localDetail')}</p></section>
     </main>
@@ -1253,27 +1283,57 @@ function StoreScreen({ profile, setProfile, onBack }: { profile: PlayerProfile; 
   );
 }
 
-function SettingsScreen({ profile, session, adPrivacyOptionsRequired, setProfile, onBack, onPrivacy, onAdPrivacy, onOrigin, onAccount, onAliasChange, onSignOut, onResetProgress, onDeleteAccount }: { profile: PlayerProfile; session: RankingSession | null; adPrivacyOptionsRequired: boolean; setProfile: (profile: PlayerProfile) => void; onBack: () => void; onPrivacy: () => void; onAdPrivacy: () => void; onOrigin: () => void; onAccount: () => void; onAliasChange: (alias: string | null) => void; onSignOut: () => void; onResetProgress: () => void; onDeleteAccount: () => void }) {
+function SettingsScreen({ profile, session, adPrivacyOptionsRequired, setProfile, onBack, onPrivacy, onAdPrivacy, onOrigin, onAccount, onAliasChange, onAvatarChange, onSignOut, onResetProgress, onDeleteAccount }: { profile: PlayerProfile; session: RankingSession | null; adPrivacyOptionsRequired: boolean; setProfile: (profile: PlayerProfile) => void; onBack: () => void; onPrivacy: () => void; onAdPrivacy: () => void; onOrigin: () => void; onAccount: () => void; onAliasChange: (alias: string | null) => void; onAvatarChange: (image: File | null) => Promise<void>; onSignOut: () => void; onResetProgress: () => void; onDeleteAccount: () => void }) {
   const { t, language, setLanguage } = useI18n();
   const { preference, setPreference } = useTheme();
   const { preference: backdrop, setPreference: setBackdrop } = useBackdrop();
   const homeCountry = countries.find((country) => country.code === profile.homeCountryCode);
-  const [aliasEditorOpen, setAliasEditorOpen] = useState(false);
+  const [profileEditorOpen, setProfileEditorOpen] = useState(false);
   const [aliasDraft, setAliasDraft] = useState(profile.displayName || '');
+  const avatarInput = useRef<HTMLInputElement>(null);
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const [avatarError, setAvatarError] = useState('');
+  const [appVersion, setAppVersion] = useState(appPackage.version);
 
-  const openAliasEditor = () => {
+  useEffect(() => {
+    void CapacitorApp.getInfo()
+      .then((info) => { if (info.version) setAppVersion(info.version); })
+      .catch(() => undefined);
+  }, []);
+
+  const selectAvatar = async (file: File | null) => {
+    if (!file) return;
+    setAvatarBusy(true);
+    setAvatarError('');
+    try { await onAvatarChange(file); } catch { setAvatarError(t('settings.avatarError')); }
+    finally { setAvatarBusy(false); if (avatarInput.current) avatarInput.current.value = ''; }
+  };
+
+  const removeAvatar = async () => {
+    setAvatarBusy(true);
+    setAvatarError('');
+    try { await onAvatarChange(null); } catch { setAvatarError(t('settings.avatarError')); }
+    finally { setAvatarBusy(false); }
+  };
+
+  const openProfileEditor = () => {
     setAliasDraft(profile.displayName || '');
-    setAliasEditorOpen(true);
+    setProfileEditorOpen(true);
   };
 
   const saveAlias = () => {
     onAliasChange(aliasDraft.trim().slice(0, 24) || null);
-    setAliasEditorOpen(false);
+    setProfileEditorOpen(false);
   };
 
   return (
     <main className="screen">
-      <SectionHeader title={t('settings.title')} onBack={onBack} />
+      <div className="settings-heading">
+        <SectionHeader title={t('settings.title')} onBack={onBack} />
+        <button className="settings-profile-avatar" type="button" onClick={openProfileEditor} aria-label={t('settings.profile')}>
+          <Avatar name={profile.displayName || session?.username || '?'} path={session ? `/user/${session.userId}/profile_image` : null} version={profile.avatarUpdatedAt} />
+        </button>
+      </div>
       <section className="settings-list">
         <button onClick={() => setProfile({ ...profile, soundEnabled: !profile.soundEnabled })}><span>{profile.soundEnabled ? <Volume2 /> : <VolumeX />}<strong>{t('settings.sounds')}</strong></span><i className={profile.soundEnabled ? 'toggle active' : 'toggle'} /></button>
         <button onClick={() => setProfile({ ...profile, hapticsEnabled: !profile.hapticsEnabled })}><span><Gamepad2 /><strong>{t('settings.vibration')}</strong></span><i className={profile.hapticsEnabled ? 'toggle active' : 'toggle'} /></button>
@@ -1287,19 +1347,33 @@ function SettingsScreen({ profile, session, adPrivacyOptionsRequired, setProfile
         })}</div></div>
         <div className="language-setting"><span><Globe2 /><strong>{t('settings.language')}</strong></span><div className="language-options" role="group" aria-label={t('settings.language')}>{languageOptions.map((option) => <button key={option.code} className={language === option.code ? 'active' : ''} onClick={() => setLanguage(option.code)} aria-label={option.label}>{option.short}</button>)}</div></div>
         <button onClick={onOrigin}><span><MapPin /><span className="setting-copy"><strong>{t('settings.origin')}</strong><small>{homeCountry ? getCountryName(homeCountry, language) : t('settings.notChosen')}</small></span></span><ChevronRight /></button>
-        <button onClick={openAliasEditor}><span><Trophy /><span className="setting-copy"><strong>{t('settings.alias')}</strong><small>{profile.displayName || t('settings.aliasDetail')}</small></span></span><ChevronRight /></button>
-        <button onClick={session ? onSignOut : onAccount}><span><ShieldCheck /><span className="setting-copy"><strong>{session ? t('settings.rankingSession') : t('settings.rankingAccount')}</strong><small>{session ? t('settings.connectedAs', { username: session.username }) : t('settings.createAccount')}</small></span></span><ChevronRight /></button>
+        <button onClick={openProfileEditor}><span><Users /><span className="setting-copy"><strong>{t('settings.profile')}</strong><small>{profile.displayName || t('settings.profileDetail')}</small></span></span><ChevronRight /></button>
+        <button onClick={session ? onSignOut : onAccount}><span><ShieldCheck /><span className="setting-copy"><strong>{session ? signOutDialogCopy[language].label : t('settings.rankingAccount')}</strong><small>{session ? t('settings.connectedAs', { username: session.username }) : t('settings.signInOrCreateAccount')}</small></span></span><ChevronRight /></button>
         <button onClick={onPrivacy}><span><ShieldCheck /><strong>{t('settings.privacy')}</strong></span><ChevronRight /></button>
         {!profile.isPremium && adPrivacyOptionsRequired && <button onClick={onAdPrivacy}><span><ShieldCheck /><span className="setting-copy"><strong>{t('settings.adOptions')}</strong><small>{t('settings.adOptionsDetail')}</small></span></span><ChevronRight /></button>}
         <button className="danger-setting" onClick={onResetProgress}><span><RotateCcw /><span className="setting-copy"><strong>{t('settings.resetProgress')}</strong><small>{t('settings.resetProgressDetail')}</small></span></span><ChevronRight /></button>
         {session && <button className="danger-setting" onClick={onDeleteAccount}><span><Trash2 /><span className="setting-copy"><strong>{t('settings.deleteAccount')}</strong><small>{t('settings.deleteDetail')}</small></span></span><ChevronRight /></button>}
       </section>
-      <section className="content-card about-card"><BrandMark /><h2>{t('app.name')}</h2><p>{t('settings.version')}</p><small>{t('settings.tagline')}</small></section>
-      {aliasEditorOpen && (
-        <div className="modal-backdrop" onClick={() => setAliasEditorOpen(false)}>
+      <section className="content-card about-card"><BrandMark /><h2>{t('app.name')}</h2><p>{versionLabel[language]} {appVersion}</p><small>{t('settings.tagline')}</small></section>
+      {profileEditorOpen && (
+        <div className="modal-backdrop" onClick={() => setProfileEditorOpen(false)}>
           <section className="alias-modal" role="dialog" aria-modal="true" aria-labelledby="alias-editor-title" onClick={(event) => event.stopPropagation()}>
-            <h2 id="alias-editor-title">{t('settings.alias')}</h2>
-            <p>{t('settings.aliasPrompt')}</p>
+            <h2 id="alias-editor-title">{t('settings.profile')}</h2>
+            <p>{t('settings.profilePrompt')}</p>
+            <div className="profile-editor-photo">
+              <Avatar name={profile.displayName || session?.username || '?'} path={session ? `/user/${session.userId}/profile_image` : null} version={profile.avatarUpdatedAt} />
+              {session ? <>
+                <input ref={avatarInput} type="file" accept="image/png,image/jpeg" onChange={(event) => { void selectAvatar(event.target.files?.[0] || null); }} />
+                <div className="profile-editor-photo-actions">
+                  <button className="secondary-button" disabled={avatarBusy} onClick={() => avatarInput.current?.click()}><Camera /> {t('settings.avatarChange')}</button>
+                  <button className="text-button" disabled={avatarBusy} onClick={() => { void removeAvatar(); }}>{t('settings.avatarRemove')}</button>
+                </div>
+              </> : <>
+                <small>{t('settings.signInToManageAvatar')}</small>
+                <button className="secondary-button" onClick={onAccount}><ShieldCheck /> {t('account.login')}</button>
+              </>}
+              {avatarError && <small className="avatar-error" role="alert">{avatarError}</small>}
+            </div>
             <label>
               {t('account.publicAlias')}
               <input
@@ -1308,13 +1382,12 @@ function SettingsScreen({ profile, session, adPrivacyOptionsRequired, setProfile
                 maxLength={24}
                 placeholder={t('account.aliasExample')}
                 autoComplete="nickname"
-                autoFocus
               />
             </label>
             <small>{aliasDraft.trim().length}/24</small>
             <div className="modal-actions">
               <button className="primary-button" onClick={saveAlias}>{t('common.save')}</button>
-              <button className="secondary-button" onClick={() => setAliasEditorOpen(false)}>{t('common.cancel')}</button>
+              <button className="secondary-button" onClick={() => setProfileEditorOpen(false)}>{t('common.cancel')}</button>
             </div>
           </section>
         </div>
@@ -1324,15 +1397,18 @@ function SettingsScreen({ profile, session, adPrivacyOptionsRequired, setProfile
 }
 
 function PrivacyScreen({ onBack }: { onBack: () => void }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const avatarCopy = privacyAvatarCopy[language];
   return (
     <main className="screen legal-screen">
-      <SectionHeader title={t('privacy.title')} subtitle={t('privacy.updated')} onBack={onBack} />
+      <SectionHeader title={t('privacy.title')} subtitle={avatarCopy.updated} onBack={onBack} />
       <section className="content-card">
         <h2>{t('privacy.summaryTitle')}</h2>
         <p>{t('privacy.summary')}</p>
         <h2>{t('privacy.accountTitle')}</h2>
         <p>{t('privacy.account')}</p>
+        <h2>{avatarCopy.title}</h2>
+        <p>{avatarCopy.body}</p>
         <h2>{t('privacy.adsTitle')}</h2>
         <p>{t('privacy.ads')}</p>
         <h2>{t('privacy.purchasesTitle')}</h2>
@@ -1425,7 +1501,7 @@ function AppDialog({ dialog, onClose }: { dialog: AppDialogConfig; onClose: () =
 }
 
 function GameApp() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [profile, setProfileState] = useState(loadProfile);
   const [today, setToday] = useState(isoDate);
   const [rankingSession, setRankingSession] = useState<RankingSession | null>(null);
@@ -1728,6 +1804,19 @@ function GameApp() {
       if (!synced) notice(t('account.title'), t('account.operationError'));
     });
   };
+  const changeAvatar = async (image: File | null) => {
+    if (!rankingSession) throw new ApiError('No ranking session');
+    try {
+      await updateProfileAvatar(rankingSession, image);
+      setProfile({ ...profile, avatarUpdatedAt: image ? Date.now() : undefined });
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        clearRankingSession();
+        setRankingSession(null);
+      }
+      throw error;
+    }
+  };
   const signOut = () => {
     clearRankingSession();
     setRankingSession(null);
@@ -1735,6 +1824,16 @@ function GameApp() {
       setProfile({ ...profile, isPremium, rankedProfileReady: false });
     });
     setProfile({ ...profile, rankedProfileReady: false });
+  };
+  const confirmSignOut = () => {
+    const copy = signOutDialogCopy[language];
+    setAppDialog({
+      title: copy.title,
+      message: copy.message,
+      confirmLabel: copy.confirm,
+      cancelLabel: t('common.cancel'),
+      onConfirm: signOut,
+    });
   };
   const resetProgress = () => {
     setAppDialog({
@@ -1804,7 +1903,7 @@ function GameApp() {
       {screen === 'origin' && <OriginPickerScreen currentCode={profile.homeCountryCode} onBack={() => setScreen(originReturn)} onSelect={chooseOrigin} />}
       {screen === 'progress' && <ProgressScreen profile={profile} session={rankingSession} onOpenAccount={() => { setAccountReturn('progress'); setScreen('account'); }} onOpenJourney={() => setScreen('career')} />}
       {screen === 'store' && <StoreScreen profile={profile} setProfile={setProfile} onBack={() => setScreen('home')} />}
-      {screen === 'settings' && <SettingsScreen profile={profile} session={rankingSession} adPrivacyOptionsRequired={adPrivacyOptionsRequired} setProfile={setProfile} onBack={() => setScreen('home')} onPrivacy={() => setScreen('privacy')} onAdPrivacy={() => { void openAdPrivacy(); }} onOrigin={() => openOriginPicker('settings')} onAccount={() => { setAccountReturn('settings'); setScreen('account'); }} onAliasChange={changeAlias} onSignOut={signOut} onResetProgress={resetProgress} onDeleteAccount={() => { void deleteAccount(); }} />}
+      {screen === 'settings' && <SettingsScreen profile={profile} session={rankingSession} adPrivacyOptionsRequired={adPrivacyOptionsRequired} setProfile={setProfile} onBack={() => setScreen('home')} onPrivacy={() => setScreen('privacy')} onAdPrivacy={() => { void openAdPrivacy(); }} onOrigin={() => openOriginPicker('settings')} onAccount={() => { setAccountReturn('settings'); setScreen('account'); }} onAliasChange={changeAlias} onAvatarChange={changeAvatar} onSignOut={confirmSignOut} onResetProgress={resetProgress} onDeleteAccount={() => { void deleteAccount(); }} />}
       {screen === 'privacy' && <PrivacyScreen onBack={() => setScreen('settings')} />}
       {screen === 'leaderboard' && <LeaderboardScreen profile={profile} onBack={() => setScreen('home')} onAccount={() => setScreen('account')} />}
       {screen === 'account' && <AccountScreen profile={profile} onBack={() => setScreen(accountReturn)} onConnected={(session, alias) => { connectRanking(session, alias); setScreen(accountReturn); }} />}

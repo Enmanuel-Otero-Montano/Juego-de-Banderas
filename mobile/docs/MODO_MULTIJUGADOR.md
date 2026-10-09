@@ -208,9 +208,11 @@ haya alguien conectado puede albergar rondas sucesivas sin crear otro código.
 
 ### 3. Cuenta regresiva
 
-El servidor fija `starts_at` unos segundos en el futuro. Cada cliente ajusta la
-visualización con la diferencia estimada de reloj y muestra `3 · 2 · 1 · YA`.
-Las respuestas permanecen bloqueadas hasta `starts_at`.
+El servidor fija `starts_at` cinco segundos en el futuro. Cada cliente ajusta la
+visualización con sondeos de latencia y un reloj monotónico, y muestra la cuenta
+regresiva restante. Las respuestas permanecen bloqueadas hasta `starts_at`.
+La implementación, pruebas y validación Android están descritas en
+[SINCRONIZACION_MULTIJUGADOR.md](SINCRONIZACION_MULTIJUGADOR.md).
 
 ### 4. Pantalla de carrera
 

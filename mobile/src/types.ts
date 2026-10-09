@@ -100,6 +100,7 @@ export interface PlayerProfile {
   campaignHearts: number;
   displayName: string | null;
   rankedProfileReady: boolean;
+  avatarUpdatedAt?: number;
 }
 
 export interface SessionReward {

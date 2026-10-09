@@ -53,3 +53,47 @@ describe('raceReducer', () => {
     expect(changed.room?.members[1].intermission_state).toBe('ad_break');
   });
 });
+
+it('ignores stale snapshots, repeated countdowns and late HTTP starts', () => {
+  const initial = initialRaceState(room);
+  expect(raceReducer(initial, { type: 'message', message: {
+    type: 'snapshot', protocol_version: 1, revision: 3, room: { ...room, current_round: null },
+  } })).toBe(initial);
+  const optimistic = raceReducer(initial, { type: 'answer_sent', eventId: 'pending', selectedCode: 'uy', correct: true });
+  expect(raceReducer(optimistic, { type: 'message', message: {
+    type: 'countdown', protocol_version: 1, revision: 4, round: room.current_round!,
+  } })).toBe(optimistic);
+  expect(raceReducer(optimistic, { type: 'round_started', round: room.current_round! })).toBe(optimistic);
+});
+
+it('does not let another round finish this one or overwrite its progress', () => {
+  const initial = initialRaceState(room);
+  for (const type of ['race_finished', 'answer_result', 'progress']) {
+    expect(raceReducer(initial, { type: 'message', message: {
+      type, protocol_version: 1, revision: 99, round_id: 'previous-round', progress: 12,
+    } })).toBe(initial);
+  }
+});
+
+it('accepts a matching ack after newer peer progress, without duplicating an answer', () => {
+  const pending = raceReducer(initialRaceState(room), { type: 'answer_sent', eventId: 'event-1', selectedCode: 'uy', correct: true });
+  expect(raceReducer(pending, { type: 'answer_sent', eventId: 'event-2', selectedCode: 'uy', correct: true })).toBe(pending);
+  const newer = raceReducer(pending, { type: 'message', message: {
+    type: 'progress', protocol_version: 1, revision: 7, participants: [{ user_id: 2, progress: 2, mistakes: 0 }],
+  } });
+  const ack = { type: 'answer_result', protocol_version: 1, revision: 6, event_id: 'event-1', round_id: 'round-1',
+    progress: 1, expected_sequence: 2, mistakes: 0, locked_until: null, discarded_codes: [] };
+  const confirmed = raceReducer(newer, { type: 'message', message: ack });
+  expect(confirmed.pendingEventId).toBeNull();
+  expect(confirmed.revision).toBe(7);
+  expect(confirmed.room?.current_round?.participant?.progress).toBe(1);
+  expect(raceReducer(confirmed, { type: 'message', message: ack })).toBe(confirmed);
+});
+
+it('restores the original timestamps and progress on reconnect', () => {
+  const restored = raceReducer(initialRaceState(), { type: 'message', message: {
+    type: 'snapshot', protocol_version: 1, revision: room.revision, room,
+  } });
+  expect(restored.room?.current_round?.starts_at).toBe(room.current_round?.starts_at);
+  expect(restored.room?.current_round?.deadline_at).toBe(room.current_round?.deadline_at);
+});

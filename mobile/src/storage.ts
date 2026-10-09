@@ -71,6 +71,7 @@ export const initialProfile: PlayerProfile = {
   campaignHearts: MAX_CAMPAIGN_HEARTS,
   displayName: null,
   rankedProfileReady: false,
+  avatarUpdatedAt: undefined,
 };
 
 const freshInitialProfile = (): PlayerProfile => ({
@@ -193,6 +194,7 @@ export const resetLocalProgress = (profile: PlayerProfile): PlayerProfile => ({
   hapticsEnabled: profile.hapticsEnabled,
   displayName: profile.displayName,
   rankedProfileReady: profile.rankedProfileReady,
+  avatarUpdatedAt: profile.avatarUpdatedAt,
 });
 
 /** Las pistas premium del día viven fuera del perfil y también vuelven a cero. */

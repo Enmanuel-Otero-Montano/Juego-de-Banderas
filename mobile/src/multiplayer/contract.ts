@@ -11,6 +11,7 @@ export type RaceRoundStatus = 'countdown' | 'running' | 'finished' | 'expired' |
 export interface RaceMember {
   user_id: number;
   display_name: string;
+  avatar_url?: string | null;
   seat: number;
   role: 'host' | 'player';
   ready: boolean;
@@ -36,6 +37,7 @@ export interface RaceStanding {
   rank: number;
   user_id: number;
   display_name: string;
+  avatar_url?: string | null;
   progress: number;
   mistakes: number;
   finished_at: string | null;
@@ -44,6 +46,7 @@ export interface RaceStanding {
 export interface RaceRound {
   id: string;
   number: number;
+  revision?: number;
   status: RaceRoundStatus;
   starts_at: string;
   deadline_at: string;
@@ -74,6 +77,9 @@ export interface RaceRoom {
 
 export type RaceServerMessage = {
   type: string;
+  probe_id?: string;
+  server_received_at?: string;
+  server_time?: string;
   protocol_version: number;
   revision: number;
   room?: RaceRoom;

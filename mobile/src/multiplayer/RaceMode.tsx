@@ -1,3 +1,8 @@
+import { App as CapacitorApp } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
+import { preloadFlags } from '../components/Flag';
+import { countries } from '../data/countries';
+import { RaceClock } from './raceClock';
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { shouldShowInterstitial, monetization } from '../services/monetization';
 import { ApiError, type RankingSession } from '../services/api';
@@ -36,6 +41,11 @@ export function RaceMode({ session, isPremium, pendingInviteToken, onConsumeInvi
   onRoundCompleted: (roundId: string) => number;
 }) {
   const [state, dispatch] = useReducer(raceReducer, null, initialRaceState);
+  const clock = useRef(new RaceClock()).current;
+  const [appActive, setAppActive] = useState(document.visibilityState !== 'hidden');
+  const [synchronized, setSynchronized] = useState(false);
+  const [preparedScope, setPreparedScope] = useState<string | null>(null);
+  const answerInFlight = useRef(false);
   const [busy, setBusy] = useState(false);
   const [reconnectKey, setReconnectKey] = useState(0);
   const [completedSessions, setCompletedSessions] = useState<number | null>(null);
@@ -45,6 +55,38 @@ export function RaceMode({ session, isPremium, pendingInviteToken, onConsumeInvi
   const countedResults = useRef(loadCountedResults());
   const joiningInvite = useRef(false);
   const restoringRoom = useRef(false);
+
+  useEffect(() => {
+    const scope = state.room?.scope;
+    if (!scope) return;
+    let active = true;
+    setPreparedScope(null);
+    void preloadFlags(countries.filter((country) => scope === 'World' || country.region === scope).map((country) => country.code))
+      .then(() => { if (active) setPreparedScope(scope); })
+      .catch(() => { if (active) dispatch({ type: 'error', message: 'No pudimos preparar las banderas. Vuelve a entrar a la sala.' }); });
+    return () => { active = false; };
+  }, [state.room?.scope]);
+
+  useEffect(() => { if (!state.pendingEventId) answerInFlight.current = false; }, [state.pendingEventId]);
+
+  useEffect(() => {
+    const change = (active: boolean) => {
+      clock.reset();
+      setSynchronized(false);
+      setAppActive(active);
+      // Closing invalidates queued frames and re-estimates time after OS suspension.
+      socketRef.current?.close();
+      if (active) setReconnectKey((value) => value + 1);
+    };
+    const visibility = () => change(document.visibilityState !== 'hidden');
+    document.addEventListener('visibilitychange', visibility);
+    const listener = Capacitor.isNativePlatform()
+      ? CapacitorApp.addListener('appStateChange', ({ isActive }) => change(isActive)) : null;
+    return () => {
+      document.removeEventListener('visibilitychange', visibility);
+      void listener?.then((handle) => handle.remove());
+    };
+  }, [clock]);
 
   const loadRoom = useCallback((room: RaceRoom) => {
     if (session) {
@@ -92,8 +134,12 @@ export function RaceMode({ session, isPremium, pendingInviteToken, onConsumeInvi
 
   useEffect(() => {
     if (!session || !state.room?.id) return;
+    if (!appActive) return;
     let active = true;
+    setSynchronized(false);
     const socket = connectRaceSocket(session, state.room.id, {
+      clock,
+      onClockChange: () => { if (active) setSynchronized(clock.ready); },
       onConnectionChange: (connected) => {
         if (!active) return;
         dispatch({ type: 'connection', connected });
@@ -118,7 +164,7 @@ export function RaceMode({ session, isPremium, pendingInviteToken, onConsumeInvi
     };
     // A reconnect deliberately rebuilds the transport while preserving reducer state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reconnectKey, session, state.room?.id]);
+  }, [appActive, reconnectKey, session, state.room?.id]);
 
   const create = async (input: { scope: RaceScope; difficulty: RaceDifficulty }) => {
     if (!session) throw new Error('Authentication required');
@@ -144,7 +190,7 @@ export function RaceMode({ session, isPremium, pendingInviteToken, onConsumeInvi
   const start = async () => {
     if (!session || !state.room) return;
     setBusy(true);
-    try { dispatch({ type: 'round_started', round: await startRaceRound(session, state.room.id) }); }
+    try { dispatch({ type: 'round_started', round: await startRaceRound(session, state.room.id, state.revision) }); }
     catch (error) { dispatch({ type: 'error', message: errorMessage(error) }); }
     finally { setBusy(false); }
   };
@@ -157,12 +203,19 @@ export function RaceMode({ session, isPremium, pendingInviteToken, onConsumeInvi
     onBack();
   };
   const answer = (selectedCode: string, correct: boolean) => {
-    const participant = state.room?.current_round?.participant;
+    const current = state.room?.current_round;
+    const now = clock.now();
+    const participant = current?.participant;
     const question = state.room?.current_round?.plan?.[participant?.progress || 0];
-    if (!participant || !question || state.pendingEventId) return;
+    if (!current || !participant || !question || state.pendingEventId || answerInFlight.current || !state.connected ||
+      !clock.ready || now < Date.parse(current.starts_at) || now >= Date.parse(current.deadline_at) ||
+      !['countdown', 'running'].includes(current.status) || participant.progress >= (current.plan?.length || 12) ||
+      (participant.locked_until && now < Date.parse(participant.locked_until))) return;
+    answerInFlight.current = true;
     const eventId = crypto.randomUUID();
     dispatch({ type: 'answer_sent', eventId, selectedCode, correct });
     socketRef.current?.sendAnswer({
+      roundId: current.id,
       eventId,
       sequence: participant.expected_sequence,
       countryCode: question.country_code,
@@ -186,6 +239,6 @@ export function RaceMode({ session, isPremium, pendingInviteToken, onConsumeInvi
   const racing = Boolean(round && ['countdown', 'running'].includes(round.status));
   if (!state.room) return <RaceCreateScreen authenticated={Boolean(session)} busy={busy} error={state.error} onBack={onBack} onAccount={onAccount} onCreate={create} onJoin={join} />;
   if (showingResult) return <RaceResultsScreen room={state.room} onContinue={() => void continueToLobby()} />;
-  if (racing) return <RaceGameScreen room={state.room} connected={state.connected} pending={Boolean(state.pendingEventId)} progress={state.progress} onAnswer={answer} onExit={() => void leave()} />;
-  return <RaceLobbyScreen room={state.room} connected={state.connected} busy={busy} onReady={(ready) => socketRef.current?.sendReady(ready)} onStart={() => void start()} onUpdate={(input) => void update(input)} onLeave={() => void leave()} />;
+  if (racing) return <RaceGameScreen clock={clock} room={state.room} connected={state.connected} pending={Boolean(state.pendingEventId)} progress={state.progress} onAnswer={answer} onExit={() => void leave()} />;
+  return <RaceLobbyScreen prepared={synchronized && preparedScope === state.room.scope} error={state.error} room={state.room} connected={state.connected} busy={busy} onReady={(ready) => { if (!ready || (clock.ready && preparedScope === state.room?.scope)) socketRef.current?.sendReady(ready); }} onStart={() => void start()} onUpdate={(input) => void update(input)} onLeave={() => void leave()} />;
 }

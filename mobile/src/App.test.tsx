@@ -13,6 +13,9 @@ const apiMocks = vi.hoisted(() => ({
   loadRankingSession: vi.fn(),
   requestPasswordReset: vi.fn(),
 }));
+const capacitorAppMocks = vi.hoisted(() => ({
+  getInfo: vi.fn(),
+}));
 
 vi.mock('@capacitor/core', () => ({
   Capacitor: { isNativePlatform: () => false },
@@ -23,6 +26,7 @@ vi.mock('@capacitor/app', () => ({
   App: {
     addListener: vi.fn(),
     exitApp: vi.fn(),
+    getInfo: capacitorAppMocks.getInfo,
   },
 }));
 
@@ -59,6 +63,7 @@ vi.mock('./services/api', () => {
   }
   return {
     ApiError,
+    apiBaseUrl: 'https://api.example.test',
     authenticatedRequest: vi.fn(),
     beginCareerAttempt: vi.fn(),
     clearRankingSession: apiMocks.clearRankingSession,
@@ -101,6 +106,8 @@ describe('App', () => {
     apiMocks.flushPendingRanking.mockResolvedValue(false);
     apiMocks.loadRankingSession.mockReset();
     apiMocks.loadRankingSession.mockResolvedValue(null);
+    capacitorAppMocks.getInfo.mockReset();
+    capacitorAppMocks.getInfo.mockResolvedValue({ version: '1.0.0' });
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -167,6 +174,37 @@ describe('App', () => {
 
     expect(apiMocks.clearRankingSession).toHaveBeenCalledTimes(1);
     expect(container.textContent).toContain('Tu sesión de clasificación venció. Inicia sesión de nuevo para publicar resultados.');
+  });
+
+  it('asks for confirmation before signing out from Settings', async () => {
+    apiMocks.loadRankingSession.mockResolvedValue({ accessToken: 'token', refreshToken: 'refresh-token', username: 'atlas' });
+    await act(async () => {
+      root.render(<I18nProvider><App /></I18nProvider>);
+    });
+
+    await act(async () => {
+      (container.querySelector('button[aria-label="Ajustes"]') as HTMLButtonElement).click();
+    });
+    await act(async () => buttonWithText(container, 'Cerrar sesión').click());
+
+    expect(apiMocks.clearRankingSession).not.toHaveBeenCalled();
+    expect(container.textContent).toContain('Dejarás de publicar resultados desde este dispositivo.');
+
+    await act(async () => buttonWithText(container, 'Cancelar').click());
+    expect(container.textContent).toContain('Conectado como atlas');
+    expect(apiMocks.clearRankingSession).not.toHaveBeenCalled();
+  });
+
+  it('shows the installed app version in Settings', async () => {
+    capacitorAppMocks.getInfo.mockResolvedValue({ version: '2.4.0' });
+    await act(async () => {
+      root.render(<I18nProvider><App /></I18nProvider>);
+    });
+    await act(async () => {
+      (container.querySelector('button[aria-label="Ajustes"]') as HTMLButtonElement).click();
+    });
+
+    expect(container.textContent).toContain('Versión 2.4.0');
   });
 
   it('reinicia la partida local y conserva país, preferencias y compra', async () => {

@@ -1,0 +1,110 @@
+:root {
+    color-scheme: light;
+    --page: #e8eee9;
+    --ink: #17322b;
+    --muted: #6f7e79;
+    --green: #1f7058;
+    --green-dark: #143e33;
+    --mint: #dff3e6;
+    --paper: #f8faf6;
+    --surface: #ffffff;
+    --line: #dce4de;
+}
+
+* { box-sizing: border-box; }
+
+html, body { min-height: 100%; margin: 0; }
+
+body {
+    min-height: 100vh;
+    color: var(--ink);
+    background: var(--page);
+    font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+.verification-page {
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+    padding: 24px;
+    background:
+        radial-gradient(circle at 12% 8%, rgba(92, 171, 127, .2), transparent 28rem),
+        radial-gradient(circle at 91% 95%, rgba(231, 174, 59, .15), transparent 24rem),
+        var(--page);
+}
+
+.verification-card {
+    width: min(100%, 460px);
+    padding: 36px 28px 30px;
+    text-align: center;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    box-shadow: 0 18px 45px rgba(20, 62, 51, .13);
+}
+
+.brand-mark {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    border-radius: 14px;
+}
+
+.eyebrow {
+    margin: 12px 0 0;
+    color: var(--green);
+    font: 800 10px/1.4 'Manrope', 'DM Sans', sans-serif;
+    letter-spacing: .12em;
+}
+
+.success-icon {
+    display: grid;
+    place-items: center;
+    width: 72px;
+    height: 72px;
+    margin: 28px auto 18px;
+    color: var(--green);
+    background: var(--mint);
+    border-radius: 50%;
+}
+
+.success-icon svg { width: 38px; height: 38px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2.4; }
+
+h1 {
+    margin: 0;
+    font: 800 clamp(26px, 7vw, 32px)/1.1 'Manrope', 'DM Sans', sans-serif;
+    letter-spacing: -.04em;
+}
+
+.message { margin: 8px 0 25px; color: var(--muted); font-size: 15px; }
+
+.next-step {
+    display: grid;
+    grid-template-columns: 26px 1fr;
+    gap: 12px 11px;
+    padding: 18px;
+    text-align: left;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+}
+
+.next-step p { align-self: center; margin: 0; font-size: 14px; line-height: 1.45; }
+
+.step-number {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    color: #fff;
+    background: var(--green);
+    border-radius: 50%;
+    font: 800 12px 'Manrope', 'DM Sans', sans-serif;
+}
+
+.note { margin: 21px 6px 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+
+@media (max-width: 360px) {
+    .verification-page { padding: 14px; }
+    .verification-card { padding: 28px 20px 24px; border-radius: 24px; }
+}

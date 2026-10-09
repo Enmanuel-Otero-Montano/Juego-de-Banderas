@@ -75,13 +75,13 @@ describe('cliente de cuentas', () => {
     const fetchMock = vi.fn().mockResolvedValue(Response.json({ msg: 'ok' }));
     vi.stubGlobal('fetch', fetchMock);
 
-    await resendVerificationEmail('atlas@example.com');
+    await resendVerificationEmail('atlas@example.com', 'es');
     expect(fetchMock).toHaveBeenCalledWith(
       'http://127.0.0.1:8000/resend-verification-email',
       expect.objectContaining({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: '"atlas@example.com"',
+        body: '{"email":"atlas@example.com","language":"es"}',
       }),
     );
   });
@@ -94,6 +94,8 @@ describe('cliente de cuentas', () => {
       username: 'atlas',
       email: 'atlas@example.com',
       password: 'secure-pass',
+      language: 'es',
+      avatar: new File(['avatar'], 'avatar.png', { type: 'image/png' }),
     })).resolves.toEqual({ verification_email_sent: false });
   });
 

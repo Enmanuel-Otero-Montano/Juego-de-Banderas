@@ -3,6 +3,7 @@ import { Share } from '@capacitor/share';
 import { useI18n } from '../i18n';
 import type { RaceDifficulty, RaceIntermissionState, RaceRoom, RaceScope } from './contract';
 import { raceText } from './raceCopy';
+import { apiBaseUrl } from '../services/api';
 
 const statusKey = (member: RaceRoom['members'][number]): 'disconnected' | 'ready' | 'reviewing' | 'break' | 'connected' | 'notReady' => {
   if (!member.connected) return 'disconnected';
@@ -12,8 +13,10 @@ const statusKey = (member: RaceRoom['members'][number]): 'disconnected' | 'ready
   return member.intermission_state === 'in_lobby' ? 'connected' : 'notReady';
 };
 
-export function RaceLobbyScreen({ room, connected, busy, onReady, onStart, onUpdate, onLeave }: {
+export function RaceLobbyScreen({ room, connected, prepared, error, busy, onReady, onStart, onUpdate, onLeave }: {
   room: RaceRoom;
+  prepared: boolean;
+  error: string | null;
   connected: boolean;
   busy: boolean;
   onReady: (ready: boolean) => void;
@@ -26,7 +29,7 @@ export function RaceLobbyScreen({ room, connected, busy, onReady, onStart, onUpd
   const me = room.members.find((member) => member.user_id === room.current_user_id);
   const isHost = room.host_user_id === room.current_user_id;
   const waiting = room.members.filter((member) => !member.ready).length;
-  const canStart = connected && room.members.length >= 2 && room.members.every((member) => member.connected && member.ready);
+  const canStart = connected && prepared && room.members.length >= 2 && room.members.every((member) => member.connected && member.ready);
   const share = async () => {
     const title = text('mode');
     const message = `${title}\n${room.code}\n${room.invite_url}`;
@@ -52,7 +55,7 @@ export function RaceLobbyScreen({ room, connected, busy, onReady, onStart, onUpd
       {room.members.map((member) => {
         const key = statusKey(member);
         return <article className={`race-player race-player--${key}`} key={member.user_id}>
-          <span className="race-player__avatar">{member.display_name.slice(0, 1).toUpperCase()}</span>
+          {member.avatar_url ? <img className="race-player__avatar" src={`${apiBaseUrl}${member.avatar_url}`} alt={member.display_name} /> : <span className="race-player__avatar">{member.display_name.slice(0, 1).toUpperCase()}</span>}
           <span><strong>{member.display_name} {member.user_id === room.current_user_id && <small>({text('you')})</small>}</strong>
             <small>{key === 'disconnected' && <WifiOff size={13} />} {text(key)}</small></span>
           {member.role === 'host' ? <Crown aria-label={text('host')} /> : member.ready ? <Check /> : null}
@@ -62,8 +65,10 @@ export function RaceLobbyScreen({ room, connected, busy, onReady, onStart, onUpd
     </section>
     {waiting > 0 && <p className="race-waiting">{text(waiting === 1 ? 'waitingOne' : 'waitingMany', { count: waiting })}</p>}
     {!connected && <p className="race-connection-warning"><WifiOff /> {text('unstable')}</p>}
+    {error && <p role="alert">{error}</p>}
+    {!prepared && <p role="status">{text('notReady')}…</p>}
     <div className="race-lobby-actions">
-      <button className={me?.ready ? 'secondary-button' : 'primary-button'} disabled={!connected} onClick={() => onReady(!me?.ready)}>
+      <button className={me?.ready ? 'secondary-button' : 'primary-button'} disabled={!connected || !prepared} onClick={() => onReady(!me?.ready)}>
         {me?.ready ? text('notReady') : text('ready')}
       </button>
       {isHost && <button className="primary-button" disabled={!canStart || busy} onClick={onStart}>{text('start')}</button>}

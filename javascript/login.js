@@ -7,7 +7,7 @@ const sendNewVerification = (email) => {
   return fetch(`${BASE_API_URL}/resend-verification-email`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(email)
+    body: JSON.stringify({ email, language: document.documentElement.lang || 'en' })
   })
     .then(response => {
       if (!response.ok) throw new Error('Error al reenviar el correo de verificación');

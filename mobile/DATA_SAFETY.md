@@ -23,6 +23,7 @@ Fuentes oficiales usadas:
 | --- | --- | --- | --- | --- | --- |
 | Información personal → Dirección de correo | Sí | No | Opcional | Funcionalidad de la app; gestión de cuentas | Cuenta de ranking opcional. |
 | Identificadores → ID de usuario | Sí | No | Opcional | Funcionalidad de la app; gestión de cuentas; prevención de fraude/seguridad | ID de la cuenta y alias de ranking. |
+| Fotos y vídeos → Fotos | Sí | No | Opcional | Funcionalidad de la app | Foto de perfil que el usuario selecciona voluntariamente. Se muestra junto con su alias en clasificaciones y carreras multijugador, puede reemplazarse o eliminarse y no se usa para publicidad. |
 | Actividad en la app → Interacciones con la app | Sí | Sí | Para la versión gratuita con anuncios | Publicidad/marketing; analíticas; prevención de fraude/seguridad; funcionalidad | Google Mobile Ads recoge interacciones. El backend también procesa resultados de Viaje, sin compartirlos. |
 | Actividad en la app → Otro contenido generado por el usuario u otras acciones | Sí | No | Opcional | Funcionalidad de la app; prevención de fraude/seguridad | Dificultad, etapa, aciertos, tiempo, errores y pistas del ranking. Elegir la categoría equivalente que muestre la versión vigente del formulario. |
 | Ubicación → Ubicación aproximada | Sí | Sí | Para la versión gratuita con anuncios | Publicidad/marketing; analíticas; prevención de fraude/seguridad | AdMob puede derivarla de la dirección IP. La app no solicita permiso de ubicación. |

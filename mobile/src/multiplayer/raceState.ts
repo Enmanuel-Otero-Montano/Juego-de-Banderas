@@ -34,14 +34,18 @@ export const raceReducer = (state: RaceState, action: RaceAction): RaceState => 
   if (action.type === 'connection') return { ...state, connected: action.connected };
   if (action.type === 'error') return { ...state, error: action.message, pendingEventId: null };
   if (action.type === 'round_started') {
-    return state.room ? { ...state, room: withRound(state.room, action.round), dismissedResultId: null, error: null } : state;
+    const current = state.room?.current_round;
+    if (!state.room || (action.round.revision !== undefined && action.round.revision < state.revision) ||
+      (current && action.round.number <= current.number)) return state;
+    return { ...state, room: withRound(state.room, action.round), revision: action.round.revision ?? state.revision,
+      pendingEventId: null, progress: {}, dismissedResultId: null, error: null };
   }
   if (action.type === 'dismiss_result') return { ...state, dismissedResultId: action.roundId };
   if (action.type === 'answer_sent') {
     const room = state.room;
     const round = room?.current_round;
     const participant = round?.participant;
-    if (!room || !round || !participant) return state;
+    if (!room || !round || !participant || state.pendingEventId || !['countdown', 'running'].includes(round.status)) return state;
     return {
       ...state,
       pendingEventId: action.eventId,
@@ -55,12 +59,27 @@ export const raceReducer = (state: RaceState, action: RaceAction): RaceState => 
   }
 
   const message = action.message;
+  const current = state.room?.current_round;
+  // A room revision orders snapshots, but an answer ack can arrive after a
+  // newer progress event for somebody else. Match that ack by round + event.
+  const matchingAck = message.type === 'answer_result' && message.event_id === state.pendingEventId;
+  if ((message.revision || 0) < state.revision && !matchingAck) return state;
+  if (message.round_id && message.round_id !== current?.id) return state;
   const revision = Math.max(state.revision, message.revision || 0);
   if ((message.type === 'snapshot' || message.type === 'lobby_state') && message.room) {
-    return { ...state, room: message.room, revision, pendingEventId: null, error: null };
+    const incoming = message.room.current_round;
+    if (current && incoming && (incoming.number < current.number ||
+      (incoming.id === current.id && ['finished', 'expired', 'cancelled'].includes(current.status) &&
+        ['countdown', 'running'].includes(incoming.status)))) return state;
+    if (message.revision === state.revision && state.pendingEventId && incoming?.id === current?.id &&
+      incoming?.participant?.expected_sequence === current?.participant?.expected_sequence) return state;
+    return { ...state, room: message.room, revision, pendingEventId: null,
+      progress: incoming?.id !== current?.id ? {} : state.progress, error: null };
   }
   if (message.type === 'countdown' && message.round && state.room) {
-    return { ...state, room: withRound(state.room, message.round), revision, progress: {}, dismissedResultId: null, error: null };
+    if (current && message.round.number <= current.number) return state;
+    return { ...state, room: withRound(state.room, message.round), revision, pendingEventId: null,
+      progress: {}, dismissedResultId: null, error: null };
   }
   if (message.type === 'progress' && message.participants) {
     return {
@@ -80,6 +99,9 @@ export const raceReducer = (state: RaceState, action: RaceAction): RaceState => 
   }
   if (message.type === 'answer_result' && state.room?.current_round?.participant) {
     const participant = state.room.current_round.participant;
+    if (!['countdown', 'running'].includes(state.room.current_round.status) ||
+      (message.expected_sequence ?? 0) < participant.expected_sequence ||
+      (state.pendingEventId && !matchingAck)) return state;
     return {
       ...state,
       revision,

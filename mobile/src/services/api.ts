@@ -26,6 +26,7 @@ export interface LeaderboardEntry {
   country: string | null;
   region: RegionKey | null;
   difficulty: Difficulty;
+  avatar_url: string | null;
   stages_completed: number;
   total_score: number;
   total_hints_used: number;
@@ -167,12 +168,12 @@ const refreshRankingSession = async (session: RankingSession): Promise<void> => 
 
 export const authenticatedRequest = async <T>(session: RankingSession, path: string, init: RequestInit = {}): Promise<T> => {
   try {
-    return await request<T>(path, { ...init, headers: authorization(session) });
+    return await request<T>(path, { ...init, headers: authorization(session, init) });
   } catch (error) {
     if (!(error instanceof ApiError) || error.status !== 401) throw error;
     try {
       await refreshRankingSession(session);
-      return await request<T>(path, { ...init, headers: authorization(session) });
+      return await request<T>(path, { ...init, headers: authorization(session, init) });
     } catch (refreshError) {
       if (typeof globalThis.dispatchEvent === 'function') globalThis.dispatchEvent(new Event(RANKING_SESSION_EXPIRED_EVENT));
       throw refreshError;
@@ -269,21 +270,22 @@ export interface RegisterRankingAccountResult {
   verification_email_sent: boolean;
 }
 
-export const registerRankingAccount = async (input: { username: string; email: string; password: string }): Promise<RegisterRankingAccountResult> => {
-  const form = new URLSearchParams({
-    username: input.username,
-    email: input.email,
-    password: input.password,
-    full_name: '',
-  });
+export const registerRankingAccount = async (input: { username: string; email: string; password: string; language: string; avatar: File | null }): Promise<RegisterRankingAccountResult> => {
+  const form = new FormData();
+  form.set('username', input.username);
+  form.set('email', input.email);
+  form.set('password', input.password);
+  form.set('language', input.language);
+  form.set('full_name', '');
+  if (input.avatar) form.set('profile_image', input.avatar);
   return request<RegisterRankingAccountResult>('/register', { method: 'POST', body: form });
 };
 
-export const resendVerificationEmail = async (email: string): Promise<void> => {
+export const resendVerificationEmail = async (email: string, language: string): Promise<void> => {
   await request('/resend-verification-email', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(email),
+    body: JSON.stringify({ email, language }),
   });
 };
 
@@ -304,10 +306,18 @@ export const loginRankingAccount = async (username: string, password: string): P
   return session;
 };
 
-const authorization = (session: RankingSession): HeadersInit => ({
-  Authorization: `Bearer ${session.accessToken}`,
-  'Content-Type': 'application/json',
-});
+const authorization = (session: RankingSession, init: RequestInit = {}): HeadersInit => {
+  const headers = init.headers instanceof Headers
+    ? Object.fromEntries(init.headers.entries())
+    : Array.isArray(init.headers)
+      ? Object.fromEntries(init.headers)
+      : { ...(init.headers || {}) };
+  headers.Authorization = `Bearer ${session.accessToken}`;
+  if (!(init.body instanceof FormData) && !Object.keys(headers).some((name) => name.toLowerCase() === 'content-type')) {
+    headers['Content-Type'] = 'application/json';
+  }
+  return headers;
+};
 
 export const updateRankingProfile = async (
   session: RankingSession,
@@ -316,6 +326,13 @@ export const updateRankingProfile = async (
   method: 'PUT',
   body: JSON.stringify({ display_name: input.displayName || '', country: input.country }),
 });
+
+export const updateProfileAvatar = async (session: RankingSession, image: File | null): Promise<{ avatar_url: string | null }> => {
+  const form = new FormData();
+  if (image) form.append('profile_image', image);
+  else form.append('delete_current_profile_image', 'true');
+  return authenticatedRequest(session, '/users/me/avatar', { method: 'PUT', body: form });
+};
 
 export const beginCareerAttempt = async (
   session: RankingSession,

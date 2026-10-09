@@ -3,6 +3,7 @@ import { Share } from '@capacitor/share';
 import { useI18n } from '../i18n';
 import type { RaceRoom } from './contract';
 import { raceText } from './raceCopy';
+import { apiBaseUrl } from '../services/api';
 
 export function RaceResultsScreen({ room, onContinue }: { room: RaceRoom; onContinue: () => void }) {
   const { language } = useI18n();
@@ -19,7 +20,7 @@ export function RaceResultsScreen({ room, onContinue }: { room: RaceRoom; onCont
       <h1>{winner?.display_name || text('result')}</h1><p>{text('winner')}</p></section>
     <section className="race-standings">
       {standings.map((standing) => <article className={standing.user_id === room.current_user_id ? 'race-standing race-standing--me' : 'race-standing'} key={standing.user_id}>
-        <strong>{standing.rank}</strong><span>{standing.display_name}{standing.user_id === room.current_user_id ? ` · ${text('you')}` : ''}</span>
+        <strong>{standing.rank}</strong>{standing.avatar_url ? <img className="race-standing__avatar" src={`${apiBaseUrl}${standing.avatar_url}`} alt={standing.display_name} /> : <span className="race-standing__avatar">{standing.display_name.slice(0, 1).toUpperCase()}</span>}<span>{standing.display_name}{standing.user_id === room.current_user_id ? ` · ${text('you')}` : ''}</span>
         <span>{standing.progress}/12<small>{text('mistakes', { count: standing.mistakes })}</small></span>
       </article>)}
     </section>

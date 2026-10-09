@@ -8,6 +8,7 @@ formSubmitRegister.addEventListener('submit', function(event) {
     event.preventDefault()
 
     const formData = new FormData(event.target)
+    formData.set('language', document.documentElement.lang || 'en');
     const loadingIndicator = document.querySelector('.loading-indicator-register');
     loadingIndicator.classList.add('loading-indicator-register-show');
     
