@@ -4,7 +4,8 @@ import type { RaceClock } from './raceClock';
 import { Flag, preloadFlags } from '../components/Flag';
 import { getCountryByCode, getCountryName } from '../data/countries';
 import { useI18n } from '../i18n';
-import type { RaceRoom } from './contract';
+import { RACE_FLAGS_TOTAL, type RaceRoom } from './contract';
+import { RaceWorldMap } from './RaceWorldMap';
 import { raceText } from './raceCopy';
 
 export function RaceGameScreen({ room, clock, connected, pending, progress, onAnswer, onExit }: {
@@ -20,6 +21,7 @@ export function RaceGameScreen({ room, clock, connected, pending, progress, onAn
   const text = (key: Parameters<typeof raceText>[1], values?: Record<string, string | number>) => raceText(language, key, values);
   const round = room.current_round!;
   const participant = round.participant!;
+  const total = round.plan?.length || RACE_FLAGS_TOTAL;
   const [now, setNow] = useState(() => clock.now());
   const [preparedRound, setPreparedRound] = useState<string | null>(null);
   useEffect(() => {
@@ -57,19 +59,13 @@ export function RaceGameScreen({ room, clock, connected, pending, progress, onAn
     <header className="race-game-header">
       <button className="icon-button icon-button--light" onClick={onExit} aria-label={text('leave')}><X /></button>
       <div className="race-timer" aria-label={text('time')}>{Number.isFinite(secondsLeft) ? `${secondsLeft}s` : '…'}</div>
-      <strong>{text('progress', { current: participant.progress })}</strong>
+      <strong>{participant.progress}/{total}</strong>
     </header>
-    <section className="race-progress-track" aria-label={text('progress', { current: participant.progress })}>
-      {room.members.map((member) => {
-        const value = member.user_id === room.current_user_id ? participant.progress : (progress[member.user_id]?.progress || 0);
-        return <div className="race-progress-player" style={{ '--race-progress': `${(value / 12) * 100}%` } as React.CSSProperties} key={member.user_id}>
-          <span>{member.display_name.slice(0, 1).toUpperCase()}</span><small>{value}/12</small>
-        </div>;
-      })}
-    </section>
-    {!connected && <p className="race-connection-warning"><WifiOff /> {text('unstable')}</p>}
+    <RaceWorldMap key={round.id} members={room.members} currentUserId={room.current_user_id}
+      localProgress={participant.progress} localSequence={participant.expected_sequence} total={total} progress={progress} pending={pending} connected={connected} />
     <section className="race-question">
       <p>{text('question')}</p><Flag code={answer.code} name={getCountryName(answer, language)} size="hero" />
+      {!connected && <p className="race-connection-warning" role="status"><WifiOff /> {text('unstable')}</p>}
     </section>
     <div className="race-answer-grid">
       {optionCountries.map((country) => {

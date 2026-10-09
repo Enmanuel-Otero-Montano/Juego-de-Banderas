@@ -39,6 +39,7 @@ beforeEach(() => {
   (globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;
   vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => { tick = callback; return 1; });
   vi.stubGlobal('cancelAnimationFrame', vi.fn());
+  vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} });
   vi.mocked(preloadFlags).mockResolvedValue(undefined);
   onAnswer.mockClear();
   now = 1000;

@@ -5,3 +5,5 @@ dist/
 .env.production
 *.tsbuildinfo
 android/keystore.properties
+
+test-artifacts/
