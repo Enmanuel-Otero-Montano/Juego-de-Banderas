@@ -49,6 +49,7 @@ import { BackdropProvider, backdropOptions, useBackdrop } from './backdrop';
 import { playRegion } from './regionBackdrop';
 import { ThemeProvider, themeOptions, useTheme } from './theme';
 import { leaderboardContextTitle, leaderboardEntryShowsCountry, type LeaderboardScope } from './leaderboard';
+import { validateAvatarFile } from './avatarValidation';
 import { recordDiagnostic } from './services/diagnostics';
 import { monetization } from './services/monetization';
 import { chooseDifficultyCountries, difficultyRules } from './rules';
@@ -1303,9 +1304,23 @@ function SettingsScreen({ profile, session, adPrivacyOptionsRequired, setProfile
 
   const selectAvatar = async (file: File | null) => {
     if (!file) return;
+    const validationError = validateAvatarFile(file);
+    if (validationError) {
+      setAvatarError(t(validationError === 'size' ? 'settings.avatarTooLarge' : 'settings.avatarInvalidType'));
+      if (avatarInput.current) avatarInput.current.value = '';
+      return;
+    }
     setAvatarBusy(true);
     setAvatarError('');
-    try { await onAvatarChange(file); } catch { setAvatarError(t('settings.avatarError')); }
+    try {
+      await onAvatarChange(file);
+    } catch (error) {
+      setAvatarError(t(error instanceof ApiError && error.status === 413
+        ? 'settings.avatarTooLarge'
+        : error instanceof ApiError && error.status === 415
+          ? 'settings.avatarInvalidType'
+          : 'settings.avatarError'));
+    }
     finally { setAvatarBusy(false); if (avatarInput.current) avatarInput.current.value = ''; }
   };
 
@@ -1368,6 +1383,7 @@ function SettingsScreen({ profile, session, adPrivacyOptionsRequired, setProfile
                   <button className="secondary-button" disabled={avatarBusy} onClick={() => avatarInput.current?.click()}><Camera /> {t('settings.avatarChange')}</button>
                   <button className="text-button" disabled={avatarBusy} onClick={() => { void removeAvatar(); }}>{t('settings.avatarRemove')}</button>
                 </div>
+                <small>{t('settings.avatarRequirements')}</small>
               </> : <>
                 <small>{t('settings.signInToManageAvatar')}</small>
                 <button className="secondary-button" onClick={onAccount}><ShieldCheck /> {t('account.login')}</button>
@@ -1386,7 +1402,7 @@ function SettingsScreen({ profile, session, adPrivacyOptionsRequired, setProfile
             </label>
             <small>{aliasDraft.trim().length}/24</small>
             <div className="modal-actions">
-              <button className="primary-button" onClick={saveAlias}>{t('common.save')}</button>
+              <button className="primary-button" disabled={avatarBusy || Boolean(avatarError)} onClick={saveAlias}>{avatarBusy ? t('settings.avatarUploading') : t('common.save')}</button>
               <button className="secondary-button" onClick={() => setProfileEditorOpen(false)}>{t('common.cancel')}</button>
             </div>
           </section>
@@ -1414,7 +1430,7 @@ function PrivacyScreen({ onBack }: { onBack: () => void }) {
         <h2>{t('privacy.purchasesTitle')}</h2>
         <p>{t('privacy.purchases')}</p>
         <h2>{t('privacy.controlTitle')}</h2>
-        <p>{t('privacy.control')} <a href="mailto:gamoying@gmail.com">gamoying@gmail.com</a>.</p>
+        <p>{t('privacy.control')} <a href="mailto:soporte@ofiul.com">soporte@ofiul.com</a>.</p>
         <p>{t('privacy.age')}</p>
       </section>
     </main>

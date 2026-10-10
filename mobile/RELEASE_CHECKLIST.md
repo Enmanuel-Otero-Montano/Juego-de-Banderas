@@ -17,7 +17,7 @@
 - [ ] Registrar el nombre de paquete antes del **30 de septiembre de 2026**, fecha límite de la verificación de desarrolladores de Android.
 - [ ] Confirmar que el identificador definitivo sea `com.enmanuelotero.atlasflags`. No puede cambiarse después de publicar la app.
 - [ ] Registrar el paquete y preparar la ficha “Banderas, Países y Regiones”, categoría Educación, audiencia 13+, “contiene anuncios” y “compras dentro de la app”.
-- [ ] Definir precio, países de distribución, correo/teléfono/sitio de contacto y confirmar que `gamoying@gmail.com` exista y sea atendido.
+- [ ] Definir precio, países de distribución, correo/teléfono/sitio de contacto y confirmar que `soporte@ofiul.com` exista y sea atendido.
 
 ### Licencias y firma
 

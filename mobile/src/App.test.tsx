@@ -12,6 +12,7 @@ const apiMocks = vi.hoisted(() => ({
   flushPendingRanking: vi.fn(),
   loadRankingSession: vi.fn(),
   requestPasswordReset: vi.fn(),
+  updateProfileAvatar: vi.fn(),
 }));
 const capacitorAppMocks = vi.hoisted(() => ({
   getInfo: vi.fn(),
@@ -80,6 +81,7 @@ vi.mock('./services/api', () => {
     requestPasswordReset: apiMocks.requestPasswordReset,
     resendVerificationEmail: vi.fn(),
     startPendingRankingAttempt: vi.fn(),
+    updateProfileAvatar: apiMocks.updateProfileAvatar,
     updateRankingProfile: vi.fn(),
   };
 });
@@ -106,6 +108,8 @@ describe('App', () => {
     apiMocks.flushPendingRanking.mockResolvedValue(false);
     apiMocks.loadRankingSession.mockReset();
     apiMocks.loadRankingSession.mockResolvedValue(null);
+    apiMocks.updateProfileAvatar.mockReset();
+    apiMocks.updateProfileAvatar.mockResolvedValue({ avatar_url: '/user/1/profile_image' });
     capacitorAppMocks.getInfo.mockReset();
     capacitorAppMocks.getInfo.mockResolvedValue({ version: '1.0.0' });
     container = document.createElement('div');
@@ -205,6 +209,52 @@ describe('App', () => {
     });
 
     expect(container.textContent).toContain('Versión 2.4.0');
+  });
+
+  it('muestra el límite al elegir una foto demasiado grande y mantiene abierto el perfil', async () => {
+    apiMocks.loadRankingSession.mockResolvedValue({ accessToken: 'token', refreshToken: 'refresh-token', username: 'atlas', userId: 1 });
+    await act(async () => {
+      root.render(<I18nProvider><App /></I18nProvider>);
+    });
+    await act(async () => {
+      (container.querySelector('button[aria-label="Ajustes"]') as HTMLButtonElement).click();
+    });
+    await act(async () => buttonWithText(container, 'Perfil').click());
+
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const oversized = new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'avatar.png', { type: 'image/png' });
+    Object.defineProperty(input, 'files', { configurable: true, value: [oversized] });
+    await act(async () => input.dispatchEvent(new Event('change', { bubbles: true })));
+
+    expect(apiMocks.updateProfileAvatar).not.toHaveBeenCalled();
+    expect(container.textContent).toContain('La foto supera el límite de 5 MB');
+    expect(container.querySelector('.alias-modal')).not.toBeNull();
+    expect(buttonWithText(container, 'Guardar').disabled).toBe(true);
+  });
+
+  it('no permite cerrar el perfil con Guardar mientras la foto se está subiendo', async () => {
+    let finishUpload!: (value: { avatar_url: string }) => void;
+    apiMocks.updateProfileAvatar.mockReturnValue(new Promise((resolve) => { finishUpload = resolve; }));
+    apiMocks.loadRankingSession.mockResolvedValue({ accessToken: 'token', refreshToken: 'refresh-token', username: 'atlas', userId: 1 });
+    await act(async () => {
+      root.render(<I18nProvider><App /></I18nProvider>);
+    });
+    await act(async () => {
+      (container.querySelector('button[aria-label="Ajustes"]') as HTMLButtonElement).click();
+    });
+    await act(async () => buttonWithText(container, 'Perfil').click());
+
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    const valid = new File(['avatar'], 'avatar.png', { type: 'image/png' });
+    Object.defineProperty(input, 'files', { configurable: true, value: [valid] });
+    await act(async () => input.dispatchEvent(new Event('change', { bubbles: true })));
+
+    expect(apiMocks.updateProfileAvatar).toHaveBeenCalledWith(expect.objectContaining({ userId: 1 }), valid);
+    expect(buttonWithText(container, 'Subiendo foto…').disabled).toBe(true);
+    expect(container.querySelector('.alias-modal')).not.toBeNull();
+
+    await act(async () => finishUpload({ avatar_url: '/user/1/profile_image' }));
+    expect(buttonWithText(container, 'Guardar').disabled).toBe(false);
   });
 
   it('reinicia la partida local y conserva país, preferencias y compra', async () => {
