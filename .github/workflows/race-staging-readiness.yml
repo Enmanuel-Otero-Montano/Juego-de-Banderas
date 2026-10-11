@@ -29,6 +29,10 @@ jobs:
           java-version: "21"
           cache: gradle
       - uses: android-actions/setup-android@v3
+        with:
+          # El paquete SDK "tools" ya no existe; instalar sólo la herramienta
+          # actual que requiere el build antes de añadir platform/build-tools 36.
+          packages: platform-tools
       - name: Install Android SDK 36
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
       - name: Install app dependencies
