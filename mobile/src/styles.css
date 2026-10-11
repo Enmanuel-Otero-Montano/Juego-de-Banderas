@@ -789,7 +789,7 @@ html[data-backdrop="varied"] .game-screen[data-region] .journey-feedback {
 /* Flag Race -------------------------------------------------------------- */
 .mode-card--race { background: linear-gradient(135deg, color-mix(in srgb, var(--surface) 92%, #14a3a8), var(--surface)); }
 .mode-card__icon--race { background: #daf5f3; color: #087b80; }
-.race-create-screen, .race-lobby-screen, .race-results-screen { padding-bottom: 36px; }
+.race-create-screen, .race-lobby-screen, .race-results-screen { padding-bottom: calc(112px + env(safe-area-inset-bottom)); }
 .race-heading { display: grid; grid-template-columns: 42px 1fr; gap: 14px; align-items: start; margin-bottom: 22px; }
 .race-heading h1 { margin: 2px 0 6px; }
 .race-heading p:last-child { margin: 0; color: var(--muted); }
@@ -819,6 +819,9 @@ html[data-backdrop="varied"] .game-screen[data-region] .journey-feedback {
 .race-invite-card > div { display: grid; gap: 2px; }
 .race-invite-card strong { font: 800 1.55rem/1.1 ui-monospace, monospace; letter-spacing: .16em; }
 .race-host-settings { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.race-host-settings label { display: flex; align-items: center; gap: 9px; }
+.race-host-settings label > span { white-space: nowrap; }
+.race-host-settings select { flex: 1; width: auto; min-width: 0; }
 .race-roster { display: grid; gap: 9px; margin-top: 12px; }
 .race-player { display: grid; grid-template-columns: 42px 1fr auto; align-items: center; gap: 10px; min-height: 52px; padding: 7px; border-radius: 14px; background: color-mix(in srgb, var(--surface) 88%, var(--paper)); }
 .race-player__avatar { display: grid; place-items: center; width: 38px; height: 38px; overflow: hidden; border-radius: 50%; background: #daf5f3; color: #087b80; font-weight: 800; object-fit: cover; }
