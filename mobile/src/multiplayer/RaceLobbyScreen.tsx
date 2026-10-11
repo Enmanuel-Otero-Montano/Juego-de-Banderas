@@ -44,10 +44,10 @@ export function RaceLobbyScreen({ room, connected, prepared, error, busy, onRead
     <section className="race-invite-card"><div><small>{text('code')}</small><strong>{room.code}</strong></div>
       <button className="secondary-button" onClick={() => void share()}><Share2 /> {text('share')}</button></section>
     {isHost && <section className="race-host-settings">
-      <label>{text('route')}<select value={room.scope} disabled={busy} onChange={(event) => onUpdate({ scope: event.target.value as RaceScope })}>
+      <label><span>{text('route')}</span><select value={room.scope} disabled={busy} onChange={(event) => onUpdate({ scope: event.target.value as RaceScope })}>
         {(['World', 'Americas', 'Europe', 'Asia', 'Africa', 'Oceania'] as RaceScope[]).map((value) => <option value={value} key={value}>{text(value)}</option>)}
       </select></label>
-      <label>{text('difficulty')}<select value={room.difficulty} disabled={busy} onChange={(event) => onUpdate({ difficulty: event.target.value as RaceDifficulty })}>
+      <label><span>{text('difficulty')}</span><select value={room.difficulty} disabled={busy} onChange={(event) => onUpdate({ difficulty: event.target.value as RaceDifficulty })}>
         {(['easy', 'normal', 'hard'] as RaceDifficulty[]).map((value) => <option value={value} key={value}>{text(value)}</option>)}
       </select></label>
     </section>}
