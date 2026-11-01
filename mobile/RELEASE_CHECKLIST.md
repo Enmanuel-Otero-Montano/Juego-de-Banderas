@@ -14,8 +14,8 @@
 ### Identidad y Play Console
 
 - [ ] Crear o verificar la cuenta de Google Play Console con los datos legales del titular y completar cualquier verificación de identidad/dispositivo que solicite Google.
-- [ ] Registrar el nombre de paquete antes del **30 de septiembre de 2026**, fecha límite de la verificación de desarrolladores de Android.
-- [ ] Confirmar que el identificador definitivo sea `com.enmanuelotero.atlasflags`. No puede cambiarse después de publicar la app.
+- [x] Registrar el nombre de paquete antes del **30 de septiembre de 2026**, fecha límite de la verificación de desarrolladores de Android.
+- [x] Confirmar que el identificador definitivo sea `com.enmanuelotero.atlasflags`. No puede cambiarse después de publicar la app.
 - [ ] Registrar el paquete y preparar la ficha “Banderas, Países y Regiones”, categoría Educación, audiencia 13+, “contiene anuncios” y “compras dentro de la app”.
 - [ ] Definir precio, países de distribución, correo/teléfono/sitio de contacto y confirmar que `soporte@ofiul.com` exista y sea atendido.
 
@@ -36,27 +36,30 @@
   keytool -genkeypair -v -keystore /ruta/segura/atlas-flags-upload.jks -alias atlas-flags-upload -keyalg RSA -keysize 4096 -validity 10000
   ```
 
-- [ ] Copiar `android/keystore.properties.example` a `android/keystore.properties` y completar sus cuatro valores.
-- [ ] Activar Play App Signing al crear la primera release.
+- [x] Copiar `android/keystore.properties.example` a `android/keystore.properties` y completar sus cuatro valores.
+- [x] Activar Play App Signing al crear la primera release.
 
 ### Servicios de producción
 
-- [ ] Desplegar la API en una URL HTTPS, con PostgreSQL, secreto aleatorio, SMTP real y los orígenes CORS mínimos. Ejecutar `alembic upgrade head` antes de iniciar la API.
-- [ ] Publicar `public/privacy.html` y `public/delete-account.html` en URLs HTTPS públicas y sin login.
-- [ ] Crear la app y las unidades rewarded/interstitial en AdMob. Configurar UMP/mensajes de privacidad y dispositivos de prueba.
-- [ ] Crear en Play Console el producto no consumible `atlas_pro_lifetime` (o elegir otro ID definitivo).
-- [ ] Vincular Google Play con RevenueCat; crear entitlement `premium`, offering predeterminada y paquete `lifetime` asociado al producto.
-- [ ] Copiar `.env.production.example` a `.env.production` y completar API, URLs públicas, IDs reales de AdMob, clave pública Android de RevenueCat, `ANDROID_VERSION_CODE` y `ANDROID_VERSION_NAME`.
+- [x] Desplegar la API en una URL HTTPS, con PostgreSQL, secreto aleatorio, SMTP real y los orígenes CORS mínimos. Ejecutar `alembic upgrade head` antes de iniciar la API.
+- [x] Publicar la privacidad y eliminación de cuenta en `https://ofiul.com/games/banderas-paises-y-regiones/`, con HTTPS válido y acceso sin login.
+- [x] Registrar en Play Console `https://ofiul.com/games/banderas-paises-y-regiones/privacy/` y `https://ofiul.com/games/banderas-paises-y-regiones/delete-account/`.
+- [ ] AdMob: unidades rewarded/interstitial activas y mensajes UMP publicados (RGPD y normativas estatales de EE. UU.). Pendiente vincular la ficha de Google Play y obtener la revisión de la app cuando esté publicada en producción.
+- [x] Crear en Play Console el producto no consumible `pro_passport_lifetime`.
+- [x] Vincular Google Play con RevenueCat; crear entitlement `premium`, offering predeterminada y paquete `lifetime` asociado al producto.
+- [x] Verificar una compra sandbox desde Google Play: RevenueCat recibe `pro_passport_lifetime`, activa `premium` con duración ilimitada y la app refleja el acceso Pro después de reiniciarla.
+- [x] Copiar `.env.production.example` a `.env.production` y completar API, URLs públicas, IDs reales de AdMob, clave pública Android de RevenueCat, `ANDROID_VERSION_CODE` y `ANDROID_VERSION_NAME`.
 
 ### Formularios, pruebas y envío
 
 - [ ] Revisar la puntuación con `docs/REVISAR_PUNTUACION.md` (qué entra al ranking, wizard de derrota y consistencia del puntaje publicado).
-- [ ] Completar Seguridad de los datos usando `DATA_SAFETY.md`, declaraciones de anuncios/compras, acceso a la app, clasificación de contenido y público objetivo.
-- [ ] Revisar y subir la ficha de `PLAY_STORE_LISTING.md`, icono, gráfico de funciones y las capturas de `play-assets/screenshots/`.
-- [ ] Generar el bundle firmado con `npm run android:bundle` y conservar el `.aab` y el mapping de R8.
+- [x] Completar Seguridad de los datos usando `DATA_SAFETY.md`, declaraciones de anuncios/compras, acceso a la app, clasificación de contenido y público objetivo.
+- [x] Revisar y subir la ficha de `PLAY_STORE_LISTING.md`, icono, gráfico de funciones y las capturas de `play-assets/screenshots/`.
+- [x] Generar el bundle firmado con `npm run android:bundle` y conservar el `.aab` y el mapping de R8.
 - [ ] Subir primero a prueba interna; instalar desde Google Play y probar alta/verificación/login/eliminación, ranking, compra/restauración, anuncios/consentimiento, modo avión, botón Atrás, rotación y al menos un equipo Android 7 y uno actual.
 - [ ] Corregir todo hallazgo del reporte previo al lanzamiento y recién después promover a producción.
-- [ ] Si la cuenta de desarrollador personal es nueva, completar la prueba cerrada y los requisitos de acceso a producción que Play Console indique.
+- [x] Completar la prueba cerrada exigida por Play Console con al menos 12 testers durante 14 días.
+- [x] Solicitar acceso a producción y responder el cuestionario sobre la prueba cerrada (enviada a revisión el 12 de octubre de 2026).
 
 ## Comandos finales
 

@@ -864,6 +864,10 @@ html[data-backdrop="varied"] .game-screen[data-region] .journey-feedback {
   .race-world-map--compact { flex-basis: 130px; }
 }
 .race-question p { margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; text-align: center; }
+.race-finish-waiting { align-content: center; text-align: center; }
+.race-finish-waiting > svg { width: 48px; height: 48px; color: #d39a23; }
+.race-finish-waiting h2 { margin: 0; }
+.race-finish-waiting p { text-transform: none; letter-spacing: normal; }
 .race-answer-grid { margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .race-answer { min-height: 60px; padding: 10px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); color: var(--ink); font-weight: 800; }
 .race-answer:disabled { opacity: .58; }

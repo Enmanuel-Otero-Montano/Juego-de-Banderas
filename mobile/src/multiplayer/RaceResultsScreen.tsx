@@ -1,7 +1,7 @@
 import { Share2, Trophy } from 'lucide-react';
 import { Share } from '@capacitor/share';
 import { useI18n } from '../i18n';
-import type { RaceRoom } from './contract';
+import { RACE_FLAGS_TOTAL, type RaceRoom } from './contract';
 import { raceText } from './raceCopy';
 import { apiBaseUrl } from '../services/api';
 
@@ -16,7 +16,7 @@ export function RaceResultsScreen({ room, onContinue }: { room: RaceRoom; onCont
     try { await Share.share({ title: text('result'), text: `${text('mode')}\n${lines}` }); } catch { /* Dismissed share sheet. */ }
   };
   return <main className="screen race-results-screen">
-    <section className="race-result-hero"><Trophy /><p className="eyebrow">{round.finish_reason === 'completed' ? text('completed') : text('timeout')}</p>
+    <section className="race-result-hero"><Trophy /><p className="eyebrow">{round.finish_reason === 'completed' || (winner?.progress ?? 0) >= RACE_FLAGS_TOTAL ? text('completed') : text('timeout')}</p>
       <h1>{winner?.display_name || text('result')}</h1><p>{text('winner')}</p></section>
     <section className="race-standings">
       {standings.map((standing) => <article className={standing.user_id === room.current_user_id ? 'race-standing race-standing--me' : 'race-standing'} key={standing.user_id}>

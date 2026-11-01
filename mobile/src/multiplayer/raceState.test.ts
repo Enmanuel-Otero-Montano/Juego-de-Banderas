@@ -46,6 +46,16 @@ describe('raceReducer', () => {
     expect(finished.room?.current_round?.standings?.[0].display_name).toBe('Luna');
   });
 
+  it('keeps the round active when a rival reaches the finish line', () => {
+    const advanced = raceReducer(initialRaceState(room), { type: 'message', message: {
+      type: 'progress', protocol_version: 1, revision: 5, round_id: 'round-1',
+      participants: [{ user_id: 2, progress: 12, mistakes: 3 }],
+    } });
+    expect(advanced.room?.status).toBe('round_active');
+    expect(advanced.room?.current_round?.status).toBe('running');
+    expect(advanced.progress[2].progress).toBe(12);
+  });
+
   it('shows a neutral intermission state to the rest of the lobby', () => {
     const changed = raceReducer(initialRaceState({ ...room, status: 'waiting' }), { type: 'message', message: {
       type: 'player_intermission_changed', protocol_version: 1, revision: 8, user_id: 2, state: 'ad_break',

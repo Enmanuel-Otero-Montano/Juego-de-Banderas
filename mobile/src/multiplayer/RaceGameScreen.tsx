@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { WifiOff, X } from 'lucide-react';
+import { Trophy, WifiOff, X } from 'lucide-react';
 import type { RaceClock } from './raceClock';
 import { Flag, preloadFlags } from '../components/Flag';
 import { getCountryByCode, getCountryName } from '../data/countries';
@@ -45,7 +45,7 @@ export function RaceGameScreen({ room, clock, connected, pending, progress, onAn
 
   const preparing = !Number.isFinite(now) || preparedRound !== round.id;
   const blocked = preparing || startsIn > 0;
-  const completed = participant.progress >= (round.plan?.length || 12);
+  const completed = participant.progress >= total;
   if (!question || !answer) return <main className="race-game-screen"><p>{text('error')}</p></main>;
 
   return <>
@@ -63,7 +63,12 @@ export function RaceGameScreen({ room, clock, connected, pending, progress, onAn
     </header>
     <RaceWorldMap key={round.id} members={room.members} currentUserId={room.current_user_id}
       localProgress={participant.progress} localSequence={participant.expected_sequence} total={total} progress={progress} pending={pending} connected={connected} />
-    <section className="race-question">
+    {completed && !pending ? <section className="race-question race-finish-waiting" role="status">
+      <Trophy aria-hidden="true" />
+      <h2>{text('completed')}</h2>
+      <p>{text('waitingPodium')}</p>
+      {!connected && <p className="race-connection-warning"><WifiOff /> {text('unstable')}</p>}
+    </section> : <><section className="race-question">
       <p>{text('question')}</p><Flag code={answer.code} name={getCountryName(answer, language)} size="hero" />
       {!connected && <p className="race-connection-warning" role="status"><WifiOff /> {text('unstable')}</p>}
     </section>
@@ -77,5 +82,6 @@ export function RaceGameScreen({ room, clock, connected, pending, progress, onAn
       })}
     </div>
     {locked && <p className="race-penalty" role="status">+1.5s</p>}
+    </>}
   </main></>;
 }

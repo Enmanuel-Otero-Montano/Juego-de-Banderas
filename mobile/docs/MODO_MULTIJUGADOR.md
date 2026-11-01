@@ -16,9 +16,9 @@ Una **sala** conserva el código, el grupo y los ajustes; dentro de ella se pued
 jugar muchas **rondas**. Pedir revancha crea una ronda nueva, no otra sala, por
 lo que nadie necesita compartir un enlace otra vez.
 
-La carrera termina para todos en el instante en que el servidor confirma la
-última respuesta del ganador. Si nadie llega a la meta antes de 90 segundos,
-gana quien haya avanzado más.
+La carrera continúa hasta definir el podio: con dos personas basta una llegada,
+con tres se necesitan dos, y con cuatro a ocho se necesitan tres. Si se cumplen
+90 segundos antes, se conservan las llegadas y se clasifica al resto por avance.
 
 El modo es independiente del progreso de Viaje, los lugares y todos los rankings
 públicos. Su propuesta de valor se resume en una frase:
@@ -34,7 +34,7 @@ públicos. Su propuesta de valor se resume en una frase:
 | ¿Cómo se entra? | Sala privada mediante enlace o código. |
 | ¿Se reutiliza la sala? | Sí. Después de cada resultado se vuelve al mismo lobby y se puede iniciar otra ronda. |
 | ¿Qué define al ganador? | Ser la primera persona en resolver correctamente las 12 banderas. |
-| ¿Cuándo termina? | Inmediatamente al llegar alguien a 12/12, o a los 90 segundos. |
+| ¿Cuándo termina? | Con 2 personas, al llegar la primera; con 3, al llegar la segunda; con 4–8, al llegar la tercera. Siempre hay un límite de 90 segundos. |
 | ¿Qué ocurre al fallar? | No se avanza, se bloquean las respuestas 1,5 segundos y se reintenta la misma bandera. |
 | ¿Todos juegan lo mismo? | Sí: mismos países, orden y distractores; cambia la posición visual de las opciones. |
 | ¿Usa lugares? | No. Puede compartirse dentro de un lugar, pero no depende de él ni le da puntos. |
@@ -125,21 +125,34 @@ persona.
 
 ### Final y clasificación
 
-El servidor termina la carrera de forma atómica al aceptar la respuesta correcta
-que lleva a la primera persona a `12/12`. No hay tiempo adicional después de que
-alguien cruza la meta.
+El servidor registra cada llegada a `12/12` y termina la carrera de forma atómica
+cuando quedan definidos los puestos del podio:
+
+- Con 2 participantes, al llegar la primera persona; la restante queda segunda.
+- Con 3 participantes, al llegar la segunda persona; la restante queda tercera.
+- Con 4–8 participantes, al llegar la tercera persona.
+
+La cantidad de participantes se congela al iniciar la ronda; una desconexión no
+modifica el umbral de cierre. Quien llega deja de responder y puede seguir viendo
+el progreso de los demás mientras espera el resultado. El límite original de
+90 segundos sigue vigente y no se reinicia con las llegadas.
+
+Estas reglas usan `ruleset_version = 2`. Una ronda ya iniciada con la versión 1
+conserva su cierre con la primera llegada.
 
 La clasificación se ordena así:
 
-1. La persona que llegó a `12/12`.
+1. Quienes llegaron a `12/12`, por orden de llegada confirmado por el servidor,
+   independientemente de sus errores.
 2. Mayor número de banderas completadas en el instante del cierre.
 3. Menor número de respuestas incorrectas.
 4. Momento más temprano en que alcanzó su progreso actual.
 5. Mismo puesto si todo lo anterior coincide.
 
-Si transcurren 90 segundos sin que nadie llegue a `12/12`, se aplica el mismo
-orden desde el punto 2. La primera persona de esa tabla figura como **ganador
-por avance**; la interfaz debe distinguirlo de **meta completada**.
+Si transcurren 90 segundos antes de completar el podio, se conservan las llegadas
+y se ordena a quienes faltan desde el punto 2. Si nadie completó `12/12`, la
+primera persona de esa tabla figura como **ganador por avance**; si alguien llegó,
+conserva su victoria por **meta completada**.
 
 Una carrera sin al menos dos participantes conectados al comenzar se cancela y
 no produce ganador.
@@ -531,10 +544,11 @@ cliente que detecta un salto solicita snapshot en lugar de inferir eventos.
 - momento de recepción del servidor;
 - penalización resultante.
 
-El evento que completa `12/12` debe cerrar la carrera dentro de la misma
-transacción, bloqueando la fila de la ronda. Dos respuestas finales concurrentes
-no pueden producir dos ganadores. Al cerrar, la sala vuelve a lobby sin cambiar
-código ni miembros presentes.
+Cada evento que completa `12/12` registra la llegada dentro de una transacción
+que bloquea la fila de la ronda. La llegada que alcanza el umbral de cierre
+termina la carrera en esa misma transacción. Las respuestas finales concurrentes
+no pueden producir dos ganadores ni alterar los puestos ya confirmados. Al
+cerrar, la sala vuelve a lobby sin cambiar código ni miembros presentes.
 
 Los eventos detallados se eliminan después de 24 horas y los resultados después
 de siete días, salvo que métricas agregadas y anónimas exijan menos retención.
@@ -630,7 +644,10 @@ dimensiones de analítica.
 - respuesta correcta, incorrecta, repetida, adelantada y fuera de secuencia;
 - penalización aplicada por tiempo de servidor;
 - dos respuestas finales concurrentes producen un solo ganador;
-- cierre inmediato bloquea respuestas posteriores;
+- cierre tras 1, 2 o 3 llegadas según la cantidad inicial de participantes y
+  bloqueo de respuestas posteriores;
+- orden de llegada por delante de errores, sin sobrescribir la hora de llegada;
+- tiempo agotado después de llegadas parciales conserva los puestos confirmados;
 - revancha conserva sala, código y miembros, pero crea otro plan y otra ronda;
 - timeout y desempates;
 - reconexión y snapshot;
@@ -670,10 +687,11 @@ dimensiones de analítica.
 - El servidor entrega el mismo pool, orden y distractores a todos.
 - Cada acierto avanza exactamente una bandera; un error no avanza y bloquea 1,5
   segundos.
-- La primera confirmación válida de `12/12` cierra la carrera inmediatamente y
-  produce un único ganador.
-- Si nadie termina en 90 segundos, el servidor ordena por progreso, errores y
-  momento de avance.
+- La primera confirmación válida de `12/12` produce un único ganador. La carrera
+  cierra al llegar la primera persona con 2 participantes, la segunda con 3, o
+  la tercera con 4–8.
+- A los 90 segundos, el servidor conserva las llegadas y ordena al resto por
+  progreso, errores y momento de avance.
 - Desconectar o poner la app en segundo plano no pausa el reloj ni duplica una
   plaza.
 - Una reconexión recupera el estado autoritativo sin reiniciar progreso.
@@ -687,7 +705,7 @@ dimensiones de analítica.
 ## Partición recomendada en issues de implementación
 
 1. **Prototipo de Carrera y prueba de latencia**: validar lobby, progreso de ocho
-   personas, penalización y cierre inmediato con un servidor de prueba.
+   personas, penalización y cierre según los puestos del podio con un servidor de prueba.
 2. **Persistencia y contrato REST**: migraciones, generación de plan, creación,
    entrada, snapshot y resultados.
 3. **Motor WebSocket MVP**: presencia, countdown, respuestas, gestor en memoria,

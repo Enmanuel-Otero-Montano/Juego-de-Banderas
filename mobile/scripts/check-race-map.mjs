@@ -56,14 +56,22 @@ try {
       const track = rect(document.querySelector('.race-world-map__lanes'));
       const bars = [...document.querySelectorAll('[role="progressbar"]')].map((element) => ({ ...rect(element), value: +element.getAttribute('aria-valuenow') }));
       return { map, track, bars, slot: rect(document.querySelector('.race-world-map-slot')), header: rect(document.querySelector('.race-game-header')), question: rect(document.querySelector('.race-question > p')),
-        flag: rect(document.querySelector('.race-question .flag')), answers: rect(document.querySelector('.race-answer-grid')),
+        flag: document.querySelector('.race-question .flag') ? rect(document.querySelector('.race-question .flag')) : null,
+        answers: document.querySelector('.race-answer-grid') ? rect(document.querySelector('.race-answer-grid')) : null,
+        waiting: document.querySelector('.race-finish-waiting') ? rect(document.querySelector('.race-finish-waiting')) : null,
         shell: rect(document.querySelector('.app-shell')), horizontalOverflow: document.documentElement.scrollWidth > innerWidth,
         scrollHeight: document.documentElement.scrollHeight, viewportHeight: innerHeight };
     });
     assert.ok(Math.abs(metrics.map.y - metrics.header.bottom - 5) < 1, `${name}: header gap`);
-    assert.ok(Math.abs(metrics.question.y - metrics.slot.bottom - 18) < 1, `${name}: question gap`);
     assert.ok(Math.abs(metrics.map.width - metrics.shell.width) < 1, `${name}: full width`);
-    assert.ok(metrics.answers.y >= metrics.flag.bottom + 14, `${name}: answers clear flag`);
+    if (metrics.waiting) {
+      assert.equal(metrics.answers, null, `${name}: finishers cannot answer again`);
+      assert.ok(metrics.waiting.y >= metrics.map.bottom && metrics.waiting.bottom <= metrics.viewportHeight, `${name}: finish message fits below map`);
+      assert.ok(await page.locator('.race-finish-waiting').innerText(), `${name}: finish message is visible`);
+    } else {
+      assert.ok(Math.abs(metrics.question.y - metrics.slot.bottom - 18) < 1, `${name}: question gap`);
+      assert.ok(metrics.answers.y >= metrics.flag.bottom + 14, `${name}: answers clear flag`);
+    }
     assert.equal(metrics.horizontalOverflow, false, `${name}: horizontal overflow`);
     for (const [i, bar] of metrics.bars.entries()) {
       assert.ok(bar.y >= metrics.map.y && bar.bottom <= metrics.map.bottom, `${name}: vertical clip`);
@@ -122,6 +130,11 @@ try {
     await page.waitForTimeout(25);
   }
   await settle(); await geometry('eight-finished');
+  if (!androidSerial) {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await settle(); await geometry('eight-finished-320x568');
+    await page.setViewportSize({ width: 390, height: 844 });
+  }
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await update({ values: [6, 3, 0, 9, 12, 6, 3, 9] });
   assert.equal(await page.locator('.race-world-map__runner').first().evaluate((element) => getComputedStyle(element).transitionDuration), '0s');

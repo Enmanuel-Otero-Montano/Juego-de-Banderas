@@ -3,6 +3,7 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { RaceGameScreen } from './RaceGameScreen';
+import { RaceResultsScreen } from './RaceResultsScreen';
 import { RaceClock } from './raceClock';
 import type { RaceRoom } from './contract';
 import { preloadFlags } from '../components/Flag';
@@ -28,9 +29,10 @@ let now: number;
 let clock: RaceClock;
 let tick: FrameRequestCallback;
 const onAnswer = vi.fn();
-const render = async (connected = true) => {
-  await act(async () => root.render(<RaceGameScreen room={room} clock={clock} connected={connected} pending={false}
-    progress={{}} onAnswer={onAnswer} onExit={() => {}} />));
+const render = async (connected = true, activeRoom = room, pending = false,
+  progress: Record<number, { progress: number; mistakes: number }> = {}) => {
+  await act(async () => root.render(<RaceGameScreen room={activeRoom} clock={clock} connected={connected} pending={pending}
+    progress={progress} onAnswer={onAnswer} onExit={() => {}} />));
 };
 const advance = async (time: number) => { now = time; await act(async () => tick(time)); };
 const buttons = () => [...container.querySelectorAll<HTMLButtonElement>('.race-answer')];
@@ -90,5 +92,50 @@ describe('race screen scheduled presentation', () => {
     expect(buttons().every((button) => button.disabled)).toBe(true);
     await render(true);
     expect(buttons().every((button) => !button.disabled)).toBe(true);
+  });
+
+  it('lets a player keep answering after a rival has finished', async () => {
+    const activeRoom: RaceRoom = { ...room, current_round: { ...room.current_round!, status: 'running', winner_user_id: 2 } };
+    await render(true, activeRoom, false, { 2: { progress: 12, mistakes: 0 } });
+    await advance(15000);
+    expect(container.querySelector('.race-finish-waiting')).toBeNull();
+    expect(buttons().every((button) => !button.disabled)).toBe(true);
+    await act(async () => buttons()[0].click());
+    expect(onAnswer).toHaveBeenCalledTimes(1);
+  });
+
+  it('waits for the podium after a confirmed finish and keeps showing the race', async () => {
+    const finishedRoom: RaceRoom = { ...room, members: [
+      { user_id: 1, display_name: 'Atlas', seat: 1, role: 'host', ready: false, connected: true, intermission_state: 'in_lobby' },
+      { user_id: 2, display_name: 'Luna', seat: 2, role: 'player', ready: false, connected: true, intermission_state: 'in_lobby' },
+    ], current_round: { ...room.current_round!, status: 'running',
+      participant: { ...room.current_round!.participant!, progress: 1, expected_sequence: 2 } } };
+    await render(true, finishedRoom, true);
+    await advance(15000);
+    expect(container.querySelector('.race-finish-waiting')).toBeNull();
+    expect(buttons().every((button) => button.disabled)).toBe(true);
+    await render(true, finishedRoom);
+    expect(container.querySelector('.race-finish-waiting')?.textContent).toContain('La carrera continúa');
+    expect(buttons()).toHaveLength(0);
+    await render(true, finishedRoom, false, { 2: { progress: 1, mistakes: 0 } });
+    expect(container.querySelector('[role="progressbar"][aria-label*="Luna"]')?.getAttribute('aria-valuenow')).toBe('1');
+    expect(container.querySelector('.race-timer')?.textContent).toBe('80s');
+    await render(false, finishedRoom);
+    expect(container.querySelector('.race-finish-waiting')?.textContent).toContain('Conexión inestable');
+    expect(onAnswer).not.toHaveBeenCalled();
+  });
+
+  it('keeps a completed winner when the remaining podium places time out', async () => {
+    const resultRoom: RaceRoom = { ...room, status: 'waiting', current_round: { ...room.current_round!,
+      status: 'expired', finish_reason: 'timeout', winner_user_id: 2, standings: [
+        { user_id: 2, display_name: 'Luna', rank: 1, progress: 12, mistakes: 5, finished_at: '2026-10-08T18:00:20Z' },
+        { user_id: 1, display_name: 'Atlas', rank: 2, progress: 10, mistakes: 0, finished_at: null },
+      ] } };
+    await act(async () => root.render(<RaceResultsScreen room={resultRoom} onContinue={() => {}} />));
+    expect(container.querySelector('.race-result-hero h1')?.textContent).toBe('Luna');
+    expect(container.querySelector('.race-result-hero .eyebrow')?.textContent).toBe('Meta completada');
+    expect([...container.querySelectorAll('.race-standing')].map((standing) => standing.textContent)).toEqual([
+      expect.stringContaining('Luna'), expect.stringContaining('Atlas'),
+    ]);
   });
 });

@@ -21,7 +21,7 @@ const base: RaceRoom = {
   host_user_id: 1, current_user_id: 1, revision: 1, expires_at: '', members,
   current_round: { id: 'round', number: 1, status: 'running', starts_at: new Date(epoch).toISOString(),
     deadline_at: new Date(epoch + 90000).toISOString(), finished_at: null, finish_reason: null, winner_user_id: null,
-    ruleset_version: 1, content_version: 1, participant: { progress: 6, mistakes: 0, expected_sequence: 7, discarded_codes: [], locked_until: null },
+    ruleset_version: 2, content_version: 1, participant: { progress: 6, mistakes: 0, expected_sequence: 7, discarded_codes: [], locked_until: null },
     plan: Array.from({ length: 12 }, () => ({ country_code: 'uy', option_codes: ['uy', 'ar', 'br', 'cl'] })) },
 };
 function Fixture() {
